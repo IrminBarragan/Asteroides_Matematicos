@@ -137,6 +137,7 @@ function configurarBotones() {
                 console.error('Error al cambiar audio:', error);
             }
         });
+        btnAudio.click(); // Inicializar estado del audio
     }
 }
 

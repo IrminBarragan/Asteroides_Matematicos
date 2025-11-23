@@ -1,5 +1,5 @@
 /**
- * Gestor Principal del Juego
+ * Gestor Principal del Juego con IA Adaptativa
  * Principio SOLID: Coordina todos los componentes (Dependency Injection)
  */
 
@@ -8,16 +8,17 @@ class GestorJuego {
         if (!canvas) {
             throw new Error('Canvas no proporcionado al GestorJuego');
         }
-        
+
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
-        
+
         // Componentes del juego (Inyección de dependencias)
         this.gestorAudio = new GestorAudio();
         this.gestorNivel = new GestorNivel();
         this.sistemaParticulas = new SistemaParticulas();
         this.nave = new Nave();
-        
+        this.sistemaIA = new SistemaIA(); // 🤖 Nuevo sistema de IA
+
         // Estado del juego
         this.asteroides = [];
         this.itemsEspeciales = [];
@@ -25,11 +26,15 @@ class GestorJuego {
         this.estado = 'detenido'; // detenido, jugando, pausado, gameover
         this.estrellas = this.generarEstrellas(100);
         this.frameId = null;
-        
+
+        // Métricas de tiempo para IA
+        this.tiempoInicioRespuesta = null;
+        this.ultimaActualizacionIA = 0;
+
         // Configurar eventos
         this.configurarEventos();
-        
-        console.log('GestorJuego inicializado correctamente');
+
+        console.log('GestorJuego con IA inicializado correctamente');
     }
 
     /**
@@ -38,18 +43,17 @@ class GestorJuego {
     configurarEventos() {
         this.canvas.addEventListener('click', (e) => this.manejarClick(e));
         this.canvas.addEventListener('mousemove', (e) => this.manejarMovimientoMouse(e));
-        
+
         // Eventos de teclado para movimiento
         document.addEventListener('keydown', (e) => {
             if (this.estado === 'jugando') {
-                // Prevenir scroll con flechas
                 if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                     e.preventDefault();
                 }
                 this.nave.teclaPresionada(e.key);
             }
         });
-        
+
         document.addEventListener('keyup', (e) => {
             if (this.estado === 'jugando') {
                 this.nave.teclaSoltada(e.key);
@@ -72,7 +76,7 @@ class GestorJuego {
         // Verificar click en asteroides
         for (let i = this.asteroides.length - 1; i >= 0; i--) {
             const asteroide = this.asteroides[i];
-            
+
             if (asteroide.colisionConPunto(x, y)) {
                 this.procesarClickAsteroide(asteroide, i);
                 break;
@@ -82,7 +86,7 @@ class GestorJuego {
         // Verificar click en ítems especiales
         for (let i = this.itemsEspeciales.length - 1; i >= 0; i--) {
             const item = this.itemsEspeciales[i];
-            
+
             if (item.colisionConPunto(x, y)) {
                 this.procesarClickItem(item, i);
                 break;
@@ -91,117 +95,257 @@ class GestorJuego {
     }
 
     /**
+     * Maneja el movimiento del mouse
+     */
+    manejarMovimientoMouse(evento) {
+        if (this.estado !== 'jugando') return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const x = (evento.clientX - rect.left) * scaleX;
+
+        this.nave.moverA(x);
+    }
+
+    /**
      * Procesa el click en un asteroide
      */
     procesarClickAsteroide(asteroide, indice) {
+        // 🤖 Calcular tiempo de respuesta para IA
+        const tiempoRespuesta = this.tiempoInicioRespuesta ?
+            Date.now() - this.tiempoInicioRespuesta : 0;
+
         if (asteroide.esRespuestaCorrecta) {
-            // Respuesta correcta - solo disparar, no destruir todavía
+            // Respuesta correcta
             this.gestorAudio.reproducirEfecto('acierto');
-            
-            // Disparo de la nave hacia el asteroide
             this.nave.dispararHacia(asteroide.x, asteroide.y);
-            
-            // NO eliminar el asteroide aquí, esperar a que el láser colisione
-            
+
+            // 🤖 Registrar respuesta correcta en IA
+            this.sistemaIA.registrarRespuesta(
+                true,
+                this.operacionActual.operador,
+                tiempoRespuesta
+            );
+
         } else {
-            // Respuesta incorrecta - disparar pero no afecta al asteroide
+            // Respuesta incorrecta
             this.gestorAudio.reproducirEfecto('fallo');
             this.gestorNivel.registrarFallo();
-            
-            // Disparo de la nave hacia el asteroide incorrecto
             this.nave.dispararHacia(asteroide.x, asteroide.y);
-            
-            // Mostrar mensaje según fallos consecutivos
+
+            // 🤖 Registrar respuesta incorrecta en IA
+            this.sistemaIA.registrarRespuesta(
+                false,
+                this.operacionActual.operador,
+                tiempoRespuesta
+            );
+
             const fallosRestantes = 2 - this.gestorNivel.fallosConsecutivos;
             if (fallosRestantes > 0) {
-                this.mostrarMensajeTemporal(`¡Incorrecto! (${fallosRestantes} fallo más = -1 vida)`, 1500);
+                this.mostrarMensajeTemporal(`¡Incorrecto! ${fallosRestantes} fallo${fallosRestantes > 1 ? 's' : ''} más = -1 vida`, 3000, 'error');
             }
-            
-            // Verificar si perdió una vida
+
             if (this.gestorNivel.juegoTerminado()) {
                 this.finalizarJuego();
             }
         }
-        
+
         this.actualizarInterfaz();
+        this.actualizarInterfazIA(); // 🤖 Actualizar panel IA
     }
 
     /**
      * Verifica colisiones entre láseres y asteroides
      */
     verificarColisionesLaseres() {
-        // Iterar sobre los láseres de forma segura
         for (let laserIndex = this.nave.laseres.length - 1; laserIndex >= 0; laserIndex--) {
             const laser = this.nave.laseres[laserIndex];
             let laserEliminado = false;
-            
-            // Verificar colisión con asteroides
+
             for (let i = this.asteroides.length - 1; i >= 0; i--) {
                 const asteroide = this.asteroides[i];
-                
-                // Verificar colisión entre láser y asteroide
+
                 if (Utilidades.puntoEnCirculo(laser.x, laser.y, asteroide.x, asteroide.y, asteroide.radio)) {
-                    // Colisión detectada
                     if (asteroide.esRespuestaCorrecta) {
-                        // Respuesta correcta - AHORA sí destruir
                         this.gestorAudio.reproducirEfecto('explosion');
-                        
-                        // Crear explosión
+
                         this.sistemaParticulas.crearExplosion(
                             asteroide.x,
                             asteroide.y,
                             30,
                             CONFIG.COLORES.CORRECTO
                         );
-                        
-                        // Eliminar asteroide
+
                         this.asteroides.splice(i, 1);
-                        
-                        // Eliminar láser
                         this.nave.laseres.splice(laserIndex, 1);
                         laserEliminado = true;
-                        
-                        // Actualizar puntuación AQUÍ cuando realmente colisiona
+
                         this.gestorNivel.registrarAcierto();
                         const subioNivel = this.gestorNivel.sumarPuntos(CONFIG.PUNTUACION.ACIERTO);
-                        
+
+                        // Mostrar mensaje de acierto
+                        const mensajesAcierto = [
+                            '¡Correcto!',
+                            '¡Excelente!',
+                            '¡Muy bien!',
+                            '¡Perfecto!',
+                            '¡Genial!'
+                        ];
+                        const mensajeAleatorio = mensajesAcierto[Math.floor(Math.random() * mensajesAcierto.length)];
+                        this.mostrarMensajeTemporal(mensajeAleatorio + ' +10 puntos', 2000, 'acierto');
+
                         if (subioNivel) {
                             this.gestorAudio.reproducirEfecto('nivel');
-                            this.mostrarMensajeTemporal('¡Nivel ' + this.gestorNivel.nivel + '!', 2000);
+                            this.mostrarMensajeTemporal('¡Nivel ' + this.gestorNivel.nivel + ' alcanzado!', 3000, 'info');
+
+                            // 🤖 Aplicar ajustes de IA al subir de nivel
+                            this.aplicarAjustesIA();
                         }
-                        
-                        // Generar nueva operación y asteroides
+
                         this.generarNuevaOperacion();
-                        
-                        // Posibilidad de generar ítem especial
+
                         if (Math.random() < 0.2) {
                             this.generarItemEspecial();
                         }
-                        
+
                         this.actualizarInterfaz();
-                        
-                        break; // Salir del bucle de asteroides
+                        break;
+
                     } else {
-                        // Respuesta incorrecta - solo efecto visual, el asteroide permanece
                         this.sistemaParticulas.crearExplosion(
                             asteroide.x,
                             asteroide.y,
                             10,
                             CONFIG.COLORES.INCORRECTO
                         );
-                        
-                        // Eliminar solo el láser
+
                         this.nave.laseres.splice(laserIndex, 1);
                         laserEliminado = true;
-                        break; // Salir del bucle de asteroides
+                        break;
                     }
                 }
             }
-            
-            // Si el láser ya fue eliminado, continuar con el siguiente
+
             if (laserEliminado) {
                 continue;
             }
+        }
+    }
+
+    /**
+     * 🤖 Aplica ajustes de dificultad basados en IA
+     */
+    aplicarAjustesIA() {
+        const ajustes = this.sistemaIA.obtenerAjustesDificultad();
+
+        if (ajustes.aplicarCambio) {
+            // Ajustar velocidad
+            this.gestorNivel.velocidadAsteroides *= ajustes.velocidad;
+            this.gestorNivel.velocidadAsteroides = Math.min(
+                this.gestorNivel.velocidadAsteroides,
+                CONFIG.ASTEROIDE.VELOCIDAD_MAX
+            );
+
+            // Ajustar cantidad de asteroides
+            this.gestorNivel.cantidadAsteroides += ajustes.cantidadAsteroides;
+            this.gestorNivel.cantidadAsteroides = Math.max(
+                CONFIG.ASTEROIDE.CANTIDAD_INICIAL,
+                Math.min(this.gestorNivel.cantidadAsteroides, CONFIG.ASTEROIDE.CANTIDAD_MAXIMA)
+            );
+
+            console.log('🤖 IA ajustó dificultad:', {
+                velocidad: this.gestorNivel.velocidadAsteroides,
+                cantidad: this.gestorNivel.cantidadAsteroides
+            });
+
+            // Mostrar mensaje de ajuste
+            const recomendacion = this.sistemaIA.obtenerRecomendacionActual();
+            if (recomendacion && recomendacion.tipo === 'dificultad') {
+                this.mostrarMensajeTemporal('IA: ' + recomendacion.mensaje, 3500, 'info');
+            }
+        }
+    }
+
+    /**
+     * 🤖 Actualiza la interfaz del panel IA
+     */
+    actualizarInterfazIA() {
+        const stats = this.sistemaIA.obtenerEstadisticasIA();
+
+        // Actualizar nivel de habilidad
+        const nivelHabilidadEl = document.getElementById('nivelHabilidad');
+        if (nivelHabilidadEl) {
+            nivelHabilidadEl.textContent = stats.nivelHabilidad.charAt(0).toUpperCase() +
+                stats.nivelHabilidad.slice(1);
+            nivelHabilidadEl.className = 'nivel-habilidad nivel-' + stats.nivelHabilidad;
+        }
+
+        // Actualizar estilo de juego
+        const estiloJuegoEl = document.getElementById('estiloJuego');
+        if (estiloJuegoEl) {
+            estiloJuegoEl.textContent = stats.estiloJuego.charAt(0).toUpperCase() +
+                stats.estiloJuego.slice(1);
+        }
+
+        // Actualizar precisión
+        const precisionEl = document.getElementById('precisionIA');
+        if (precisionEl) {
+            precisionEl.textContent = stats.precision + '%';
+        }
+
+        // Actualizar tiempo promedio
+        const tiempoEl = document.getElementById('tiempoPromedioIA');
+        if (tiempoEl) {
+            tiempoEl.textContent = stats.tiempoPromedio + 's';
+        }
+
+        // Actualizar racha máxima
+        const rachaMaxEl = document.getElementById('rachaMaximaIA');
+        if (rachaMaxEl) {
+            rachaMaxEl.textContent = stats.rachaMaxima;
+        }
+
+        // Actualizar análisis IA
+        const analisisEl = document.getElementById('analisisIA');
+        if (analisisEl && stats.totalRespuestas >= CONFIG.IA.INTERVALO_EVALUACION) {
+            let analisisHTML = `<p class="mb-2"><strong>Perfil identificado:</strong> Jugador ${stats.nivelHabilidad}</p>`;
+            analisisHTML += `<p class="mb-2"><strong>Estilo:</strong> ${stats.estiloJuego}</p>`;
+
+            if (stats.mejorando) {
+                analisisHTML += `<p class="mb-0 text-success">¡Estás mejorando! Sigue así.</p>`;
+            } else {
+                analisisHTML += `<p class="mb-0 text-warning">Mantén la concentración.</p>`;
+            }
+
+            analisisEl.innerHTML = analisisHTML;
+        }
+
+        // Mostrar recomendación si existe
+        const recomendacion = this.sistemaIA.obtenerRecomendacionActual();
+        const recomendacionContainer = document.getElementById('recomendacionContainer');
+        const recomendacionEl = document.getElementById('recomendacionIA');
+
+        if (recomendacion && recomendacionContainer && recomendacionEl) {
+            recomendacionContainer.style.display = 'block';
+            recomendacionEl.textContent = recomendacion.mensaje;
+        }
+
+        // Mostrar operación difícil si existe
+        const operacionDificilContainer = document.getElementById('operacionDificilContainer');
+        const operacionDificilEl = document.getElementById('operacionDificil');
+
+        if (stats.operacionDificil && operacionDificilContainer && operacionDificilEl) {
+            operacionDificilContainer.style.display = 'block';
+            operacionDificilEl.textContent =
+                `Dificultad detectada en ${this.sistemaIA.obtenerNombreOperacion(stats.operacionDificil)}. Considera practicar más.`;
+        } else if (operacionDificilContainer) {
+            operacionDificilContainer.style.display = 'none';
+        }
+
+        // Actualizar racha en estadísticas principales
+        const rachaEl = document.getElementById('racha');
+        if (rachaEl) {
+            rachaEl.textContent = stats.rachaActual;
         }
     }
 
@@ -241,78 +385,110 @@ class GestorJuego {
      * Reinicia el juego
      */
     reiniciar() {
-        this.estado = 'detenido';
+        if (this.frameId) {
+            cancelAnimationFrame(this.frameId);
+        }
+
         this.gestorNivel.reiniciar();
+        this.sistemaIA.reiniciar(); // 🤖 Reiniciar IA
         this.asteroides = [];
         this.itemsEspeciales = [];
-        this.sistemaParticulas.limpiar();
         this.nave.limpiarLaseres();
+        this.sistemaParticulas.limpiar();
+        this.estado = 'detenido';
+        this.tiempoInicioRespuesta = null;
+
+        this.mostrarMensaje('Asteroides Matemáticos', 'Presiona "Iniciar Juego" para comenzar');
         this.actualizarInterfaz();
-        this.mostrarMensaje('🚀 Asteroides Matemáticos', 'Presiona "Iniciar Juego" para comenzar');
+        this.actualizarInterfazIA(); // 🤖 Actualizar panel IA
+
         console.log('Juego reiniciado');
     }
 
     /**
      * Genera una nueva operación matemática
+     * ✅ CORREGIDO: Actualiza la operación INMEDIATAMENTE antes de generar asteroides
      */
     generarNuevaOperacion() {
+        // Generar nueva operación
         this.operacionActual = new OperacionMatematica(this.gestorNivel.nivel);
-        
-        // Limpiar asteroides anteriores
-        this.asteroides = [];
-        
-        // Obtener la respuesta correcta
-        const respuestaCorrecta = this.operacionActual.resultado;
-        
-        // Generar respuestas incorrectas
-        const respuestasIncorrectas = this.operacionActual.generarRespuestasIncorrectas(
-            this.gestorNivel.cantidadAsteroides - 1
-        );
-        
-        // Combinar todas las respuestas
-        const todasLasRespuestas = [respuestaCorrecta, ...respuestasIncorrectas];
-        
-        // Verificar que no haya duplicados
-        const respuestasUnicas = [...new Set(todasLasRespuestas)];
-        
-        // Si hay duplicados, regenerar
-        if (respuestasUnicas.length !== todasLasRespuestas.length) {
-            console.warn('Respuestas duplicadas detectadas, regenerando...');
-            this.generarNuevaOperacion();
-            return;
-        }
-        
-        // Mezclar respuestas
-        respuestasUnicas.sort(() => Math.random() - 0.5);
-        
-        console.log('Generando asteroides - Respuestas:', respuestasUnicas, 'Correcta:', respuestaCorrecta);
-        
-        // Crear asteroides
-        respuestasUnicas.forEach((numero, index) => {
-            const esCorrecta = numero === respuestaCorrecta;
-            const asteroide = new Asteroide(numero, esCorrecta);
-            asteroide.x = (CONFIG.CANVAS.ANCHO / respuestasUnicas.length) * (index + 0.5);
-            asteroide.y = -Utilidades.numeroAleatorio(50, 200);
-            asteroide.establecerVelocidad(this.gestorNivel.velocidadAsteroides);
-            this.asteroides.push(asteroide);
-            
-            if (esCorrecta) {
-                console.log(`Asteroide correcto en posición ${index}: ${numero}`);
-            }
-        });
-        
-        // Actualizar UI
+
+        // 🤖 Iniciar contador de tiempo para IA
+        this.tiempoInicioRespuesta = Date.now();
+
+        // ✅ ACTUALIZAR INTERFAZ INMEDIATAMENTE (antes de generar asteroides)
         const operacionTexto = document.getElementById('operacionTexto');
         if (operacionTexto) {
             operacionTexto.textContent = this.operacionActual.obtenerTexto();
         }
-        
-        // Verificar que hay exactamente un asteroide correcto
-        const asteroidesCorrectos = this.asteroides.filter(a => a.esRespuestaCorrecta);
-        if (asteroidesCorrectos.length !== 1) {
-            console.error('ERROR: No hay exactamente 1 asteroide correcto!', asteroidesCorrectos.length);
-            this.generarNuevaOperacion();
+
+        // Ahora generar asteroides
+        this.generarAsteroides();
+    }
+
+    /**
+     * Genera asteroides con las respuestas
+     * ✅ CORREGIDO: Evita superposición de asteroides
+     */
+    generarAsteroides() {
+        this.asteroides = [];
+
+        const respuestaCorrecta = this.operacionActual.resultado;
+        const respuestasIncorrectas = this.operacionActual.generarRespuestasIncorrectas(
+            this.gestorNivel.cantidadAsteroides - 1
+        );
+
+        // Agregar respuesta correcta
+        const asteroideCorrecto = this.crearAsteroideConPosicion(respuestaCorrecta, true, []);
+        this.asteroides.push(asteroideCorrecto);
+
+        // Agregar respuestas incorrectas sin superposición
+        respuestasIncorrectas.forEach(respuesta => {
+            const asteroide = this.crearAsteroideConPosicion(respuesta, false, this.asteroides);
+            this.asteroides.push(asteroide);
+        });
+
+        // Establecer velocidad a todos
+        this.asteroides.forEach(asteroide => {
+            asteroide.establecerVelocidad(this.gestorNivel.velocidadAsteroides);
+        });
+    }
+
+    /**
+     * ✅ NUEVO: Crea un asteroide asegurando que no se superponga con otros
+     */
+    crearAsteroideConPosicion(numero, esRespuestaCorrecta, asteroidesExistentes) {
+        const maxIntentos = 50;
+        let intento = 0;
+        let asteroide = null;
+        let posicionValida = false;
+
+        while (!posicionValida && intento < maxIntentos) {
+            // Crear asteroide temporal
+            asteroide = new Asteroide(numero, esRespuestaCorrecta);
+
+            // Verificar si se superpone con asteroides existentes
+            posicionValida = true;
+            for (const otroAsteroide of asteroidesExistentes) {
+                const distancia = Math.sqrt(
+                    Math.pow(asteroide.x - otroAsteroide.x, 2) +
+                    Math.pow(asteroide.y - otroAsteroide.y, 2)
+                );
+
+                // Distancia mínima = suma de radios + margen de seguridad
+                const distanciaMinima = asteroide.radio + otroAsteroide.radio + 20;
+
+                if (distancia < distanciaMinima) {
+                    posicionValida = false;
+                    break;
+                }
+            }
+
+            intento++;
         }
+
+        // Si después de 50 intentos no encuentra posición, usar la última generada
+        return asteroide;
     }
 
     /**
@@ -320,10 +496,11 @@ class GestorJuego {
      */
     generarItemEspecial() {
         const tipos = Object.values(CONFIG.ITEMS);
-        const tipoAleatorio = tipos[Utilidades.numeroAleatorio(0, tipos.length - 1)];
+        const tipoAleatorio = tipos[Math.floor(Math.random() * tipos.length)];
         const x = Utilidades.numeroAleatorio(50, CONFIG.CANVAS.ANCHO - 50);
-        
-        this.itemsEspeciales.push(new ItemEspecial(tipoAleatorio, x, -30));
+        const y = -50;
+
+        this.itemsEspeciales.push(new ItemEspecial(tipoAleatorio, x, y));
     }
 
     /**
@@ -335,8 +512,8 @@ class GestorJuego {
             estrellas.push({
                 x: Utilidades.numeroAleatorio(0, CONFIG.CANVAS.ANCHO),
                 y: Utilidades.numeroAleatorio(0, CONFIG.CANVAS.ALTO),
-                radio: Utilidades.numeroAleatorioDecimal(0.5, 2),
-                brillo: Math.random()
+                radio: Utilidades.numeroAleatorioDecimal(0.5, 1.5),
+                brillo: Math.random() * Math.PI * 2
             });
         }
         return estrellas;
@@ -346,12 +523,7 @@ class GestorJuego {
      * Bucle principal del juego
      */
     bucleJuego() {
-        if (this.estado !== 'jugando') {
-            if (this.frameId) {
-                cancelAnimationFrame(this.frameId);
-            }
-            return;
-        }
+        if (this.estado !== 'jugando') return;
 
         this.actualizar();
         this.dibujar();
@@ -360,33 +532,32 @@ class GestorJuego {
     }
 
     /**
-     * Actualiza todos los elementos del juego
+     * Actualiza la lógica del juego
      */
     actualizar() {
-        // Actualizar nave
         this.nave.actualizar();
+        this.asteroides.forEach(asteroide => asteroide.actualizar());
 
-        // Actualizar asteroides
-        this.asteroides.forEach(asteroide => {
-            asteroide.actualizar();
-        });
-
-        // Verificar colisiones entre láseres y asteroides
         this.verificarColisionesLaseres();
 
-        // Eliminar asteroides fuera de pantalla
         let asteroidesEscapados = false;
         this.asteroides = this.asteroides.filter(asteroide => {
             if (asteroide.estafueraDePantalla()) {
                 if (asteroide.esRespuestaCorrecta) {
-                    // Si se escapó la respuesta correcta, perder vida
                     const vidasRestantes = this.gestorNivel.perderVida();
                     this.gestorNivel.aumentarVelocidad();
                     this.gestorAudio.reproducirEfecto('fallo');
-                    this.mostrarMensajeTemporal(`¡Se escapó! Vidas: ${vidasRestantes}`, 1500);
+                    this.mostrarMensajeTemporal(`¡Se escapó la respuesta! Vidas restantes: ${vidasRestantes}`, 3000, 'warning');
                     asteroidesEscapados = true;
-                    
-                    // Verificar si el juego terminó
+
+                    // 🤖 Registrar timeout en IA
+                    const tiempoRespuesta = Date.now() - this.tiempoInicioRespuesta;
+                    this.sistemaIA.registrarRespuesta(
+                        false,
+                        this.operacionActual.operador,
+                        tiempoRespuesta
+                    );
+
                     if (this.gestorNivel.juegoTerminado()) {
                         this.finalizarJuego();
                     }
@@ -396,26 +567,27 @@ class GestorJuego {
             return true;
         });
 
-        // Si se escaparon asteroides y el juego no terminó, generar nueva operación
         if (asteroidesEscapados && !this.gestorNivel.juegoTerminado()) {
             this.generarNuevaOperacion();
         }
 
-        // Actualizar ítems especiales
         this.itemsEspeciales.forEach(item => item.actualizar());
         this.itemsEspeciales = this.itemsEspeciales.filter(
             item => !item.estaFueraDePantalla()
         );
 
-        // Actualizar sistema de partículas
         this.sistemaParticulas.actualizar();
-
-        // Actualizar multiplicador
         this.gestorNivel.actualizarMultiplicador();
 
-        // Actualizar interfaz periódicamente
         if (Math.random() < 0.1) {
             this.actualizarInterfaz();
+        }
+
+        // 🤖 Actualizar IA periódicamente
+        this.ultimaActualizacionIA++;
+        if (this.ultimaActualizacionIA >= 300) { // Cada 5 segundos aproximadamente
+            this.actualizarInterfazIA();
+            this.ultimaActualizacionIA = 0;
         }
     }
 
@@ -423,23 +595,13 @@ class GestorJuego {
      * Dibuja todos los elementos del juego
      */
     dibujar() {
-        // Limpiar canvas
-        this.ctx.fillStyle = '#0f0f1e';
+        this.ctx.fillStyle = CONFIG.COLORES.CANVAS_BG_DARK;
         this.ctx.fillRect(0, 0, CONFIG.CANVAS.ANCHO, CONFIG.CANVAS.ALTO);
 
-        // Dibujar estrellas
         this.dibujarEstrellas();
-
-        // Dibujar nave
         this.nave.dibujar(this.ctx);
-
-        // Dibujar asteroides
         this.asteroides.forEach(asteroide => asteroide.dibujar(this.ctx));
-
-        // Dibujar ítems especiales
         this.itemsEspeciales.forEach(item => item.dibujar(this.ctx));
-
-        // Dibujar partículas
         this.sistemaParticulas.dibujar(this.ctx);
     }
 
@@ -450,7 +612,7 @@ class GestorJuego {
         this.estrellas.forEach(estrella => {
             estrella.brillo += 0.02;
             const alpha = 0.3 + Math.sin(estrella.brillo) * 0.3;
-            
+
             this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
             this.ctx.beginPath();
             this.ctx.arc(estrella.x, estrella.y, estrella.radio, 0, Math.PI * 2);
@@ -464,9 +626,11 @@ class GestorJuego {
     finalizarJuego() {
         this.estado = 'gameover';
         const stats = this.gestorNivel.obtenerEstadisticas();
+        const statsIA = this.sistemaIA.obtenerEstadisticasIA();
+
         this.mostrarMensaje(
-            '💀 Game Over',
-            `Puntos finales: ${stats.puntos} | Nivel: ${stats.nivel} | Precisión: ${stats.precision}%`
+            'Game Over',
+            `Puntos: ${stats.puntos} | Nivel: ${stats.nivel} | Precisión: ${statsIA.precision}% | Racha máxima: ${statsIA.rachaMaxima}`
         );
         console.log('Juego terminado');
     }
@@ -476,39 +640,37 @@ class GestorJuego {
      */
     procesarClickItem(item, indice) {
         this.gestorAudio.reproducirEfecto('powerup');
-        
-        // Disparo de la nave hacia el ítem
         this.nave.dispararHacia(item.x, item.y);
-        
-        // Aplicar efecto del ítem
+
         switch(item.tipo) {
             case CONFIG.ITEMS.ESCUDO:
                 this.nave.activarEscudo();
+                this.mostrarMensajeTemporal('🛡️ Escudo activado - Protección temporal', 2500, 'info');
                 break;
             case CONFIG.ITEMS.RALENTIZAR:
                 this.gestorNivel.ralentizarAsteroides();
+                this.mostrarMensajeTemporal('⏱️ Tiempo ralentizado - Aprovecha el momento', 2500, 'info');
                 break;
             case CONFIG.ITEMS.DOBLE_PUNTOS:
                 this.gestorNivel.activarMultiplicador(2);
+                this.mostrarMensajeTemporal('⭐ Puntos x2 activados - ¡Máximo puntaje!', 2500, 'info');
                 break;
             case CONFIG.ITEMS.VIDA_EXTRA:
                 this.gestorNivel.ganarVida();
                 this.gestorNivel.sumarPuntos(CONFIG.PUNTUACION.ITEM_ESPECIAL);
-                this.mostrarMensajeTemporal('¡+1 Vida!', 1500);
+                this.mostrarMensajeTemporal('❤️ ¡+1 Vida ganada!', 2500, 'acierto');
                 break;
         }
-        
-        // Eliminar ítem
+
         this.itemsEspeciales.splice(indice, 1);
-        
-        // Feedback visual
+
         this.sistemaParticulas.crearExplosion(
             item.x,
             item.y,
             20,
             item.color
         );
-        
+
         this.actualizarInterfaz();
     }
 
@@ -517,26 +679,24 @@ class GestorJuego {
      */
     actualizarInterfaz() {
         const stats = this.gestorNivel.obtenerEstadisticas();
-        
+
         const nivel = document.getElementById('nivel');
         const puntos = document.getElementById('puntos');
         const aciertos = document.getElementById('aciertos');
         const fallos = document.getElementById('fallos');
         const velocidad = document.getElementById('velocidad');
         const vidas = document.getElementById('vidas');
-        
+
         if (nivel) nivel.textContent = stats.nivel;
         if (puntos) puntos.textContent = Utilidades.formatearNumero(stats.puntos);
         if (aciertos) aciertos.textContent = stats.aciertos;
         if (fallos) fallos.textContent = stats.fallos;
         if (velocidad) velocidad.textContent = stats.velocidad;
         if (vidas) {
-            // Mostrar corazones según las vidas
             const corazones = '❤️'.repeat(stats.vidas) + '🖤'.repeat(CONFIG.VIDAS.MAXIMA - stats.vidas);
             vidas.textContent = corazones;
         }
 
-        // Actualizar poderes activos
         this.actualizarPoderesActivos();
     }
 
@@ -546,7 +706,7 @@ class GestorJuego {
     actualizarPoderesActivos() {
         const contenedor = document.getElementById('poderesActivos');
         if (!contenedor) return;
-        
+
         const poderes = [];
 
         if (this.nave.tieneEscudo) {
@@ -570,10 +730,10 @@ class GestorJuego {
     mostrarMensaje(titulo, subtitulo = '') {
         const overlay = document.getElementById('mensajeJuego');
         if (!overlay) return;
-        
+
         const h1 = overlay.querySelector('h1');
         const p = overlay.querySelector('p');
-        
+
         if (h1) h1.textContent = titulo;
         if (p) p.textContent = subtitulo;
         overlay.classList.remove('oculto');
@@ -581,18 +741,48 @@ class GestorJuego {
 
     /**
      * Muestra un mensaje temporal
+     * ✅ ACTUALIZADO: Ahora usa el contenedor de mensajes separado
      */
-    mostrarMensajeTemporal(texto, duracion) {
-        const operacionDiv = document.getElementById('operacionActual');
-        if (!operacionDiv) return;
-        
-        const textoOriginal = operacionDiv.innerHTML;
-        
-        operacionDiv.innerHTML = `<h3 class="m-0">${texto}</h3>`;
-        
-        setTimeout(() => {
-            operacionDiv.innerHTML = textoOriginal;
-        }, duracion);
+    mostrarMensajeTemporal(texto, duracion, tipo = 'info') {
+        const mensajesContainer = document.getElementById('mensajesLog');
+        if (!mensajesContainer) return;
+
+        // Remover mensaje inicial si existe
+        const mensajeInicial = mensajesContainer.querySelector('.mensaje-inicial');
+        if (mensajeInicial) {
+            mensajeInicial.remove();
+        }
+
+        // Crear nuevo mensaje
+        const mensajeDiv = document.createElement('div');
+        mensajeDiv.className = `mensaje-item mensaje-${tipo}`;
+        mensajeDiv.innerHTML = `<strong>${texto}</strong>`;
+
+        // Agregar al inicio
+        mensajesContainer.insertBefore(mensajeDiv, mensajesContainer.firstChild);
+
+        // Limitar a 3 mensajes visibles
+        while (mensajesContainer.children.length > 3) {
+            mensajesContainer.removeChild(mensajesContainer.lastChild);
+        }
+
+        // Auto-scroll al top
+        mensajesContainer.scrollTop = 0;
+
+        // Remover después de la duración (opcional, puedes quitarlo si quieres que permanezcan)
+        if (duracion > 0) {
+            setTimeout(() => {
+                if (mensajeDiv.parentNode) {
+                    mensajeDiv.style.opacity = '0';
+                    mensajeDiv.style.transform = 'translateX(-10px)';
+                    setTimeout(() => {
+                        if (mensajeDiv.parentNode) {
+                            mensajeDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, duracion);
+        }
     }
 
     /**
