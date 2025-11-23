@@ -1,0 +1,182 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+/* Canvas */
+#canvas {
+    background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f1e 100%);
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    cursor: crosshair;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Mensajes de Overlay */
+.mensaje-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.mensaje-overlay.oculto {
+    display: none;
+}
+
+.mensaje-contenido {
+    text-align: center;
+    color: white;
+    padding: 40px;
+    background: rgba(102, 126, 234, 0.3);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.mensaje-contenido h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.mensaje-contenido p {
+    font-size: 1.5rem;
+}
+
+/* Cards */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-body {
+    overflow: hidden !important;
+}
+
+.card-header {
+    border: none;
+    font-weight: bold;
+}
+
+/* Operación Actual */
+#operacionActual {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#operacionTexto {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Badges */
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+}
+
+/* Botones */
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Poderes Activos */
+#poderesActivos .badge {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    animation: pulso 2s infinite;
+}
+
+@keyframes pulso {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Scrollbar personalizada para el panel lateral */
+.col-md-3::-webkit-scrollbar {
+    width: 6px;
+}
+
+.col-md-3::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.col-md-3::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+.col-md-3::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    #canvas {
+        height: 400px;
+    }
+
+    #operacionTexto {
+        font-size: 1.8rem;
+    }
+
+    .mensaje-contenido h1 {
+        font-size: 2rem;
+    }
+
+    .mensaje-contenido p {
+        font-size: 1rem;
+    }
+}
+
+/* Animaciones para feedback */
+.correcto {
+    animation: feedback-correcto 0.5s ease;
+}
+
+.incorrecto {
+    animation: feedback-incorrecto 0.5s ease;
+}
+
+@keyframes feedback-correcto {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); background-color: #28a745; }
+}
+
+@keyframes feedback-incorrecto {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
