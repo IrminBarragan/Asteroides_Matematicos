@@ -16,31 +16,29 @@ class Asteroide {
         this.velocidad = CONFIG.ASTEROIDE.VELOCIDAD_INICIAL;
         this.rotacion = 0;
         this.velocidadRotacion = Utilidades.numeroAleatorioDecimal(-0.03, 0.03);
-        
+
         // Color aleatorio para todos los asteroides (sin distinción visual)
         this.color = this.generarColorAleatorio();
-        
+
         this.pulsacion = 0;
-        
+
         // Generar forma irregular una sola vez (no cada frame)
         this.vertices = this.generarFormaIrregular();
     }
 
     /**
-     * Genera un color aleatorio para el asteroide
+     * Genera un color aleatorio para el asteroide usando la nueva paleta
      */
     generarColorAleatorio() {
         const colores = [
-            '#FF6B6B', // Rojo
-            '#4ECDC4', // Cyan
-            '#45B7D1', // Azul
-            '#FFA07A', // Salmon
-            '#98D8C8', // Turquesa
-            '#F7DC6F', // Amarillo
-            '#BB8FCE', // Púrpura
-            '#F8B88B', // Naranja
-            '#82E0AA', // Verde
-            '#F1948A'  // Rosa
+            '#ed8936', // Warning (naranja)
+            '#f56565', // Error (rojo)
+            '#6b5ff7', // Primary light (morado claro)
+            '#5046e5', // Primary (morado)
+            '#a0aec0', // Text light (gris)
+            '#48bb78', // Success (verde)
+            '#718096', // Text secondary (gris oscuro)
+            '#3d35b8', // Primary dark (morado oscuro)
         ];
         return colores[Math.floor(Math.random() * colores.length)];
     }
@@ -51,7 +49,7 @@ class Asteroide {
     generarFormaIrregular() {
         const vertices = [];
         const lados = 8;
-        
+
         for (let i = 0; i < lados; i++) {
             const angulo = (i / lados) * Math.PI * 2;
             const variacion = Utilidades.numeroAleatorioDecimal(0.8, 1.0);
@@ -60,7 +58,7 @@ class Asteroide {
                 radio: this.radio * variacion
             });
         }
-        
+
         return vertices;
     }
 
@@ -78,9 +76,9 @@ class Asteroide {
      */
     dibujar(ctx) {
         ctx.save();
-        
+
         // Efecto de pulsación sutil para respuesta correcta
-        const escala = this.esRespuestaCorrecta ? 
+        const escala = this.esRespuestaCorrecta ?
             1 + Math.sin(this.pulsacion) * 0.05 : 1;
 
         // Dibujar el cuerpo del asteroide (CON rotación)
@@ -93,18 +91,18 @@ class Asteroide {
         ctx.strokeStyle = '#FFFFFF';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        
+
         this.vertices.forEach((vertice, index) => {
             const x = Math.cos(vertice.angulo) * vertice.radio;
             const y = Math.sin(vertice.angulo) * vertice.radio;
-            
+
             if (index === 0) {
                 ctx.moveTo(x, y);
             } else {
                 ctx.lineTo(x, y);
             }
         });
-        
+
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
@@ -114,7 +112,7 @@ class Asteroide {
         // Dibujar número (SIN rotación, siempre horizontal)
         ctx.save();
         ctx.translate(this.x, this.y);
-        
+
         // Aplicar solo la escala de pulsación, NO la rotación
         if (this.esRespuestaCorrecta) {
             ctx.scale(escala, escala);
@@ -124,10 +122,10 @@ class Asteroide {
         ctx.fillStyle = '#FFFFFF';
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 3;
-        ctx.font = `bold ${this.radio * 0.7}px Arial`;
+        ctx.font = `bold ${this.radio * 0.7}px Poppins, Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
+
         // Contorno negro para mejor legibilidad
         ctx.strokeText(this.numero, 0, 0);
         ctx.fillText(this.numero, 0, 0);
