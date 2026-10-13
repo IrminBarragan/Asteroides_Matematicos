@@ -1,0 +1,101 @@
+# Plan: Portal de Juegos Educativos (1° a 6° de primaria)
+
+> Este documento es el plan vivo del proyecto. Se actualiza al cerrar cada fase.
+
+## 1. Principios
+
+1. **Funciona offline con doble clic.** Sin CDN, sin servidor, sin instalación en las PCs de la primaria.
+2. **JS puro con clases.** El único paso de build es esbuild, que empaqueta todo en un script clásico.
+3. **Una sola página (SPA).** Portal y juegos viven en un `index.html`. `localStorage` en `file://` puede no compartirse entre páginas distintas en algunos navegadores; con una sola página el progreso se guarda siempre.
+4. **Lógica separada de pantalla.** Las reglas de cada juego son clases puras, probables con tests.
+5. **Contenido separado de código.** Preguntas, palabras y ejercicios van en archivos de datos.
+6. **Pedagogía antes que arcade.** Fallar no castiga: da una pista y otra oportunidad.
+
+### Decisión: ¿framework (React, etc.)?
+
+**No.** Los juegos viven en `<canvas>`, donde React no aporta; el portal tiene pocas pantallas; las PCs de la
+primaria son un riesgo (equipos viejos, sin internet) y menos dependencias es menos riesgo; y el código debe
+ser fácil de auditar. Se reconsideraría solo si el proyecto creciera a cuentas de usuario, panel de maestros o
+decenas de pantallas.
+
+**Detalle técnico clave:** los módulos ES (`<script type="module">`) no cargan con doble clic (`file://`) en
+Chrome. Por eso se escribe en módulos ES (para poder probar con Node) pero se **empaqueta como script clásico
+(IIFE)** con esbuild.
+
+## 2. Estructura objetivo
+
+```
+/src/
+  index.html           ← única página
+  main.js              ← arranque y router
+  core/                ← bucle, entrada (Pointer Events), audio, partículas, storage, eventos
+  ui/                  ← tema infantil, botones, HUD, modales, resultados
+  portal/              ← inicio, selección de grado, galería, progreso, modo maestro
+  adaptativo/          ← motor adaptativo (SistemaIA generalizado)
+  games/<juego>/       ← logica.js, vista.js, datos
+/scripts/build.mjs     ← empaquetado a dist/
+/tests/                ← node:test, solo lógica pura
+/dist/                 ← resultado del build (lo que se entrega; no se versiona)
+/docs/                 ← este plan, auditorías por fase, manual del maestro
+```
+
+**Contrato de juego** (para que agregar juegos sea barato):
+
+```js
+class Juego {
+  static meta = { id, nombre, grados: [1,2,3], area: 'matemáticas' }
+  montar(contenedor, { grado, perfil })
+  pausar() / reanudar()
+  destruir()   // limpia timers y eventos
+  // al terminar emite: { estrellas, aciertos, fallos, tiempoMs, habilidades }
+}
+```
+
+## 3. Catálogo y cobertura por grado
+
+| Juego | Área | Contenido | 1° | 2° | 3° | 4° | 5° | 6° |
+|---|---|---|---|---|---|---|---|---|
+| Asteroides Matemáticos | Aritmética | 1-2°: suma/resta · 3°: tablas × · 4°: ÷ y × 2 cifras · 5-6°: operaciones combinadas, múltiplos | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Memorama de Palabras | Lectura | 1°: dibujo↔palabra, dibujo↔sílaba inicial · 2°: sílaba inicial, contar sílabas, rimas · 3°: rimas, sinónimos, antónimos | ✔ | ✔ | ✔ | | | |
+| Reloj Aventurero | Medición | 1°: en punto y media · 2°: cuartos y decir la hora · 3°: minutos y duración · 4°: reloj de 24 h y duraciones | ✔ | ✔ | ✔ | ✔ | | |
+| Atrapa la Ortografía | Español | 3°: b/v, g/j, h · 4°: + c/s/z, ll/y · 5°: acentuación · 6°: homófonos, tilde diacrítica, porque/por qué | | | ✔ | ✔ | ✔ | ✔ |
+| Tren de Fracciones | Fracciones | 3°: leer, pintar y comparar con dibujos · 4°: equivalentes y comparación · 5°: simplificar, suma/resta (mismo denominador o múltiplos) · 6°: suma/resta general, mixtas, decimales | | | ✔ | ✔ | ✔ | ✔ |
+
+Las imágenes y los íconos serán SVG propios (los emojis no se ven en color en Windows 7 / 10 viejos).
+
+## 4. Reglas pedagógicas transversales
+
+- **Sin castigo:** se elimina "fallas y aceleran los asteroides". Un error muestra una pista y se reintenta.
+- **Retroalimentación explicativa:** "7 × 3 es 7 + 7 + 7 = 21", no solo "incorrecto".
+- **Dificultad adaptativa por habilidad:** el `SistemaIA` se generaliza y refuerza lo que el niño falla.
+- **Sesiones cortas** (3-5 min), 1 a 3 estrellas, récord personal.
+- **Sin datos personales:** solo apodo y avatar en `localStorage` (son menores).
+- **Lectura asistida** opcional en 1° y 2° con `speechSynthesis` (degrada con gracia si no hay voces).
+- **Modo maestro:** el panel de métricas de IA pasa a una vista oculta (atajo de teclado).
+
+## 5. Fases
+
+Cada fase termina con commits separados, tests en verde y un `docs/AUDITORIA-FASE-N.md`.
+
+| Fase | Contenido | Estado |
+|---|---|---|
+| 0 | Cimientos: estructura `src/`, esbuild, tests, sin CDN, bugs conocidos | ✅ Hecha |
+| 1 | Núcleo compartido: bucle, input unificado (mouse+táctil), audio, storage, eventos, contrato `Juego`, motor adaptativo | ✅ Hecha |
+| 2 | Portal: inicio, perfiles (apodo+avatar+grado), galería, resultados, modo maestro, tema infantil | ✅ Hecha |
+| 3 | Asteroides Matemáticos: migración al contrato, contenido por grado (1.º–6.º), reglas amigables, táctil y teclado | ✅ Hecha |
+| 4 | Memorama de Palabras (1.º–3.º; primer juego basado en DOM) | ✅ Hecha |
+| 5 | Atrapa la Ortografía (3.º–6.º) | ✅ Hecha |
+| 6 | Reloj Aventurero (1.º–4.º) | ✅ Hecha |
+| 7 | Tren de Fracciones (3.º–6.º; aritmética en enteros, sin decimales flotantes) | ✅ Hecha |
+| 8 | Pulido: accesibilidad, pruebas automatizadas en Chromium headless, lectura en voz alta, rendimiento | ✅ Hecha |
+| 9 | Entrega: ZIP de `dist/`, manual del maestro, guion de demo, guía de defensa | Pendiente |
+
+## 6. Riesgos
+
+| Riesgo | Mitigación |
+|---|---|
+| Navegador viejo en las PCs | JS/CSS ampliamente soportado (target es2018) y prueba con navegador antiguo antes de la demo |
+| Emojis o fuentes ausentes | SVG propios y fuente local |
+| Alcance grande | Fases ordenadas por valor; se pueden recortar los últimos juegos sin romper el portal |
+| Audio bloqueado | Iniciar audio tras el primer clic; todo debe funcionar sin sonido |
+| Pérdida de progreso | Storage versionado con recuperación ante datos corruptos |

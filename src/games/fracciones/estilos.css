@@ -1,0 +1,50 @@
+/* ---------- Figuras y fracciones (componentes ui/fraccionSvg.js) ---------- */
+.fraccion-figura { display: block; max-width: 100%; margin: 0 auto; }
+.fraccion-figura--barra { width: clamp(220px, 60vw, 420px); height: auto; }
+.fraccion-figura--pastel { width: clamp(150px, 28vh, 230px); height: clamp(150px, 28vh, 230px); }
+.fraccion-parte { fill: #fff; stroke: #1e3a8a; stroke-width: 3; stroke-linejoin: round; }
+.fraccion-parte--pintada { fill: #60a5fa; }
+.fraccion-figura--pintable .fraccion-parte { cursor: pointer; }
+.fraccion-figura--pintable .fraccion-parte:hover { fill: #dbeafe; }
+.fraccion-figura--pintable .fraccion-parte--pintada:hover { fill: #3b82f6; }
+.fraccion-parte:focus-visible { outline: none; stroke: var(--enfoque); stroke-width: 5; }
+
+.fraccion { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1.1; font-family: var(--fuente-titulo); font-weight: 700; }
+.fraccion__num { padding: 0 .25em; border-bottom: .12em solid currentColor; min-width: 1.2em; text-align: center; }
+.fraccion__den { padding: 0 .25em; min-width: 1.2em; text-align: center; }
+.fraccion--grande { font-size: clamp(2rem, 6vh, 3.2rem); }
+.mixta { display: inline-flex; align-items: center; gap: .15em; vertical-align: middle; font-family: var(--fuente-titulo); font-weight: 700; }
+.mixta--grande { font-size: clamp(2rem, 6vh, 3.2rem); }
+.mixta__entero { font-size: 1.15em; }
+.fraccion--en-mixta { font-size: .8em; }
+.expresion { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .7rem; margin: .4rem 0 .8rem; }
+.expresion__simbolo { font: 700 clamp(1.8rem, 5vh, 2.8rem) var(--fuente-titulo); color: var(--c-matematicas); }
+
+/* ---------- Tren de Fracciones ---------- */
+.fracciones-juego { max-width: 860px; margin: 0 auto; text-align: center; }
+.fracciones-juego__hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem; font-weight: 600; min-height: 2rem; }
+.fracciones-juego__dato { background: #dbeafe; border-radius: 999px; padding: .1rem .9rem; font-size: .95rem; }
+.fracciones-juego__dato:empty { display: none; }
+.fracciones-juego__tren { display: flex; justify-content: center; gap: 6px; margin: .5rem 0; }
+.fracciones-juego__vagon { width: 26px; height: 16px; border-radius: 4px 4px 2px 2px; background: #cbd5e1; position: relative; transition: background .2s ease; }
+.fracciones-juego__vagon::after { content: ""; position: absolute; left: 3px; right: 3px; bottom: -5px; height: 5px; background: radial-gradient(circle at 25% 50%, #475569 0 2.5px, transparent 3px), radial-gradient(circle at 75% 50%, #475569 0 2.5px, transparent 3px); }
+.fracciones-juego__vagon--listo { background: var(--c-matematicas); }
+.fracciones-juego__enunciado { margin: .5rem 0 .8rem; font: 600 clamp(1.25rem, 3vw, 1.8rem) var(--fuente-titulo); min-height: 2.4rem; }
+.fracciones-juego__visual { margin-bottom: 1rem; }
+.fracciones-juego__figuras { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.2rem 2rem; }
+.fracciones-juego__figura { margin: 0; }
+.fracciones-juego__figura figcaption { margin-top: .4rem; font-weight: 600; color: var(--texto-suave); font-size: 1rem; }
+.fracciones-juego__figura--grande .fraccion-figura--barra { width: clamp(240px, 70vw, 460px); }
+.fracciones-juego__figura--grande .fraccion-figura--pastel { width: clamp(180px, 34vh, 280px); height: clamp(180px, 34vh, 280px); }
+.fracciones-juego__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; }
+.fracciones-juego__opcion { min-width: 8rem; min-height: 4rem; padding: .4rem 1.2rem; font: 700 1.5rem var(--fuente-titulo); color: var(--texto); background: #fff; border: 4px solid var(--c-matematicas); border-radius: 18px; cursor: pointer; transition: transform .12s ease, background .12s ease; }
+.fracciones-juego__opcion:hover:not([aria-disabled="true"]) { background: #eff6ff; transform: translateY(-2px); }
+.fracciones-juego__opcion[aria-disabled="true"] { cursor: default; }
+.fracciones-juego__opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }
+.fracciones-juego__opcion--incorrecta { background: #f3f4f6; border-color: #9ca3af; color: #6b7280; opacity: .7; }
+.fracciones-juego__pie { min-height: 4.2rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-top: 1rem; }
+.fracciones-juego__mensaje { margin: 0; font-weight: 600; font-size: 1rem; color: var(--texto-suave); max-width: 760px; }
+.fracciones-juego__mensaje--bien { color: var(--exito); }
+.fracciones-juego__mensaje--pista { color: #9a3412; }
+.fracciones-juego__pie [hidden] { display: none; }
+@media (max-width: 600px) { .fracciones-juego__opcion { min-width: 6.5rem; font-size: 1.25rem; } }
