@@ -1,0 +1,33 @@
+/* ---------- Atrapa la Ortografía ---------- */
+.ortografia { max-width: 900px; margin: 0 auto; text-align: center; }
+.ortografia__hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem; font-weight: 600; min-height: 2rem; }
+.ortografia__dato { background: #fff7ed; border-radius: 999px; padding: .1rem .9rem; font-size: .95rem; }
+.ortografia__dato:empty { display: none; }
+.ortografia__enunciado { margin: .4rem 0 .6rem; font: 600 clamp(1.4rem, 3.4vw, 2.1rem) var(--fuente-titulo); min-height: 2.6rem; color: var(--texto); }
+.ortografia__hueco { display: inline-block; min-width: 5rem; padding: 0 .5rem; border-bottom: 4px solid var(--c-espanol); color: var(--exito); }
+
+.ortografia__cielo { position: relative; height: clamp(260px, 46vh, 420px); overflow: hidden; border-radius: var(--radio); background: linear-gradient(180deg, #7dd3fc 0%, #e0f2fe 100%); box-shadow: var(--sombra); }
+.ortografia__cielo::before { content: ""; position: absolute; inset: 0; background:
+    radial-gradient(ellipse 90px 28px at 12% 22%, rgba(255,255,255,.9) 60%, transparent 62%),
+    radial-gradient(ellipse 120px 34px at 78% 14%, rgba(255,255,255,.85) 60%, transparent 62%),
+    radial-gradient(ellipse 80px 24px at 55% 40%, rgba(255,255,255,.7) 60%, transparent 62%); }
+.ortografia__pasto { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: repeating-linear-gradient(90deg, #16a34a 0 14px, #22c55e 14px 28px); border-top: 6px solid #15803d; border-radius: 40% 40% 0 0 / 14px 14px 0 0; }
+
+.palabra { position: absolute; top: 0; padding: .55rem 1.3rem; border: 4px solid #fff; border-radius: 999px; font: 600 clamp(1.25rem, 2.8vw, 1.9rem) var(--fuente-titulo); color: #1f2937; cursor: pointer; white-space: nowrap; box-shadow: 0 6px 14px rgba(0, 0, 0, .22); transition: background .2s ease, opacity .5s ease, box-shadow .2s ease; will-change: transform; }
+.palabra:hover { box-shadow: 0 0 0 4px #fde047, 0 6px 14px rgba(0, 0, 0, .22); }
+.palabra:focus-visible { outline: 4px solid var(--enfoque); outline-offset: 3px; }
+.palabra--color0 { background: #fde68a; }
+.palabra--color1 { background: #fbcfe8; }
+.palabra--color2 { background: #bbf7d0; }
+.palabra--color3 { background: #ddd6fe; }
+.palabra--correcta { background: #4ade80; border-color: #15803d; box-shadow: 0 0 0 6px rgba(74, 222, 128, .6); font-weight: 700; }
+.palabra--incorrecta { background: #e5e7eb; color: #6b7280; text-decoration: line-through; border-color: #9ca3af; cursor: default; box-shadow: none; }
+.palabra--saliendo { opacity: 0; pointer-events: none; }
+
+.ortografia__pie { min-height: 4.2rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-top: .8rem; }
+.ortografia__mensaje { margin: 0; font-weight: 600; font-size: 1rem; color: var(--texto-suave); max-width: 780px; }
+.ortografia__mensaje--bien { color: var(--exito); }
+.ortografia__mensaje--pista { color: #9a3412; }
+.ortografia__siguiente[hidden] { display: none; }
+.ortografia__ayuda { margin: .5rem 0 0; font-size: .8rem; color: var(--texto-suave); }
+@media (max-width: 600px) { .ortografia__ayuda { display: none; } .palabra { padding: .45rem .9rem; } }

@@ -82,6 +82,19 @@ src/games/asteroides/
 Regla: **si algo se puede probar sin DOM, no vive en `juego.js`.** Los tests de `logica/` verifican la matemática con un evaluador
 independiente (no con el mismo código que genera la pregunta).
 
+## Partidas de "una pregunta tras otra" (`core/partidaPreguntas.js`)
+
+Asteroides y Atrapa la Ortografía comparten las MISMAS reglas (10 preguntas, sin vidas, pista y reintento, acertar tras equivocarse da la mitad,
+racha, motor adaptativo). En vez de copiarlas, viven en `PartidaPreguntas`; cada juego solo inyecta lo que cambia:
+
+```js
+class Partida extends PartidaPreguntas {            // asteroides/logica/partida.js (≈ 15 líneas)
+  constructor(...) { super({ grado, habilidades, generar: generarPregunta, preparar: (grado, nivel) => ({ cantidad, velocidad }), ... }); }
+}
+```
+Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, opciones:[{id, texto}], explicacion? }`. Un juego nuevo de este estilo
+(por ejemplo, uno de ciencias) solo necesita un generador de preguntas y su vista.
+
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
 
 No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.

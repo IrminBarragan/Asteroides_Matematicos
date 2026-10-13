@@ -9,11 +9,13 @@ import { Portal } from './portal/portal.js';
 import { VistaPortal } from './portal/vista.js';
 import { JuegoAsteroides } from './games/asteroides/juego.js';
 import { JuegoMemorama } from './games/memorama/juego.js';
+import { JuegoOrtografia } from './games/ortografia/juego.js';
 
 function arrancar() {
     const registro = new RegistroJuegos()
         .registrar(JuegoAsteroides)
-        .registrar(JuegoMemorama);
+        .registrar(JuegoMemorama)
+        .registrar(JuegoOrtografia);
 
     const vista = new VistaPortal(document.getElementById('app'));
     const portal = new Portal({
