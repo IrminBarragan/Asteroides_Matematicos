@@ -38,6 +38,32 @@ el portal depende de `core` y de la interfaz `Juego`, nunca de los detalles de u
 | `gestorAudio.js` | `GestorAudio` | Sonidos sintetizados (sin archivos); `reanudar()` para el gesto del usuario |
 | `../adaptativo/motor.js` | `MotorAdaptativo` | Dificultad por *habilidad*, heurística explicable, nunca castiga |
 
+## Capa de portal (Fase 2)
+
+Patrón **MVC delgado**: el controlador no toca el DOM, la vista no contiene reglas.
+
+| Archivo | Rol |
+|---|---|
+| `src/main.js` | Compone las piezas (inyección de dependencias) y **registra los juegos**. Para agregar un juego: importarlo y `.registrar(MiJuego)` |
+| `src/portal/portal.js` | **Controlador**: decide qué pantalla toca y con qué datos; gestiona perfiles, partida, resultados, modo maestro y CSV. Sin DOM → se prueba en Node |
+| `src/portal/vista.js` + `vistas/*.js` | **Vista**: dibuja la pantalla que pide el controlador y le reenvía las acciones. Cada pantalla es una función `(datos, portal) → nodo` |
+| `src/ui/dom.js` | `h()` crea DOM **solo con nodos de texto** (nunca `innerHTML` con datos) |
+| `src/ui/avatares.js`, `componentes.js` | Avatares SVG, estrellas, íconos, modal accesible, avisos |
+| `src/estilos/portal.css` | Tema infantil (tokens, componentes, responsive, `prefers-reduced-motion`) |
+
+Flujo: `iniciar → (crear | perfiles) → inicio → jugando → resultados → inicio…`, más `maestro-pin → maestro`.
+Siempre se pregunta "¿quién juega?" al abrir: el equipo lo comparten varios niños.
+
+**Lo que el portal entrega a un juego** (`contexto` en `alMontar`):
+`{ grado, perfil, audio, habilidades }` — `habilidades` es la última instantánea guardada del `MotorAdaptativo` de ese
+juego para ese niño (o `null`). Si el resultado de `finalizar()` trae `habilidades`, el portal la guarda sola.
+
+**Reglas del portal con los juegos:**
+- El resultado se guarda al instante, pero la pantalla cambia en un *microtask*: el juego puede seguir ejecutando su propio
+  `finalizar()` y no se destruye "bajo sus pies". → **`finalizar()` debe ser lo último que haga un juego.**
+- El portal destruye el juego al terminar, al salir y al abrir otro (nunca hay dos a la vez).
+- Si `alMontar` lanza, el niño ve una pantalla de error amable y el juego se limpia.
+
 ## El contrato de juego
 
 ```js

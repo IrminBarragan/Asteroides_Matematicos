@@ -10,6 +10,7 @@
     "check": "pnpm test && pnpm build"
   },
   "devDependencies": {
+    "@fontsource/fredoka": "5.2.10",
     "@fontsource/poppins": "5.2.7",
     "bootstrap": "5.3.3",
     "bootstrap-icons": "1.11.3",

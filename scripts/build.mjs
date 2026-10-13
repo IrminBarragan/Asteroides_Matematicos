@@ -19,20 +19,23 @@ await rm(dist(), { recursive: true, force: true });
 await mkdir(dist('assets', 'vendor', 'bootstrap-icons'), { recursive: true });
 await mkdir(dist('assets', 'fonts'), { recursive: true });
 
-// 1. JavaScript: un único app.js clásico, compatible con navegadores antiguos
-await build({
-    entryPoints: [src('games', 'asteroides', 'juego.js')],
-    outfile: dist('app.js'),
+// 1. JavaScript: scripts clásicos (iife), compatibles con navegadores antiguos
+const opcionesJs = {
     bundle: true,
     format: 'iife',
     target: ['es2018', 'chrome70', 'firefox68'],
     legalComments: 'none',
     logLevel: 'warning'
-});
+};
+await build({ ...opcionesJs, entryPoints: [src('main.js')], outfile: dist('app.js') });
+// Versión anterior de Asteroides: sigue disponible hasta que se migre al portal (Fase 3)
+await build({ ...opcionesJs, entryPoints: [src('games', 'asteroides', 'juego.js')], outfile: dist('legacy-app.js') });
 
-// 2. HTML, CSS propio e imagen del juego
+// 2. HTML, CSS propio e imágenes
 await cp(src('index.html'), dist('index.html'));
-await cp(src('estilos.css'), dist('estilos.css'));
+await cp(src('estilos', 'portal.css'), dist('portal.css'));
+await cp(src('games', 'asteroides', 'legacy.html'), dist('asteroides-legacy.html'));
+await cp(src('games', 'asteroides', 'estilos-legacy.css'), dist('estilos-legacy.css'));
 await cp(src('games', 'asteroides', 'nave.png'), dist('assets', 'nave.png'));
 
 // 3. Dependencias visuales locales (antes venían de un CDN)
@@ -47,6 +50,10 @@ await cp(modulos('bootstrap-icons', 'font', 'fonts'), dist('assets', 'vendor', '
 for (const peso of [300, 400, 500, 600, 700]) {
     const archivo = `poppins-latin-${peso}-normal.woff2`;
     await cp(modulos('@fontsource', 'poppins', 'files', archivo), dist('assets', 'fonts', archivo));
+}
+for (const peso of [400, 500, 600, 700]) {
+    const archivo = `fredoka-latin-${peso}-normal.woff2`;
+    await cp(modulos('@fontsource', 'fredoka', 'files', archivo), dist('assets', 'fonts', archivo));
 }
 
 console.log('Build listo en dist/ (abre dist/index.html)');
