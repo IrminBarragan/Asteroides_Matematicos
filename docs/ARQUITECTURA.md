@@ -95,6 +95,16 @@ class Partida extends PartidaPreguntas {            // asteroides/logica/partida
 Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, opciones:[{id, texto}], explicacion? }`. Un juego nuevo de este estilo
 (por ejemplo, uno de ciencias) solo necesita un generador de preguntas y su vista.
 
+## Componentes y utilidades del núcleo añadidos en la Fase 6
+
+| Archivo | Qué es |
+|---|---|
+| `core/tiempo.js` | Matemática pura del tiempo: ángulos de las manecillas, hora ↔ ángulo, 12 h ↔ 24 h, minutos del día, duraciones, la hora dicha con palabras |
+| `core/lectura.js` | `tiempoDeLectura(texto)`: cuánto esperar para que un niño lea una explicación (compartido por Ortografía y Reloj) |
+| `ui/relojSvg.js` | `RelojSvg`: reloj analógico en SVG, de lectura o **interactivo** (puntero + teclado como `slider`). Solo dibuja y conecta eventos; la geometría está en `core/tiempo.js` |
+
+Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
+
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
 
 No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.

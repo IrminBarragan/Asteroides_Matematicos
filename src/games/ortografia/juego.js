@@ -12,6 +12,7 @@ import { Juego } from '../../core/juego.js';
 import { BucleJuego } from '../../core/bucle.js';
 import { Planificador } from '../../core/planificador.js';
 import { elegir, mezclar } from '../../core/aleatorio.js';
+import { tiempoDeLectura } from '../../core/lectura.js';
 import { h, vaciar } from '../../ui/dom.js';
 import { Partida, PREGUNTAS_POR_PARTIDA } from './logica/partida.js';
 import { NOMBRES_HABILIDAD } from './logica/generadores.js';
@@ -19,15 +20,7 @@ import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 const ELOGIOS = ['¡Correcto!', '¡Muy bien!', '¡Excelente!', '¡Genial!', '¡Perfecto!'];
 const ALTO_PASTO_PX = 64;       // al llegar al pasto, la palabra "se escapó"
 const RECORRIDO = 1.3;          // fracciones de alto que recorre (de arriba, fuera de pantalla, hasta el pasto)
-const MS_MIN_LECTURA = 2400;
-const MS_POR_LETRA = 55;        // tiempo para leer la explicación
-const MS_MAX_LECTURA = 9000;
 const CARRILES = { 2: [30, 70], 3: [18, 50, 82] };
-
-/** Tiempo de lectura de un mensaje: proporcional a su largo, con mínimo y máximo. */
-export function tiempoDeLectura(texto) {
-    return Math.min(MS_MAX_LECTURA, Math.max(MS_MIN_LECTURA, texto.length * MS_POR_LETRA));
-}
 
 export class JuegoOrtografia extends Juego {
     static meta = {
