@@ -1,0 +1,13 @@
+# Configuración de seguridad de pnpm (ver docs/SEGURIDAD-DEPENDENCIAS.md)
+
+# Ningún paquete puede ejecutar scripts de instalación (preinstall/postinstall),
+# que es el vector típico de ataques a la cadena de suministro.
+# esbuild descarga su binario por dependencias opcionales y no necesita script.
+onlyBuiltDependencies: []
+
+# No instalar versiones publicadas hace menos de 3 días (4320 min):
+# da tiempo a que se detecten paquetes comprometidos.
+minimumReleaseAge: 4320
+
+# Impide instalar dependencias desde fuentes no registradas (git, tarballs) de forma transitiva.
+blockExoticSubdeps: true

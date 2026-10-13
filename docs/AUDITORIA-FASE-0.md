@@ -7,9 +7,9 @@
    en un orden frágil (`CONFIG`, `Utilidades`…); ahora cada archivo declara de qué depende.
 2. **Build con esbuild** (`scripts/build.mjs`) que empaqueta a un único `dist/app.js` **clásico (IIFE)**,
    para que `dist/index.html` funcione con doble clic.
-3. **Sin CDN:** Bootstrap, Bootstrap Icons y Poppins se instalan con npm y se copian a `dist/assets/`.
+3. **Sin CDN:** Bootstrap, Bootstrap Icons y Poppins se instalan con pnpm y se copian a `dist/assets/`.
    Se eliminó el `<script>` de Bootstrap JS (no se usaba).
-4. **Pruebas** (`npm test`, runner nativo de Node, 33 pruebas) de la lógica pura.
+4. **Pruebas** (`pnpm test`, runner nativo de Node, 33 pruebas) de la lógica pura.
 5. **Corrección de bugs** (ver abajo).
 
 ## Bugs corregidos (y por qué eran bugs)
@@ -35,7 +35,7 @@
 ## Cómo revisar
 
 ```bash
-npm install && npm test && npm run build
+pnpm install && pnpm test && pnpm build
 ```
 Abre `dist/index.html`. Debe verse igual que antes (la UI se rediseña en la Fase 2/3) pero sin pedir nada a internet
 (en las herramientas del navegador, pestaña *Network*, no debe haber peticiones a dominios externos).
@@ -49,3 +49,8 @@ Archivos más importantes: `scripts/build.mjs`, `src/games/asteroides/gestorNive
 - `gestorJuego.js` (~800 líneas) mezcla lógica, dibujo y manipulación del DOM → se divide en Fase 3.
 - UI con Bootstrap, panel de IA visible para el niño, sin soporte táctil → Fases 2 y 3.
 - Reglas punitivas (2 fallos = -1 vida; fallar acelera) → Fase 3.
+
+## Cambio posterior: migración de npm a pnpm
+
+Por seguridad el proyecto usa **pnpm**. Ver [`SEGURIDAD-DEPENDENCIAS.md`](SEGURIDAD-DEPENDENCIAS.md).
+Se reemplazó `package-lock.json` por `pnpm-lock.yaml` y se añadió `pnpm-workspace.yaml` con la configuración de seguridad.

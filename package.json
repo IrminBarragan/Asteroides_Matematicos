@@ -7,12 +7,17 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test \"tests/**/*.test.js\"",
-    "check": "npm test && npm run build"
+    "check": "pnpm test && pnpm build"
   },
   "devDependencies": {
     "@fontsource/poppins": "5.2.7",
     "bootstrap": "5.3.3",
     "bootstrap-icons": "1.11.3",
     "esbuild": "0.28.2"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=10"
   }
 }
