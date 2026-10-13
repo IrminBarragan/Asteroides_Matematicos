@@ -55,7 +55,7 @@ export class GestorAudio {
      */
     reproducirEfecto(tipo) {
         if (!this.activo || !this.contextoAudio) return;
-        if (!['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel'].includes(tipo)) return;
+        if (!['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel', 'voltear'].includes(tipo)) return;
 
         const oscilador = this.contextoAudio.createOscillator();
         const ganancia = this.contextoAudio.createGain();
@@ -81,6 +81,9 @@ export class GestorAudio {
                 break;
             case 'nivel':
                 this.efectoNivel(oscilador, ganancia);
+                break;
+            case 'voltear':
+                this.efectoVoltear(oscilador, ganancia);
                 break;
         }
     }
@@ -159,6 +162,21 @@ export class GestorAudio {
         
         oscilador.start(this.contextoAudio.currentTime);
         oscilador.stop(this.contextoAudio.currentTime + 0.3);
+    }
+
+    /**
+     * Efecto suave y corto (voltear una carta)
+     */
+    efectoVoltear(oscilador, ganancia) {
+        oscilador.type = 'triangle';
+        oscilador.frequency.setValueAtTime(520, this.contextoAudio.currentTime);
+        oscilador.frequency.exponentialRampToValueAtTime(380, this.contextoAudio.currentTime + 0.07);
+
+        ganancia.gain.setValueAtTime(0.12, this.contextoAudio.currentTime);
+        ganancia.gain.exponentialRampToValueAtTime(0.01, this.contextoAudio.currentTime + 0.08);
+
+        oscilador.start(this.contextoAudio.currentTime);
+        oscilador.stop(this.contextoAudio.currentTime + 0.08);
     }
 
     /**

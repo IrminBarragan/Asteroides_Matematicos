@@ -28,8 +28,8 @@ test('activo: reproduce efectos conocidos y crea un oscilador por efecto', () =>
     const a = new GestorAudio();
     a.contextoAudio = contextoFalso();
     a.establecerActivo(true);
-    for (const tipo of ['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel']) a.reproducirEfecto(tipo);
-    assert.equal(a.contextoAudio.osciladores, 6);
+    for (const tipo of ['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel', 'voltear']) a.reproducirEfecto(tipo);
+    assert.equal(a.contextoAudio.osciladores, 7);
 });
 
 test('un efecto desconocido no crea nodos de audio (evita fugas)', () => {

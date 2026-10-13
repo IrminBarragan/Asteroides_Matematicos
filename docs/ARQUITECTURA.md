@@ -82,6 +82,16 @@ src/games/asteroides/
 Regla: **si algo se puede probar sin DOM, no vive en `juego.js`.** Los tests de `logica/` verifican la matemática con un evaluador
 independiente (no con el mismo código que genera la pregunta).
 
+## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
+
+No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.
+Reglas que se siguieron:
+
+- **Se actualizan nodos, no se recrean:** al voltear una carta se cambia `data-estado` y `aria-label` del mismo `<button>`; así el **foco no se pierde**.
+- **El tiempo sigue siendo del juego:** las esperas (ver un fallo, pausa entre tableros) usan `core/planificador.js` avanzado por el `BucleJuego`.
+  Pausar el bucle pausa las esperas, sin `setTimeout`. El planificador cuenta las tareas encadenadas desde su propio vencimiento (no depende del tamaño del paso).
+- **Contenido como datos:** `memorama/logica/contenido.js` solo tiene listas (palabras, sílabas, rimas, sinónimos, antónimos); se puede revisar y ampliar sin tocar reglas.
+
 ## El contrato de juego
 
 ```js

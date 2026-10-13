@@ -56,7 +56,7 @@ class Juego {
 | Juego | Área | Contenido | 1° | 2° | 3° | 4° | 5° | 6° |
 |---|---|---|---|---|---|---|---|---|
 | Asteroides Matemáticos | Aritmética | 1-2°: suma/resta · 3°: tablas × · 4°: ÷ y × 2 cifras · 5-6°: operaciones combinadas, múltiplos | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Memorama de Palabras | Lectura | 1°: sílabas y palabras con imagen · 2°: rimas · 3°: sinónimos/antónimos | ✔ | ✔ | ✔ | | | |
+| Memorama de Palabras | Lectura | 1°: dibujo↔palabra, dibujo↔sílaba inicial · 2°: sílaba inicial, contar sílabas, rimas · 3°: rimas, sinónimos, antónimos | ✔ | ✔ | ✔ | | | |
 | Reloj Aventurero | Medición | 1°: en punto y media · 2°: cuartos · 3°: minutos · 4°: 24 h y duración | ✔ | ✔ | ✔ | ✔ | | |
 | Atrapa la Ortografía | Español | 3°: b/v, g/j, h · 4°: c/s/z, ll/y · 5°: acentuación · 6°: diacríticos y homófonos | | | ✔ | ✔ | ✔ | ✔ |
 | Tren de Fracciones | Fracciones | 3°: mitades y cuartos · 4°: equivalentes y comparación · 5°: suma/resta · 6°: mixtas y decimales | | | ✔ | ✔ | ✔ | ✔ |
@@ -83,7 +83,7 @@ Cada fase termina con commits separados, tests en verde y un `docs/AUDITORIA-FAS
 | 1 | Núcleo compartido: bucle, input unificado (mouse+táctil), audio, storage, eventos, contrato `Juego`, motor adaptativo | ✅ Hecha |
 | 2 | Portal: inicio, perfiles (apodo+avatar+grado), galería, resultados, modo maestro, tema infantil | ✅ Hecha |
 | 3 | Asteroides Matemáticos: migración al contrato, contenido por grado (1.º–6.º), reglas amigables, táctil y teclado | ✅ Hecha |
-| 4 | Memorama de Palabras (primer juego basado en DOM) | Pendiente |
+| 4 | Memorama de Palabras (1.º–3.º; primer juego basado en DOM) | ✅ Hecha |
 | 5 | Atrapa la Ortografía | Pendiente |
 | 6 | Reloj Aventurero | Pendiente |
 | 7 | Tren de Fracciones (aritmética en enteros, sin decimales flotantes) | Pendiente |
