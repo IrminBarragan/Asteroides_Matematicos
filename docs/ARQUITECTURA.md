@@ -110,6 +110,16 @@ Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, o
 | `core/fracciones.js` | Aritmética de fracciones **solo con enteros** (mcd, mcm, comparar por multiplicación cruzada, sumar, restar, simplificar, mixtas, centésimas para decimales). Sin punto flotante: 0.1 + 0.2 no existe aquí |
 | `ui/fraccionSvg.js` | `figuraFraccion` (barra o pastel, solo lectura), `FiguraPintable` (el niño toca partes; ratón, dedo o teclado como `checkbox`), `fraccionApilada`/`mixtaApilada`/`expresionDom` (numerador sobre denominador en DOM) |
 
+## Añadidos en la Fase 8
+
+| Archivo | Qué es |
+|---|---|
+| `core/voz.js` | `Voz` (lectura en voz alta con `speechSynthesis`, dependencias inyectadas), `textoParaVoz` ("3/4" → "3 cuartos") y `elegirVoz` (español de América, voces locales primero). `disponible` exige **una voz en español**: si no la hay, la interfaz no muestra botones |
+| `portal/vista.js` | `textoALeer`, `observarTexto`: la vista lee el elemento marcado `data-leer` del juego y avisa (MutationObserver) cuando cambia. El controlador (`Portal`) sigue sin tocar el DOM |
+| `tests-e2e/` | Pruebas en Chromium real sobre `dist/` (ver [`PRUEBAS.md`](PRUEBAS.md)) |
+
+**Cómo un juego participa en la lectura asistida:** marca su enunciado con `data-leer`. No necesita más.
+
 Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)

@@ -87,7 +87,7 @@ Cada fase termina con commits separados, tests en verde y un `docs/AUDITORIA-FAS
 | 5 | Atrapa la Ortografía (3.º–6.º) | ✅ Hecha |
 | 6 | Reloj Aventurero (1.º–4.º) | ✅ Hecha |
 | 7 | Tren de Fracciones (3.º–6.º; aritmética en enteros, sin decimales flotantes) | ✅ Hecha |
-| 8 | Pulido: accesibilidad, humo automatizado con Chromium headless, rendimiento | Pendiente |
+| 8 | Pulido: accesibilidad, pruebas automatizadas en Chromium headless, lectura en voz alta, rendimiento | ✅ Hecha |
 | 9 | Entrega: ZIP de `dist/`, manual del maestro, guion de demo, guía de defensa | Pendiente |
 
 ## 6. Riesgos
