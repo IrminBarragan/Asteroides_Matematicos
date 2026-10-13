@@ -9,7 +9,8 @@
     "test": "node --test \"tests/**/*.test.js\"",
     "check": "pnpm test && pnpm build",
     "test:e2e": "node scripts/build.mjs && node --test --test-concurrency=1 \"tests-e2e/**/*.test.mjs\"",
-    "verificar": "pnpm check && pnpm test:e2e"
+    "verificar": "pnpm check && pnpm test:e2e",
+    "empaquetar": "node scripts/build.mjs && node scripts/empaquetar.mjs"
   },
   "devDependencies": {
     "@fontsource/fredoka": "5.2.10",

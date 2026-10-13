@@ -1,0 +1,38 @@
+PORTAL DE JUEGOS EDUCATIVOS PARA PRIMARIA  (versión {{VERSION}})
+================================================================
+
+QUÉ ES
+  Cinco juegos educativos para niños de 1.º a 6.º de primaria.
+  Funciona SIN INTERNET: no instala nada ni necesita servidor.
+
+CÓMO USARLO
+  1. Extrae esta carpeta completa en la computadora (no abras el ZIP directamente).
+  2. Entra a la carpeta y haz doble clic en  index.html
+  3. Se abre en el navegador. Cada niño crea su jugador (nombre o apodo, amigo y grado).
+
+NAVEGADORES
+  Funciona en Chrome, Edge y Firefox de los últimos años. Si algo se ve raro,
+  actualiza el navegador o prueba con otro.
+
+  Para la lectura en voz alta (botón «Escuchar», opcional) la computadora debe tener
+  una voz en español instalada. Si no la tiene, el botón simplemente no aparece
+  y el juego funciona igual.
+
+EL PROGRESO DE LOS NIÑOS
+  Se guarda en ESTA computadora y en ESTE navegador (no se envía a ningún lado).
+  - Si abres el portal con otro navegador, o en otra computadora, empezará vacío.
+  - Evita MOVER o RENOMBRAR la carpeta después de que los niños empiecen a jugar:
+    algunos navegadores ligan el progreso a la ubicación del archivo.
+  - Borrar los "datos de navegación / cookies" del navegador también borra el progreso.
+
+MODO MAESTRO
+  Botón «Modo maestro» al pie de la pantalla «¿Quién juega?».
+  Pide un PIN (el de fábrica es 2468; quien instaló el portal puede cambiarlo).
+  Ahí se ve el progreso de cada niño, se descargan archivos CSV (abren en Excel)
+  y se puede borrar a un jugador o todo el progreso.
+
+SI ALGO FALLA
+  - La pantalla se queda en blanco: actualiza la página (F5) y comprueba que
+    JavaScript esté activado.
+  - Un niño no ve su nombre: pregunta si usó otro navegador o computadora.
+  - Más ayuda: manual del maestro (docs/MANUAL-MAESTRO.md en el repositorio del proyecto).

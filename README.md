@@ -15,11 +15,19 @@ pnpm test        # pruebas de la lógica (rápidas, sin navegador)
 pnpm build       # genera dist/
 pnpm test:e2e    # pruebas en un Chromium real sobre dist/ (necesita Chromium; ver docs/PRUEBAS.md)
 pnpm verificar   # todo lo anterior
+pnpm empaquetar  # construye y crea entrega/portal-juegos-educativos-vX.Y.Z.zip
 ```
 
 Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autocontenida: se puede copiar a una USB.
 
 - **Modo maestro:** botón "Modo maestro" al pie de la pantalla de inicio. PIN por defecto `2468` (cámbialo en `src/portal/config.js` antes de presentar).
+
+## Entrega e instrucciones
+
+- **Para la escuela:** [`docs/MANUAL-MAESTRO.md`](docs/MANUAL-MAESTRO.md) y el `LEEME.txt` que va dentro del ZIP (`pnpm empaquetar`).
+- **Para presentar:** [`docs/GUION-DEMO.md`](docs/GUION-DEMO.md) (guion y checklist) y [`docs/GUIA-DEFENSA.md`](docs/GUIA-DEFENSA.md) (preguntas del jurado y cómo razonarlas).
+- **Pruebas:** [`docs/PRUEBAS.md`](docs/PRUEBAS.md).
+- **Publicar en GitHub Pages:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) (Actions: `.github/workflows/`).
 
 ## Estructura
 
