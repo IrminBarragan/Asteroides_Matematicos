@@ -13,6 +13,7 @@
  */
 import { aCSV } from './csv.js';
 import { PIN_MAESTRO } from './config.js';
+import { ajustarGradoContenido } from '../adaptativo/colocacion.js';
 
 export class Portal {
     /**
@@ -201,15 +202,21 @@ export class Portal {
         this.pausado = false;
         this.mostrar('jugando', { meta: Clase.meta });
 
+        // El SISTEMA decide el grado de contenido (no el grado escolar del niño): ver adaptativo/colocacion.js
+        const nivel = this.nivelDeInicio(Clase, perfil);
+        if (nivel.colocacion) this.vista.aviso('¡Misión de inicio! Vamos a ver hasta dónde llegas.', 'info');
+
         const juego = this.registro.crear(id);
         this.juegoActual = juego;
         juego.alTerminar((resultado) => this.terminarPartida(juego, resultado));
         try {
             juego.montar(this.vista.contenedorJuego(), {
-                grado: perfil.grado,
+                grado: nivel.grado,
+                gradoEscolar: perfil.grado,
+                colocacion: nivel.colocacion,
                 perfil,
                 audio: this.audio,
-                habilidades: this.progreso.obtenerHabilidades(id)
+                habilidades: nivel.colocacion ? null : this.progreso.obtenerHabilidades(id)
             });
             this.vista.observarTexto(() => this.alCambiarTexto());
         } catch (error) {
@@ -217,6 +224,31 @@ export class Portal {
             this.limpiarJuego();
             this.mostrar('error', { mensaje: 'Algo salió mal al abrir el juego. Vuelve a intentarlo.' });
         }
+    }
+
+    /**
+     * Rango de grados de contenido de un juego para este niño: desde el menor que ofrece el juego hasta el grado del
+     * niño (no se le sube por encima de lo que le toca) acotado al mayor que ofrece el juego.
+     */
+    escaleraDe(Clase, perfil) {
+        const grados = Clase.meta.grados;
+        const gradoMin = Math.min(...grados);
+        const gradoMax = Math.max(gradoMin, Math.min(perfil.grado, Math.max(...grados)));
+        return { gradoMin, gradoMax };
+    }
+
+    /**
+     * Con qué contenido juega este niño este juego:
+     *  - juegos que admiten misión de inicio: el grado de contenido guardado, o la misión si aún no la hizo;
+     *  - los demás (p. ej. el Memorama): su grado escolar.
+     * @returns {{grado:number, colocacion:Object|null}}
+     */
+    nivelDeInicio(Clase, perfil) {
+        if (!Clase.admiteColocacion) return { grado: perfil.grado, colocacion: null };
+        const escalera = this.escaleraDe(Clase, perfil);
+        const guardado = this.progreso.obtenerGradoContenido(Clase.meta.id);
+        if (guardado === null) return { grado: escalera.gradoMax, colocacion: { ...escalera } };
+        return { grado: Math.min(Math.max(guardado, escalera.gradoMin), escalera.gradoMax), colocacion: null };
     }
 
     pausarJuego() {
@@ -262,6 +294,7 @@ export class Portal {
             console.error('No se pudo guardar el resultado:', error);
             registro = { esRecord: false, estrellasGanadas: 0 };
         }
+        const cambioContenido = this.actualizarGradoContenido(meta, resultado);
         queueMicrotask(() => {
             if (juego !== this.juegoActual) return; // el niño salió justo en ese instante
             this.limpiarJuego();
@@ -269,11 +302,40 @@ export class Portal {
             this.mostrar('resultados', {
                 meta,
                 resultado,
+                colocacion: Boolean(resultado.colocacion),
+                subioContenido: cambioContenido === 'subio',
                 esRecord: registro.esRecord,
                 estrellasGanadas: registro.estrellasGanadas,
                 estrellasTotales: this.progreso.estrellasTotales()
             });
         });
+    }
+
+    /**
+     * Guarda el grado de contenido decidido por la misión, o lo ajusta tras una partida normal.
+     * @returns {'subio'|'bajo'|null}
+     */
+    actualizarGradoContenido(meta, resultado) {
+        const Clase = this.registro.obtener(meta.id);
+        if (!Clase || !Clase.admiteColocacion) return null;
+        try {
+            if (resultado.colocacion) {
+                this.progreso.guardarGradoContenido(meta.id, resultado.gradoContenido);
+                return null;
+            }
+            const perfil = this.progreso.perfilActivo();
+            const { gradoMin, gradoMax } = this.escaleraDe(Clase, perfil);
+            const actual = this.progreso.obtenerGradoContenido(meta.id) ?? gradoMax;
+            const { grado, cambio } = ajustarGradoContenido({ grado: actual, gradoMin, gradoMax, resultado });
+            if (cambio) {
+                this.progreso.guardarGradoContenido(meta.id, grado);
+                this.progreso.reiniciarHabilidades(meta.id); // los niveles por habilidad eran del grado anterior
+            }
+            return cambio;
+        } catch (error) {
+            console.error('No se pudo actualizar el grado de contenido:', error);
+            return null;
+        }
     }
 
     /** Destruye el juego en curso (si lo hay). Es seguro llamarlo siempre. */
@@ -324,7 +386,7 @@ export class Portal {
             grado: perfil.grado,
             estrellas: Object.values(perfil.juegos).reduce((s, j) => s + j.mejorEstrellas, 0),
             juegos: Object.entries(perfil.juegos).map(([id, j]) => ({
-                id, nombre: this.nombreJuego(id), ...j
+                id, nombre: this.nombreJuego(id), contenido: perfil.contenido[id] ?? null, ...j
             })),
             habilidades: this.filasHabilidades(perfil)
         }));
@@ -354,6 +416,12 @@ export class Portal {
         this.irAModoMaestro();
     }
 
+    /** Modo maestro: el niño vuelve a hacer la misión de inicio (conserva sus estrellas). */
+    repetirMision(id) {
+        this.progreso.reiniciarColocacion(id);
+        this.irAModoMaestro();
+    }
+
     reiniciarTodo() {
         this.progreso.reiniciarTodo();
         this.verTodos = false;
@@ -372,11 +440,11 @@ export class Portal {
             for (const [id, j] of Object.entries(perfil.juegos)) {
                 filas.push([
                     perfil.apodo, perfil.grado, this.nombreJuego(id), j.partidas, j.mejorPuntaje, j.mejorEstrellas,
-                    j.ultimaPartida ? new Date(j.ultimaPartida).toISOString() : ''
+                    j.ultimaPartida ? new Date(j.ultimaPartida).toISOString() : '', perfil.contenido[id] ?? ''
                 ]);
             }
         }
-        return aCSV(['jugador', 'grado', 'juego', 'partidas', 'mejor_puntaje', 'mejores_estrellas', 'ultima_partida'], filas);
+        return aCSV(['jugador', 'grado', 'juego', 'partidas', 'mejor_puntaje', 'mejores_estrellas', 'ultima_partida', 'grado_contenido'], filas);
     }
 
     csvHabilidades() {

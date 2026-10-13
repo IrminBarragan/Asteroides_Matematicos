@@ -18,6 +18,9 @@ import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 const ELOGIOS = ['¡Correcto!', '¡Muy bien!', '¡Excelente!', '¡Genial!', '¡Perfecto!'];
 
 export class JuegoFracciones extends Juego {
+    /** El portal le hace al niño la misión de inicio antes de la primera partida (ver adaptativo/colocacion.js). */
+    static admiteColocacion = true;
+
     static meta = {
         id: 'fracciones',
         nombre: 'Tren de Fracciones',
@@ -43,7 +46,8 @@ export class JuegoFracciones extends Juego {
         this.partida = new Partida({
             grado: contexto.grado || 3,
             habilidadesGuardadas: contexto.habilidades,
-            aleatorio: this.aleatorio
+            aleatorio: this.aleatorio,
+            colocacion: contexto.colocacion
         });
         this.construirInterfaz(contenedor);
 

@@ -219,6 +219,7 @@ p { margin: 0 0 .75rem; }
 .perfil-maestro { background: #fff; border-radius: var(--radio); box-shadow: var(--sombra); padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
 .perfil-maestro__cabecera { display: flex; align-items: center; gap: 1rem; margin-bottom: .75rem; }
 .perfil-maestro__cabecera > div { flex: 1; }
+.perfil-maestro__cabecera > .perfil-maestro__acciones { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: .5rem; }
 .perfil-maestro__cabecera h3, .perfil-maestro__cabecera p { margin: 0; }
 .tabla-envoltura { overflow-x: auto; margin-bottom: .75rem; }
 .tabla { width: 100%; border-collapse: collapse; font-size: .85rem; }

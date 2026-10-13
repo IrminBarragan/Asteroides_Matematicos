@@ -86,7 +86,7 @@ test('finalizar emite el resultado normalizado una sola vez y pasa a terminado',
     assert.equal(j.estado, 'terminado');
     assert.equal(recibidos.length, 1);
     assert.equal(recibidos[0].aciertos, 2);
-    assert.equal(recibidos[0].estrellas, 1);   // 2/3 = 67% → 1 estrella
+    assert.equal(recibidos[0].estrellas, 2);   // 2/3 = 67% ≥ 60 % → 2 estrellas (regla de la v2)
     assert.equal(recibidos[0].puntaje, 20);
     j.finalizar({ aciertos: 9, fallos: 0, tiempoMs: 1 }); // segundo intento: ignorado
     assert.equal(recibidos.length, 1);

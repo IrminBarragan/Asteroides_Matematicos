@@ -12,16 +12,21 @@ export {
 } from '../../../core/partidaPreguntas.js';
 
 export class Partida extends PartidaPreguntas {
-    constructor({ grado, habilidadesGuardadas = null, aleatorio = Math.random, total }) {
+    constructor({ grado, habilidadesGuardadas = null, aleatorio = Math.random, total, colocacion = null }) {
         const g = Math.min(Math.max(grado, 1), 6);
         super({
             grado: g,
             habilidades: habilidadesParaGrado(g),
             generar: generarPregunta,
-            preparar: (grado, nivel) => ({ cantidad: cantidadAsteroides(grado, nivel), velocidad: velocidadBase(grado, nivel) }),
+            // Modo tranquilo (alivio): tras 2 preguntas falladas seguidas, menos asteroides y más lentos
+            preparar: (grado, nivel, { alivio = false } = {}) => ({
+                cantidad: cantidadAsteroides(grado, nivel, alivio),
+                velocidad: velocidadBase(grado, nivel, alivio)
+            }),
             habilidadesGuardadas,
             aleatorio,
-            total
+            total,
+            colocacion: colocacion && { ...colocacion, habilidadesDeGrado: habilidadesParaGrado }
         });
     }
 }

@@ -120,6 +120,18 @@ Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, o
 
 **Cómo un juego participa en la lectura asistida:** marca su enunciado con `data-leer`. No necesita más.
 
+## Añadidos en la Fase 10 (v0.2)
+
+| Archivo | Qué es |
+|---|---|
+| `adaptativo/colocacion.js` | Lógica pura de **dónde empezar**: escalera de la misión de inicio (`avanzarEscalon`) y ajuste tras cada partida (`ajustarGradoContenido`) |
+| `core/partidaPreguntas.js` | Ahora también: preguntas **recuperadas**, **alivio** (tras 2 falladas seguidas) y **misión de inicio** (`colocacion`) |
+| `core/resultado.js` | Estrellas por crédito (aciertos + ½ recuperadas); ver `calcularEstrellas` |
+| `core/storage.js` | **Esquema v2**: `perfil.contenido` por juego; primera migración real (`MIGRACIONES[1]`) |
+| `portal/portal.js` | `nivelDeInicio` decide qué grado de contenido se le da al juego (contexto `grado`, `colocacion`) y `actualizarGradoContenido` lo ajusta al terminar |
+
+**Contrato nuevo para un juego de preguntas:** declara `static admiteColocacion = true` y pasa `contexto.colocacion` a su `Partida` (que añade `habilidadesDeGrado`). Todo lo demás es del portal.
+
 Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)

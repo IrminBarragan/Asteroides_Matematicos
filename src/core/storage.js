@@ -9,7 +9,7 @@
  *    se sigue funcionando en memoria y se conserva una copia del dato dañado.
  */
 
-export const VERSION_ESQUEMA = 1;
+export const VERSION_ESQUEMA = 2;
 export const CLAVE_ALMACEN = 'portal-juegos-educativos';
 export const MAX_PERFILES = 40;
 export const MAX_LARGO_APODO = 16;
@@ -50,9 +50,15 @@ export function crearDatosIniciales() {
 
 /**
  * Migraciones: MIGRACIONES[n] convierte datos de la versión n a la n+1.
- * Vacío por ahora (solo existe la versión 1); este es el lugar donde se agregan.
+ *  - 1 → 2 (v0.2): cada perfil gana `contenido` ({ juegoId: grado de contenido }): el grado de contenido en el que
+ *    el sistema decidió que debe jugar cada juego (ver adaptativo/colocacion.js). Vacío = aún no hizo la misión de inicio.
  */
-export const MIGRACIONES = {};
+export const MIGRACIONES = {
+    1: (datos) => ({
+        ...datos,
+        perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, contenido: {} }]))
+    })
+};
 
 export function migrar(datos, migraciones = MIGRACIONES, versionObjetivo = VERSION_ESQUEMA) {
     let actual = datos;
@@ -73,7 +79,9 @@ function perfilValido(p) {
         && typeof p.avatar === 'string'
         && Number.isInteger(p.grado) && p.grado >= 1 && p.grado <= 6
         && esObjeto(p.juegos)
-        && esObjeto(p.habilidades);
+        && esObjeto(p.habilidades)
+        && esObjeto(p.contenido)
+        && Object.values(p.contenido).every((g) => Number.isInteger(g) && g >= 1 && g <= 6);
 }
 
 /** Comprueba la estructura mínima; protege contra datos manipulados o dañados. */
@@ -180,7 +188,7 @@ export class Progreso {
         if (yaExiste) throw new Error('Ya existe un perfil con ese apodo');
 
         const id = this.datos.siguienteId++;
-        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, creado: this.ahora() };
+        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, creado: this.ahora() };
         this.datos.perfiles[id] = perfil;
         this.datos.perfilActivo = id;
         this.guardar();
@@ -264,6 +272,36 @@ export class Progreso {
     obtenerHabilidades(juegoId) {
         const perfil = this.perfilInterno();
         return perfil.habilidades[juegoId] ? copiar(perfil.habilidades[juegoId]) : null;
+    }
+
+    // ---------- Grado de contenido (nivel de partida decidido por el sistema) ----------
+
+    /** Grado de contenido (1..6) en el que juega este juego el perfil activo, o null si aún no hizo la misión de inicio. */
+    obtenerGradoContenido(juegoId) {
+        const g = this.perfilInterno().contenido[juegoId];
+        return Number.isInteger(g) ? g : null;
+    }
+
+    guardarGradoContenido(juegoId, grado) {
+        if (!Number.isInteger(grado) || grado < 1 || grado > 6) throw new Error('El grado de contenido debe ser de 1 a 6');
+        this.perfilInterno().contenido[juegoId] = grado;
+        this.guardar();
+    }
+
+    /** Al cambiar de grado de contenido, los niveles por habilidad del grado anterior ya no aplican. */
+    reiniciarHabilidades(juegoId) {
+        delete this.perfilInterno().habilidades[juegoId];
+        this.guardar();
+    }
+
+    /** Para volver a lanzar la misión de inicio de un niño (modo maestro). */
+    reiniciarColocacion(id) {
+        const perfil = this.datos.perfiles[id];
+        if (!perfil) return false;
+        perfil.contenido = {};
+        perfil.habilidades = {};
+        this.guardar();
+        return true;
     }
 
     // ---------- Ajustes ----------

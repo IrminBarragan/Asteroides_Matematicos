@@ -6,6 +6,9 @@
  * son apropiados. Cada generador devuelve la respuesta como ENTERO (los decimales se manejan
  * escalados, p. ej. 3.5 → 35 con una décima) para evitar errores de punto flotante (0.1 + 0.2).
  *
+ * El piso es bajo a propósito: en 1.º el nivel 1 son sumas y restas hasta 5 (v0.2; antes hasta 10), porque
+ * los niños que llegan sin la base necesitan un escalón desde donde empezar.
+ *
  * Cobertura por grado (ver HABILIDADES_POR_GRADO):
  *   1.º-2.º suma y resta · 3.º + tablas de multiplicar · 4.º + división exacta
  *   5.º multiplicación, división, operaciones combinadas, múltiplos
@@ -36,7 +39,7 @@ const acotar = (v, min, max) => Math.min(Math.max(v, min), max);
 // ---------- Tablas de tamaño por grado y nivel ----------
 
 export const TOPE_SUMA = {
-    1: [10, 15, 20], 2: [30, 60, 100], 3: [200, 500, 1000],
+    1: [5, 10, 20], 2: [30, 60, 100], 3: [200, 500, 1000],
     4: [1000, 5000, 10000], 5: [10000, 25000, 50000], 6: [50000, 75000, 100000]
 };
 const GRUPOS_TABLA = { 1: [2, 5, 10], 2: [3, 4, 6], 3: [7, 8, 9] };

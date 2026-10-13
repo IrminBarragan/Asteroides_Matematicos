@@ -18,7 +18,7 @@ No necesita internet, instalación ni permisos de administrador.
 1. **«¿Quién juega?»** — varios niños comparten la computadora; cada uno toca su nombre. La primera vez cada niño crea su jugador: nombre o apodo (sin apellidos), un amigo (avatar) y su grado.
 2. **Galería de juegos** — solo se muestran los de su grado. Las estrellas doradas son su mejor resultado.
 3. **La partida** — son **10 preguntas** (3–5 minutos). Botón **Pausa** (o la tecla Escape) y **← Salir**.
-4. **Resultados** — de 0 a 3 estrellas según la precisión (3 estrellas: ≥ 90 % de aciertos a la primera; 2: ≥ 70 %; 1: cualquier otro caso con algún acierto).
+4. **Resultados** — de 0 a 3 estrellas. **Terminar y esforzarse ya da 1 estrella**; reintentar hasta acertar cuenta a medias. 3 estrellas: casi todo a la primera (≥ 90 %); 2 estrellas: ≥ 60 %.
 
 Los datos personales se limitan al nombre o apodo y al avatar. **No se envía nada a internet.**
 
@@ -31,6 +31,14 @@ Los datos personales se limitan al nombre o apodo y al avatar. **No se envía na
 | **Reloj Aventurero** | 1.º–4.º | En punto y media · cuartos y decir la hora · minutos y duración · reloj de 24 horas |
 | **Atrapa la Ortografía** | 3.º–6.º | b/v, g/j, h · c/s/z, ll/y · acentuación · homófonos y «porque / por qué» |
 | **Tren de Fracciones** | 3.º–6.º | Leer, pintar y comparar fracciones · equivalentes · simplificar, sumar y restar · números mixtos y decimales |
+
+### La «misión de inicio»: el sistema busca solo por dónde empezar
+
+La **primera vez** que un niño juega cada juego de preguntas hace una **misión de 8 preguntas** presentada como aventura. Si acierta, las preguntas suben de dificultad; si falla, bajan. **No hay que configurar nada**: así el niño empieza con contenido que puede resolver, aunque no domine el de su grado. Después, tras cada partida, el sistema sube o baja **un grado de contenido** si hace falta.
+
+- El niño **nunca ve** en qué nivel está (un niño de 6.º que repasa contenido de 3.º no lo nota).
+- Tú lo ves en el **modo maestro**: columna **«Contenido que le toca»**. Es una **estimación**: 8 preguntas son pocas; se afina partida a partida.
+- Si crees que el resultado no es justo (el niño estaba distraído, nervioso o adivinó), usa **«Repetir misión»** en el modo maestro (no borra sus estrellas).
 
 ### Cómo se trata el error (importante para quien acompaña)
 
@@ -50,8 +58,9 @@ Es una puerta para que los niños no borren datos por accidente; **no es una med
 
 Ahí puedes:
 
-- Ver por niño: **juegos jugados, mejor puntaje y estrellas**.
+- Ver por niño: **juegos jugados, mejor puntaje, estrellas y el contenido que le toca**.
 - Ver por niño sus **habilidades**: nivel actual, intentos, aciertos y **dominio reciente** (porcentaje de aciertos en sus últimos intentos). Un dominio bajo en una habilidad indica **qué reforzar**.
+- **Repetir la misión de inicio** de un niño.
 - **Descargar CSV** (`progreso.csv`, `habilidades.csv`) y abrirlos en Excel o Google Sheets.
 - **Eliminar** a un jugador, o **borrar todo** (pide confirmación; no se puede deshacer).
 

@@ -19,6 +19,9 @@ import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 const ELOGIOS = ['¡Correcto!', '¡Muy bien!', '¡Excelente!', '¡Genial!', '¡Perfecto!'];
 
 export class JuegoReloj extends Juego {
+    /** El portal le hace al niño la misión de inicio antes de la primera partida (ver adaptativo/colocacion.js). */
+    static admiteColocacion = true;
+
     static meta = {
         id: 'reloj',
         nombre: 'Reloj Aventurero',
@@ -44,7 +47,8 @@ export class JuegoReloj extends Juego {
         this.partida = new Partida({
             grado: contexto.grado || 1,
             habilidadesGuardadas: contexto.habilidades,
-            aleatorio: this.aleatorio
+            aleatorio: this.aleatorio,
+            colocacion: contexto.colocacion
         });
         this.construirInterfaz(contenedor);
 

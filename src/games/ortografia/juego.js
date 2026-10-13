@@ -23,6 +23,9 @@ const RECORRIDO = 1.3;          // fracciones de alto que recorre (de arriba, fu
 const CARRILES = { 2: [30, 70], 3: [18, 50, 82] };
 
 export class JuegoOrtografia extends Juego {
+    /** El portal le hace al niño la misión de inicio antes de la primera partida (ver adaptativo/colocacion.js). */
+    static admiteColocacion = true;
+
     static meta = {
         id: 'ortografia',
         nombre: 'Atrapa la Ortografía',
@@ -49,7 +52,8 @@ export class JuegoOrtografia extends Juego {
         this.partida = new Partida({
             grado: contexto.grado || 3,
             habilidadesGuardadas: contexto.habilidades,
-            aleatorio: this.aleatorio
+            aleatorio: this.aleatorio,
+            colocacion: contexto.colocacion
         });
         this.construirInterfaz(contenedor);
 

@@ -46,13 +46,19 @@ export function pantallaMaestro({ perfiles }, portal, ctx) {
         h('header', { class: 'perfil-maestro__cabecera' },
             avatar(p.avatar, 'avatar avatar--media'),
             h('div', {}, h('h3', {}, p.apodo), h('p', {}, `${textoGrado(p.grado)} · ${p.estrellas} ${p.estrellas === 1 ? 'estrella' : 'estrellas'}`)),
-            h('button', {
-                class: 'boton boton--peligro boton--chico', type: 'button',
-                'aria-label': `Eliminar a ${p.apodo}`, onClick: () => ctx.confirmarEliminar(p)
-            }, 'Eliminar')),
+            h('div', { class: 'perfil-maestro__acciones' },
+                h('button', {
+                    class: 'boton boton--secundario boton--chico', type: 'button',
+                    'aria-label': `Repetir la misión de inicio de ${p.apodo}`, title: 'El sistema vuelve a buscar por dónde debe empezar (conserva sus estrellas)',
+                    onClick: () => portal.repetirMision(p.id)
+                }, 'Repetir misión'),
+                h('button', {
+                    class: 'boton boton--peligro boton--chico', type: 'button',
+                    'aria-label': `Eliminar a ${p.apodo}`, onClick: () => ctx.confirmarEliminar(p)
+                }, 'Eliminar'))),
         p.juegos.length > 0
-            ? tabla(`Juegos de ${p.apodo}`, ['Juego', 'Partidas', 'Mejor puntaje', 'Mejores estrellas'],
-                p.juegos.map((j) => [j.nombre, j.partidas, j.mejorPuntaje, j.mejorEstrellas]))
+            ? tabla(`Juegos de ${p.apodo}`, ['Juego', 'Partidas', 'Mejor puntaje', 'Mejores estrellas', 'Contenido que le toca'],
+                p.juegos.map((j) => [j.nombre, j.partidas, j.mejorPuntaje, j.mejorEstrellas, j.contenido === null ? '—' : `${j.contenido}.º`]))
             : h('p', { class: 'vacio' }, 'Aún no ha jugado.'),
         p.habilidades.length > 0 && tabla(`Habilidades de ${p.apodo}`, ['Juego', 'Habilidad', 'Nivel', 'Intentos', 'Aciertos', 'Dominio reciente'],
             p.habilidades.map((f) => [f.juego, f.habilidad, f.nivel, f.intentos, f.aciertos, porcentaje(f.dominioReciente)]))));

@@ -284,7 +284,7 @@ test('datosMaestro resume perfiles, juegos y habilidades', async () => {
     await vaciarMicrotasks();
     const { perfiles } = portal.datosMaestro();
     assert.equal(perfiles.length, 1);
-    assert.equal(perfiles[0].estrellas, 1);
+    assert.equal(perfiles[0].estrellas, 2); // 2/3 = 67 % → 2 estrellas
     assert.equal(perfiles[0].juegos[0].nombre, 'Juego de Ejemplo');
     assert.deepEqual(perfiles[0].habilidades[0], {
         juego: 'Juego de Ejemplo', habilidad: 'suma', nivel: 2, intentos: 6, aciertos: 5, dominioReciente: 0.75
@@ -341,8 +341,8 @@ test('csvProgreso incluye BOM, encabezados y una fila por juego jugado', async (
     jugarHastaElFinal(portal);
     await vaciarMicrotasks();
     const csv = portal.csvProgreso();
-    assert.ok(csv.startsWith('﻿jugador,grado,juego,partidas,mejor_puntaje,mejores_estrellas,ultima_partida\r\n'));
-    assert.match(csv, /Luisa,3,Juego de Ejemplo,1,30,3,2023-11-14T22:13:20\.000Z\r\n$/);
+    assert.ok(csv.startsWith('﻿jugador,grado,juego,partidas,mejor_puntaje,mejores_estrellas,ultima_partida,grado_contenido\r\n'));
+    assert.match(csv, /Luisa,3,Juego de Ejemplo,1,30,3,2023-11-14T22:13:20\.000Z,\r\n$/);
 });
 
 test('el CSV neutraliza apodos que parecen fórmulas de Excel', async () => {
@@ -424,4 +424,127 @@ test('voz: en pausa no lee, y pausar, salir o terminar callan la voz', async () 
     portal.irAInicio();
     assert.equal(vista.alCambiarTexto, null, 'al salir deja de observar');
     assert.ok(voz.detenciones >= 2);
+});
+
+// ---------- Nivel de contenido decidido por el sistema (misión de inicio y ajuste) ----------
+
+class JuegoAdaptable extends JuegoEjemplo {
+    static admiteColocacion = true;
+    static meta = { ...JuegoEjemplo.meta, id: 'adaptable', nombre: 'Adaptable', grados: [1, 2, 3, 4, 5, 6] };
+    alMontar(contenedor, contexto) { super.alMontar(contenedor, contexto); this.contexto = contexto; }
+}
+class JuegoDeTercero extends JuegoAdaptable {
+    static meta = { ...JuegoAdaptable.meta, id: 'tercero', nombre: 'Solo 3.º a 6.º', grados: [3, 4, 5, 6] };
+}
+
+function crearAdaptable() {
+    const base = crear();
+    const registro = new RegistroJuegos().registrar(JuegoEjemplo).registrar(JuegoAdaptable).registrar(JuegoDeTercero);
+    const portal = new Portal({ registro, progreso: base.progreso, audio: base.audio, vista: base.vista });
+    return { ...base, portal };
+}
+const sexto = { apodo: 'Mateo', avatar: 'perro', grado: 6 };
+const nivelMax = (n) => ({ h: { nivel: n }, k: { nivel: n } });
+const terminar = async (portal, resultado) => { portal.juegoActual.finalizar(resultado); await vaciarMicrotasks(); };
+
+test('contenido: un juego que no admite misión usa el grado escolar del niño', () => {
+    const { portal } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('ejemplo');
+    // JuegoEjemplo solo es de 1.º–3.º y no admite misión: el portal no se mete
+    assert.equal(portal.nivelDeInicio(JuegoEjemplo, { grado: 3 }).colocacion, null);
+    assert.equal(portal.nivelDeInicio(JuegoEjemplo, { grado: 3 }).grado, 3);
+});
+
+test('contenido: la PRIMERA vez se lanza la misión con el rango del juego y se avisa al niño con tono de aventura', () => {
+    const { portal, vista } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('adaptable');
+    const c = portal.juegoActual.contexto;
+    assert.deepEqual(c.colocacion, { gradoMin: 1, gradoMax: 6 });
+    assert.equal(c.habilidades, null, 'la misión no importa niveles guardados');
+    assert.equal(c.gradoEscolar, 6);
+    assert.match(vista.avisos.at(-1).texto, /Misión de inicio/);
+    assert.ok(!/nivel|grado|fácil|difícil/i.test(vista.avisos.at(-1).texto), 'no se le dice al niño en qué nivel está');
+});
+
+test('contenido: el rango respeta el mínimo del juego y el grado del niño', () => {
+    const { portal } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    assert.deepEqual(portal.escaleraDe(JuegoDeTercero, { grado: 6 }), { gradoMin: 3, gradoMax: 6 });
+    assert.deepEqual(portal.escaleraDe(JuegoDeTercero, { grado: 4 }), { gradoMin: 3, gradoMax: 4 });
+    assert.deepEqual(portal.escaleraDe(JuegoAdaptable, { grado: 2 }), { gradoMin: 1, gradoMax: 2 });
+    assert.deepEqual(portal.escaleraDe(JuegoDeTercero, { grado: 1 }), { gradoMin: 3, gradoMax: 3 }, 'nunca un rango invertido');
+});
+
+test('contenido: al terminar la misión se guarda el grado, se avisa en resultados y la siguiente partida ya juega con él', async () => {
+    const { portal, vista, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 1, fallos: 7, recuperadas: 7, tiempoMs: 1, colocacion: true, gradoContenido: 2, habilidades: null });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 2);
+    assert.equal(vista.ultima().nombre, 'resultados');
+    assert.equal(vista.ultima().datos.colocacion, true);
+    assert.equal(vista.ultima().datos.resultado.estrellas, 1, 'esforzarse en la misión da estrella');
+    assert.equal(progreso.obtenerHabilidades('adaptable'), null, 'la misión no guarda niveles');
+
+    portal.iniciarJuego('adaptable');
+    const c = portal.juegoActual.contexto;
+    assert.equal(c.grado, 2, 'a partir de ahora, contenido de 2.º aunque esté en 6.º');
+    assert.equal(c.colocacion, null);
+});
+
+test('contenido: tras una partida muy buena y con las habilidades en el nivel más alto, SUBE un grado y reinicia niveles', async () => {
+    const { portal, vista, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    progreso.guardarGradoContenido('adaptable', 3);
+    portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 10, fallos: 0, recuperadas: 0, tiempoMs: 1, habilidades: nivelMax(3) });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 4);
+    assert.equal(vista.ultima().datos.subioContenido, true);
+    assert.equal(progreso.obtenerHabilidades('adaptable'), null, 'los niveles eran del grado anterior');
+});
+
+test('contenido: tras una partida mala con las habilidades en el nivel más fácil, BAJA un grado sin avisarle al niño', async () => {
+    const { portal, vista, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    progreso.guardarGradoContenido('adaptable', 4);
+    portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 1, fallos: 9, recuperadas: 3, tiempoMs: 1, habilidades: nivelMax(1) });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 3);
+    assert.equal(vista.ultima().datos.subioContenido, false);
+    assert.equal(vista.ultima().datos.resultado.estrellas, 1, 'aun así ganó una estrella por terminar');
+});
+
+test('contenido: una partida normal que no justifica cambio conserva el grado y los niveles', async () => {
+    const { portal, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    progreso.guardarGradoContenido('adaptable', 4);
+    portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 7, fallos: 3, recuperadas: 1, tiempoMs: 1, habilidades: nivelMax(2) });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 4);
+    assert.deepEqual(progreso.obtenerHabilidades('adaptable'), nivelMax(2));
+});
+
+test('contenido: nunca sube por encima del grado del niño ni baja del mínimo del juego', async () => {
+    const { portal, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil({ apodo: 'Luz', avatar: 'gato', grado: 4 });
+    progreso.guardarGradoContenido('tercero', 4);
+    portal.iniciarJuego('tercero');
+    await terminar(portal, { aciertos: 10, fallos: 0, tiempoMs: 1, habilidades: nivelMax(3) });
+    assert.equal(progreso.obtenerGradoContenido('tercero'), 4, 'el tope es su grado (4.º)');
+    progreso.guardarGradoContenido('tercero', 3);
+    portal.irAInicio(); portal.iniciarJuego('tercero');
+    await terminar(portal, { aciertos: 0, fallos: 10, recuperadas: 10, tiempoMs: 1, habilidades: nivelMax(1) });
+    assert.equal(progreso.obtenerGradoContenido('tercero'), 3, 'el mínimo del juego es 3.º');
+});
+
+test('contenido: modo maestro muestra el contenido de cada juego y puede repetir la misión (conserva estrellas)', async () => {
+    const { portal, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 5, fallos: 3, recuperadas: 2, tiempoMs: 1, colocacion: true, gradoContenido: 3, habilidades: null });
+    const fila = portal.datosMaestro().perfiles[0].juegos.find((j) => j.id === 'adaptable');
+    assert.equal(fila.contenido, 3);
+    assert.match(portal.csvProgreso(), /,3\r\n$/, 'el CSV trae el grado de contenido');
+    const estrellas = progreso.estrellasTotales();
+    portal.repetirMision(progreso.listarPerfiles()[0].id);
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), null);
+    assert.equal(progreso.estrellasTotales(), estrellas);
 });

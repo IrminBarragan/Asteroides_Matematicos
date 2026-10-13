@@ -40,6 +40,9 @@ const NOMBRES_HABILIDAD = {
 };
 
 export class JuegoAsteroides extends Juego {
+    /** El portal le hace al niño la misión de inicio antes de la primera partida (ver adaptativo/colocacion.js). */
+    static admiteColocacion = true;
+
     static meta = {
         id: 'asteroides',
         nombre: 'Asteroides Matemáticos',
@@ -69,7 +72,8 @@ export class JuegoAsteroides extends Juego {
         this.partida = new Partida({
             grado: contexto.grado || 1,
             habilidadesGuardadas: contexto.habilidades,
-            aleatorio: this.aleatorio
+            aleatorio: this.aleatorio,
+            colocacion: contexto.colocacion
         });
         this.audio = contexto.audio;
         this.estrellas = crearEstrellas(this.aleatorio);

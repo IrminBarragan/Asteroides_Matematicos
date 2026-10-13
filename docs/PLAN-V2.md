@@ -42,7 +42,7 @@ Además: el sonido son solo efectos sintéticos cortos (`src/core/gestorAudio.js
 
 | Fase | Nombre | Contenido | Entrega |
 |---|---|---|---|
-| **10** | **Rescate** | Nueva regla de estrellas · nivel de partida independiente del grado, **decidido por el sistema** (misión de inicio + adaptación) · escalones nuevos por debajo (suma y resta hasta 10 y 20; tablas del 2, 5 y 10) · «modo tranquilo» en Asteroides | **v0.2-alfa** |
+| **10** ✅ | **Rescate** | Nueva regla de estrellas · nivel de partida independiente del grado, **decidido por el sistema** (misión de inicio + adaptación) · escalones nuevos por debajo (suma y resta hasta 10 y 20; tablas del 2, 5 y 10) · «modo tranquilo» en Asteroides | **v0.2-alfa** |
 | **11** | **Aprende dentro de cada juego** | Componente **lección** (pasos guiados + material arrastrable) · «**Ver cómo se hace**» tras fallar · **mini-lección previa** al subir a un escalón nuevo · aplicado a los juegos existentes (Asteroides, Reloj, Fracciones…) | **Responde la queja principal** |
 | **12** | **Música y color** | Música generada en el navegador, **apagada por omisión** en el equipo · volumen de música y efectos separados · mascota «entrenador» · confeti y celebraciones · fondos animados por área · «modo ligero» · álbum de logros | v0.2-beta |
 | **13** | **Sumas y restas guiadas** (juego nuevo) | Sumar/restar con material (recta numérica, «hacer 10», marcos de 10) · tema juvenil | Juego 1 |
@@ -54,7 +54,7 @@ Además: el sonido son solo efectos sintéticos cortos (`src/core/gestorAudio.js
 
 Cada fase termina con commits separados, pruebas en verde (unitarias **y** de navegador) y su `docs/AUDITORIA-FASE-N.md`, como hasta ahora.
 
-### Fase 10 — Rescate (lo más urgente)
+### Fase 10 — Rescate (lo más urgente) — ✅ hecha, ver [`AUDITORIA-FASE-10.md`](AUDITORIA-FASE-10.md)
 
 **10.1 Nueva regla de estrellas** (`calcularEstrellas`).
 Propuesta (a validar contigo):

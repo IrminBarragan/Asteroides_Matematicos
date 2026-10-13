@@ -199,3 +199,94 @@ test('reiniciarTodo borra perfiles y ajustes', () => {
     p.reiniciarTodo();
     assert.deepEqual(nuevo(almacen).listarPerfiles(), []);
 });
+
+// ---------- v0.2: grado de contenido y migración 1 → 2 ----------
+
+test('migración 1 → 2: un perfil guardado con la v0.1 se conserva y gana `contenido` vacío', () => {
+    const almacen = new AlmacenMemoria();
+    const v1 = {
+        version: 1, ajustes: { sonido: false, lecturaAsistida: true }, perfilActivo: 1, siguienteId: 2,
+        perfiles: { 1: { id: 1, apodo: 'Ana', avatar: 'gato', grado: 6, juegos: { reloj: { partidas: 2, mejorPuntaje: 90, mejorEstrellas: 2 } }, habilidades: { reloj: { 'leer-hora': { nivel: 2 } } }, creado: 5 } }
+    };
+    almacen.setItem(CLAVE_ALMACEN, JSON.stringify(v1));
+    const p = new Progreso(almacen);
+    assert.equal(p.recuperadoDeError, false);
+    const ana = p.perfilActivo();
+    assert.equal(ana.apodo, 'Ana');
+    assert.equal(ana.juegos.reloj.partidas, 2, 'no se pierde el progreso');
+    assert.equal(ana.habilidades.reloj['leer-hora'].nivel, 2);
+    assert.deepEqual(ana.contenido, {});
+    assert.equal(p.ajustes().sonido, false);
+    assert.equal(p.datos.version, 2);
+});
+
+test('migrar no modifica el objeto original y rehace el paso con varios perfiles', () => {
+    const v1 = { version: 1, perfiles: { 1: { id: 1 }, 2: { id: 2 } } };
+    const v2 = migrar(v1);
+    assert.equal(v1.version, 1);
+    assert.equal(v1.perfiles[1].contenido, undefined);
+    assert.deepEqual(v2.perfiles[1].contenido, {});
+    assert.deepEqual(v2.perfiles[2].contenido, {});
+    assert.equal(v2.version, 2);
+});
+
+test('un perfil nuevo empieza sin grado de contenido (la misión de inicio lo decidirá)', () => {
+    const p = new Progreso(new AlmacenMemoria());
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 4 });
+    assert.equal(p.obtenerGradoContenido('asteroides'), null);
+});
+
+test('guardar y leer el grado de contenido; solo 1..6 enteros', () => {
+    const p = new Progreso(new AlmacenMemoria());
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    p.guardarGradoContenido('asteroides', 3);
+    assert.equal(p.obtenerGradoContenido('asteroides'), 3);
+    assert.equal(p.obtenerGradoContenido('reloj'), null, 'cada juego tiene el suyo');
+    for (const malo of [0, 7, 2.5, '3', null, NaN]) assert.throws(() => p.guardarGradoContenido('asteroides', malo), /1 a 6/);
+});
+
+test('el grado de contenido persiste entre cargas', () => {
+    const almacen = new AlmacenMemoria();
+    const p = new Progreso(almacen);
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    p.guardarGradoContenido('asteroides', 2);
+    const otro = new Progreso(almacen);
+    otro.seleccionarPerfil(1);
+    assert.equal(otro.obtenerGradoContenido('asteroides'), 2);
+});
+
+test('datos con un grado de contenido inválido se tratan como dato dañado (no confiable)', () => {
+    const almacen = new AlmacenMemoria();
+    const p = new Progreso(almacen);
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    const datos = JSON.parse(almacen.getItem(CLAVE_ALMACEN));
+    datos.perfiles[1].contenido = { asteroides: 99 };
+    almacen.setItem(CLAVE_ALMACEN, JSON.stringify(datos));
+    const recargado = new Progreso(almacen);
+    assert.equal(recargado.recuperadoDeError, true);
+    assert.equal(recargado.listarPerfiles().length, 0);
+    assert.ok(almacen.getItem(`${CLAVE_ALMACEN}-danado`), 'se conserva copia del dato dañado');
+});
+
+test('reiniciarHabilidades borra solo las de ese juego', () => {
+    const p = new Progreso(new AlmacenMemoria());
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    p.guardarHabilidades('a', { x: { nivel: 2 } });
+    p.guardarHabilidades('b', { y: { nivel: 3 } });
+    p.reiniciarHabilidades('a');
+    assert.equal(p.obtenerHabilidades('a'), null);
+    assert.ok(p.obtenerHabilidades('b'));
+});
+
+test('reiniciarColocacion borra el contenido y las habilidades del niño (misión de nuevo), no sus estrellas', () => {
+    const p = new Progreso(new AlmacenMemoria());
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    p.registrarResultado('a', { puntaje: 10, estrellas: 2 });
+    p.guardarGradoContenido('a', 3);
+    p.guardarHabilidades('a', { x: { nivel: 2 } });
+    assert.equal(p.reiniciarColocacion(1), true);
+    assert.equal(p.obtenerGradoContenido('a'), null);
+    assert.equal(p.obtenerHabilidades('a'), null);
+    assert.equal(p.estrellasTotales(), 2);
+    assert.equal(p.reiniciarColocacion(99), false);
+});

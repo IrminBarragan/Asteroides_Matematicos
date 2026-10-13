@@ -9,7 +9,7 @@ export {
 } from '../../../core/partidaPreguntas.js';
 
 export class Partida extends PartidaPreguntas {
-    constructor({ grado, habilidadesGuardadas = null, aleatorio = Math.random, total }) {
+    constructor({ grado, habilidadesGuardadas = null, aleatorio = Math.random, total, colocacion = null }) {
         const g = Math.min(Math.max(grado, GRADO_MIN), GRADO_MAX); // quien juega con otro grado usa el tablero de 3.º–6.º más cercano
         super({
             grado: g,
@@ -18,7 +18,8 @@ export class Partida extends PartidaPreguntas {
             preparar: prepararRonda,
             habilidadesGuardadas,
             aleatorio,
-            total
+            total,
+            colocacion: colocacion && { ...colocacion, habilidadesDeGrado: habilidadesParaGrado }
         });
     }
 }

@@ -43,12 +43,14 @@ export function pantallaJugando({ meta }, portal, ctx) {
     return { nodo, contenedor, pausa };
 }
 
-export function pantallaResultados({ meta, resultado, esRecord, estrellasGanadas, estrellasTotales }, portal) {
+export function pantallaResultados({ meta, resultado, esRecord, estrellasGanadas, estrellasTotales, colocacion, subioContenido }, portal) {
     return h('section', { class: 'pantalla pantalla--angosta resultados' },
         h('h1', { tabindex: '-1', 'data-foco': true }, mensajeResultado(resultado.estrellas)),
         h('p', { class: 'resultados__juego' }, meta.nombre),
         estrellas(resultado.estrellas, { grande: true }),
-        esRecord && h('p', { class: 'insignia' }, '¡Nuevo récord!'),
+        colocacion && h('p', { class: 'insignia' }, '¡Misión cumplida! Ya sé por dónde empezar.'),
+        subioContenido && h('p', { class: 'insignia' }, '¡Pasas a retos nuevos!'),
+        esRecord && !colocacion && h('p', { class: 'insignia' }, '¡Nuevo récord!'),
         estrellasGanadas > 0 && h('p', { class: 'resultados__ganadas' },
             `¡Ganaste ${estrellasGanadas} ${estrellasGanadas === 1 ? 'estrella nueva' : 'estrellas nuevas'}!`),
         h('dl', { class: 'datos' },

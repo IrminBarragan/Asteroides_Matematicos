@@ -11,8 +11,13 @@ after(async () => { if (navegador) await navegador.close(); });
  * botones en orden hasta acertar (cada error da una pista y se puede reintentar); en "pintar" toca las partes que pide el enunciado.
  */
 async function jugarPartida(pagina) {
-    for (let pregunta = 1; pregunta <= 10; pregunta++) {
-        await pagina.waitForSelector('.fracciones-juego__enunciado:not(:empty)');
+    for (let guardia = 0; guardia < 14; guardia++) {
+        // O hay otra pregunta, o ya aparecieron los resultados (la misión tiene 8 preguntas; la partida normal, 10)
+        const que = await Promise.race([
+            pagina.waitForSelector('.fracciones-juego__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
+        ]);
+        if (que === 'fin') return guardia;
         const enunciado = await pagina.textContent('.fracciones-juego__enunciado');
         if (await pagina.locator('.fraccion-parte[tabindex]').count()) {
             const n = Number(/Pinta (\d+)\//.exec(enunciado)[1]);
@@ -29,18 +34,31 @@ async function jugarPartida(pagina) {
         await pagina.waitForSelector('text=Siguiente ➜', { state: 'visible' });
         await pagina.click('text=Siguiente ➜');
     }
+    throw new Error('la partida no terminó en 14 preguntas');
 }
 
 for (const grado of [3, 4, 5, 6]) {
-    test(`Tren de Fracciones, ${grado}.º: una partida completa termina en resultados`, { skip: MOTIVO_OMITIR }, async () => {
+    test(`Tren de Fracciones, ${grado}.º: la misión de inicio y una partida normal terminan en resultados`, { skip: MOTIVO_OMITIR }, async () => {
         const { pagina, contexto, problemas } = await nuevaPagina(navegador);
         await crearJugador(pagina, { grado });
         await abrirJuego(pagina, 'Tren de Fracciones');
-        await jugarPartida(pagina);
-        await pagina.waitForSelector('text=Jugar otra vez');
-        const aciertos = Number(await pagina.locator('dl.datos div').first().locator('dd').textContent());
-        assert.ok(aciertos >= 0 && aciertos <= 10);
-        // Los resultados se guardaron: la tarjeta del juego ya no dice «¡Nuevo!» si hubo estrellas
+
+        // 1.ª vez: MISIÓN DE INICIO (8 preguntas). Se juega «a lo bruto» (probando botones hasta acertar):
+        // en la v1 eso daba 0 estrellas; ahora esforzarse da al menos una.
+        assert.match(await pagina.textContent('.aviso'), /Misión de inicio/);
+        assert.match(await pagina.textContent('.fracciones-juego__dato'), /de 8/);
+        const preguntasMision = await jugarPartida(pagina);
+        assert.equal(preguntasMision, 8);
+        assert.match(await pagina.textContent('body'), /Misión cumplida/);
+        assert.ok(await pagina.locator('.estrellas .estrella--llena').count() >= 1, 'terminar la misión da al menos 1 estrella');
+
+        // 2.ª vez: partida normal de 10 preguntas
+        await pagina.click('text=Jugar otra vez');
+        await pagina.waitForSelector('.fracciones-juego__enunciado:not(:empty)');
+        assert.match(await pagina.textContent('.fracciones-juego__dato'), /de 10/);
+        assert.equal(await jugarPartida(pagina), 10);
+        assert.equal(await pagina.locator('text=Misión cumplida').count(), 0);
+        assert.ok(await pagina.locator('.estrellas .estrella--llena').count() >= 1);
         await pagina.click('text=Más juegos');
         await pagina.waitForSelector('.tarjeta-juego');
         assert.deepEqual(problemas, [], problemas.join(' | '));
