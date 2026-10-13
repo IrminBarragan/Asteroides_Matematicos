@@ -216,8 +216,9 @@ test('migración 1 → 2: un perfil guardado con la v0.1 se conserva y gana `con
     assert.equal(ana.juegos.reloj.partidas, 2, 'no se pierde el progreso');
     assert.equal(ana.habilidades.reloj['leer-hora'].nivel, 2);
     assert.deepEqual(ana.contenido, {});
+    assert.deepEqual(ana.lecciones, {});
     assert.equal(p.ajustes().sonido, false);
-    assert.equal(p.datos.version, 2);
+    assert.equal(p.datos.version, VERSION_ESQUEMA);
 });
 
 test('migrar no modifica el objeto original y rehace el paso con varios perfiles', () => {
@@ -227,7 +228,8 @@ test('migrar no modifica el objeto original y rehace el paso con varios perfiles
     assert.equal(v1.perfiles[1].contenido, undefined);
     assert.deepEqual(v2.perfiles[1].contenido, {});
     assert.deepEqual(v2.perfiles[2].contenido, {});
-    assert.equal(v2.version, 2);
+    assert.deepEqual(v2.perfiles[1].lecciones, {});
+    assert.equal(v2.version, VERSION_ESQUEMA);
 });
 
 test('un perfil nuevo empieza sin grado de contenido (la misión de inicio lo decidirá)', () => {
@@ -289,4 +291,44 @@ test('reiniciarColocacion borra el contenido y las habilidades del niño (misió
     assert.equal(p.obtenerHabilidades('a'), null);
     assert.equal(p.estrellasTotales(), 2);
     assert.equal(p.reiniciarColocacion(99), false);
+});
+
+// ---------- v0.2: lecciones vistas y migración 2 → 3 ----------
+
+test('migración 2 → 3: los perfiles de la v0.2 conservan su contenido y ganan `lecciones`', () => {
+    const almacen = new AlmacenMemoria();
+    const v2 = {
+        version: 2, ajustes: { sonido: true, lecturaAsistida: false }, perfilActivo: 1, siguienteId: 2,
+        perfiles: { 1: { id: 1, apodo: 'Ana', avatar: 'gato', grado: 6, juegos: {}, habilidades: {}, contenido: { asteroides: 3 }, creado: 5 } }
+    };
+    almacen.setItem(CLAVE_ALMACEN, JSON.stringify(v2));
+    const p = new Progreso(almacen);
+    assert.equal(p.recuperadoDeError, false);
+    assert.equal(p.obtenerGradoContenido('asteroides'), 3, 'el grado de contenido no se pierde');
+    assert.equal(p.leccionesVistas('asteroides', 'suma'), 0);
+});
+
+test('las lecciones se cuentan por juego y habilidad y persisten', () => {
+    const almacen = new AlmacenMemoria();
+    const p = new Progreso(almacen);
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    assert.equal(p.leccionesVistas('asteroides', 'suma'), 0);
+    p.registrarLeccion('asteroides', 'suma');
+    p.registrarLeccion('asteroides', 'suma');
+    p.registrarLeccion('reloj', 'suma');
+    assert.equal(p.leccionesVistas('asteroides', 'suma'), 2);
+    assert.equal(p.leccionesVistas('reloj', 'suma'), 1, 'son independientes por juego');
+    const otro = new Progreso(almacen);
+    otro.seleccionarPerfil(1);
+    assert.equal(otro.leccionesVistas('asteroides', 'suma'), 2);
+});
+
+test('un conteo de lecciones inválido se trata como dato dañado', () => {
+    const almacen = new AlmacenMemoria();
+    const p = new Progreso(almacen);
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 6 });
+    const datos = JSON.parse(almacen.getItem(CLAVE_ALMACEN));
+    datos.perfiles[1].lecciones = { 'a:b': -3 };
+    almacen.setItem(CLAVE_ALMACEN, JSON.stringify(datos));
+    assert.equal(new Progreso(almacen).recuperadoDeError, true);
 });

@@ -21,6 +21,8 @@
  */
 import { MotorAdaptativo } from '../adaptativo/motor.js';
 import { avanzarEscalon, gradoInicialColocacion, PREGUNTAS_COLOCACION } from '../adaptativo/colocacion.js';
+import { construirLeccion } from '../lecciones/index.js';
+import { crearAleatorioSembrado } from './aleatorio.js';
 
 export const PREGUNTAS_POR_PARTIDA = 10;
 export const PUNTOS_ACIERTO = 10;
@@ -40,14 +42,18 @@ export class PartidaPreguntas {
      * @param {Function} [p.aleatorio]
      * @param {number} [p.total]
      * @param {Object|null} [p.colocacion]  misión de inicio: {gradoMin, gradoMax, gradoInicial?, habilidadesDeGrado(g)}
+     * @param {Function|null} [p.leccion]   (gemela) => Leccion|null: lección PROPIA de la habilidad (si no, se usa el ejemplo resuelto)
+     * @param {Object} [p.nombresHabilidad] { habilidad: 'nombre legible' } para los títulos de las lecciones
      */
     constructor({
         grado, habilidades, generar, preparar = () => ({}), habilidadesGuardadas = null, aleatorio = Math.random,
-        total, colocacion = null
+        total, colocacion = null, leccion = null, nombresHabilidad = {}
     }) {
         this.grado = grado;
         this.aleatorio = aleatorio;
         this.colocacion = colocacion;
+        this.leccionPropia = leccion;
+        this.nombresHabilidad = nombresHabilidad;
         this.total = total ?? (colocacion ? PREGUNTAS_COLOCACION : PREGUNTAS_POR_PARTIDA);
         if (colocacion) {
             this.escalon = {
@@ -105,10 +111,56 @@ export class PartidaPreguntas {
         }
         const ajustes = this.preparar(grado, nivel, { alivio });
         this.pregunta = this.generar({ grado, habilidad, nivel, aleatorio: this.aleatorio, ...ajustes });
+        this.contextoPregunta = { grado, nivel };
         this.huboError = false;
         this.resuelta = false;
         this.inicioPregunta = ahoraMs;
         return { pregunta: this.pregunta, nivel, alivio, ...ajustes };
+    }
+
+    // ---------- Lecciones ----------
+
+    /**
+     * Pregunta GEMELA: misma habilidad, un nivel más fácil (mínimo 1) y otros datos. Sirve de ejemplo resuelto
+     * sin regalar la respuesta de la pregunta que el niño tiene delante.
+     */
+    gemela(pregunta = this.pregunta, aleatorio = this.aleatorio) {
+        const { grado, nivel } = this.contextoPregunta || { grado: this.grado, nivel: 1 };
+        const ajustes = this.preparar(grado, Math.max(1, nivel - 1), { alivio: false });
+        const clave = (q) => `${q.enunciado}|${q.textoRespuesta}`;
+        let candidata = null;
+        for (let intento = 0; intento < 8; intento++) {
+            candidata = this.generar({ grado, habilidad: pregunta.habilidad, nivel: Math.max(1, nivel - 1), aleatorio, ...ajustes });
+            if (clave(candidata) !== clave(pregunta)) return candidata;
+        }
+        return candidata;
+    }
+
+    /** Lección para «Ver cómo se hace» (tras equivocarse): ejemplo resuelto de otra pregunta de la misma habilidad. */
+    leccionPara(pregunta = this.pregunta) {
+        return construirLeccion({
+            gemela: this.gemela(pregunta),
+            propia: this.leccionPropia,
+            titulo: this.nombresHabilidad[pregunta.habilidad] ? `Un ejemplo de ${this.nombresHabilidad[pregunta.habilidad]}` : undefined
+        });
+    }
+
+    /**
+     * Lección de introducción de una habilidad (la primera vez que aparece). Siempre usa el mismo ejemplo para una
+     * habilidad dada (aleatorio sembrado con su nombre): así la explicación es estable.
+     */
+    leccionIntro(habilidad) {
+        const semilla = [...habilidad].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+        const nivel = 1;
+        const grado = this.contextoPregunta ? this.contextoPregunta.grado : this.grado;
+        const az = crearAleatorioSembrado(semilla);
+        const gemela = this.generar({ grado, habilidad, nivel, aleatorio: az, ...this.preparar(grado, nivel, { alivio: false }) });
+        return construirLeccion({
+            gemela,
+            propia: this.leccionPropia,
+            titulo: this.nombresHabilidad[habilidad] ? `Un ejemplo de ${this.nombresHabilidad[habilidad]}` : undefined,
+            prefijoTitulo: 'Antes de empezar: '
+        });
     }
 
     /**

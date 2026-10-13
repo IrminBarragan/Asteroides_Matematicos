@@ -14,6 +14,7 @@ import { Planificador } from '../../core/planificador.js';
 import { elegir, mezclar } from '../../core/aleatorio.js';
 import { tiempoDeLectura } from '../../core/lectura.js';
 import { h, vaciar } from '../../ui/dom.js';
+import { crearBotonEnsenar, pedirLeccion, presentarIntro } from '../../ui/ensenanza.js';
 import { Partida, PREGUNTAS_POR_PARTIDA } from './logica/partida.js';
 import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 
@@ -91,6 +92,7 @@ export class JuegoOrtografia extends Juego {
         this.textoRacha = h('span', { class: 'ortografia__dato' });
         this.textoEnunciado = h('p', { class: 'ortografia__enunciado', 'aria-live': 'polite', 'data-leer': true });
         this.textoMensaje = h('p', { class: 'ortografia__mensaje', 'aria-live': 'polite' });
+        this.botonEnsenar = crearBotonEnsenar(() => pedirLeccion(this));
         this.botonSiguiente = h('button', { class: 'boton boton--secundario ortografia__siguiente', type: 'button', hidden: true, onClick: () => this.irASiguiente() }, 'Siguiente ➜');
         this.cielo = h('div', { class: 'ortografia__cielo', role: 'group', 'aria-label': 'Palabras que caen' },
             h('div', { class: 'ortografia__pasto', 'aria-hidden': 'true' }));
@@ -98,7 +100,7 @@ export class JuegoOrtografia extends Juego {
             h('div', { class: 'ortografia__hud' }, this.textoProgreso, this.textoPuntos, this.textoRacha),
             this.textoEnunciado,
             this.cielo,
-            h('div', { class: 'ortografia__pie' }, this.textoMensaje, this.botonSiguiente),
+            h('div', { class: 'ortografia__pie' }, this.textoMensaje, this.botonEnsenar, this.botonSiguiente),
             h('p', { class: 'ortografia__ayuda' }, 'Toca la palabra correcta. Con teclado: Tab o ← → para elegir y Enter para atraparla (también sirven los números 1, 2 y 3).'));
         contenedor.append(this.raiz);
     }
@@ -159,6 +161,8 @@ export class JuegoOrtografia extends Juego {
             return palabra;
         });
         this.dibujar();
+        this.botonEnsenar.hidden = true;
+        presentarIntro(this, pregunta.habilidad);
         this.mensaje(this.partida.numero === 1 ? 'Toca la palabra correcta antes de que llegue al pasto.' : '');
         this.actualizarHud();
     }
@@ -182,6 +186,7 @@ export class JuegoOrtografia extends Juego {
             let texto = `${elogio} +${r.puntos} puntos. ${r.explicacion}`;
             if (r.cambioNivel === 'subio') texto += ` ¡Subiste de nivel en ${NOMBRES_HABILIDAD[r.habilidad]}!`;
             this.mensaje(texto, 'bien');
+            this.botonEnsenar.hidden = true;
             this.audio.reproducirEfecto('acierto');
             this.entrarEnTransicion(texto);
         } else {
@@ -189,6 +194,7 @@ export class JuegoOrtografia extends Juego {
             this.marcar(palabra, 'palabra--incorrecta');
             palabra.boton.setAttribute('aria-disabled', 'true');
             this.mensaje(`Casi. Pista: ${r.pista}`, 'pista');
+            this.botonEnsenar.hidden = false;
             this.audio.reproducirEfecto('fallo');
         }
         this.actualizarHud();
@@ -205,6 +211,7 @@ export class JuegoOrtografia extends Juego {
         if (this.hueco) this.hueco.textContent = r.textoRespuesta;
         const texto = `Se escapó. La palabra correcta era «${r.textoRespuesta}». ${r.explicacion}`;
         this.mensaje(texto, 'pista');
+        this.botonEnsenar.hidden = false;
         this.entrarEnTransicion(texto);
         this.actualizarHud();
     }

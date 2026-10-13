@@ -6,6 +6,7 @@
 import { PartidaPreguntas } from '../../../core/partidaPreguntas.js';
 import { generarPregunta, habilidadesParaGrado } from './generadores.js';
 import { cantidadAsteroides, velocidadBase } from './campo.js';
+import { leccionAritmetica } from '../../../lecciones/aritmetica.js';
 
 export {
     PREGUNTAS_POR_PARTIDA, PUNTOS_ACIERTO, PUNTOS_RECUPERADO, BONUS_RACHA, RACHA_PARA_BONUS
@@ -26,7 +27,9 @@ export class Partida extends PartidaPreguntas {
             habilidadesGuardadas,
             aleatorio,
             total,
-            colocacion: colocacion && { ...colocacion, habilidadesDeGrado: habilidadesParaGrado }
+            colocacion: colocacion && { ...colocacion, habilidadesDeGrado: habilidadesParaGrado },
+            // Lección propia con material (bloques, recta, grupos): se construye con los datos de la pregunta gemela
+            leccion: (gemela) => leccionAritmetica(gemela.habilidad, gemela.datos)
         });
     }
 }

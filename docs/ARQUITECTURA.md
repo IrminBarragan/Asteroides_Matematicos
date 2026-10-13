@@ -132,6 +132,21 @@ Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, o
 
 **Contrato nuevo para un juego de preguntas:** declara `static admiteColocacion = true` y pasa `contexto.colocacion` a su `Partida` (que añade `habilidadesDeGrado`). Todo lo demás es del portal.
 
+## Añadidos en la Fase 11 (v0.2): enseñar dentro del juego
+
+| Archivo | Qué es |
+|---|---|
+| `lecciones/leccion.js` | El **formato** de una lección (`titulo`, `pasos`; cada paso: `texto`, `visual?`, `hazlo?`), su validador y `protegerRespuestas` (el texto de un paso con «hazlo» no puede traer la respuesta) |
+| `lecciones/aritmetica.js` | Lecciones con material para suma, resta, multiplicación, división, orden de operaciones, múltiplos y decimales |
+| `lecciones/ejemplo.js` | Lección genérica «ejemplo resuelto» para cualquier juego (enunciado, clave, explicación y dibujos de un problema **gemelo**) |
+| `lecciones/index.js` | `construirLeccion`: lección propia si existe y es válida; si no, el ejemplo genérico. Nunca lanza |
+| `ui/leccion.js`, `ui/visualesLeccion.js` | El diálogo paso a paso (accesible, Escape siempre cierra) y el dibujo del material |
+| `ui/ensenanza.js` | Pegamento de cada juego: botón «Ver cómo se hace» y lección de introducción |
+| `core/partidaPreguntas.js` | `gemela`, `leccionPara`, `leccionIntro` |
+| `portal/portal.js` | `ensenar` (pausa el juego mientras la lección está abierta) y `presentarHabilidad` (introducción una sola vez) |
+
+**Contrato para un juego de preguntas:** su `Partida` puede pasar `leccion: (gemela) => Leccion|null` para una lección propia; sin ella usa el ejemplo genérico. La interfaz del juego solo añade `crearBotonEnsenar`, lo muestra tras un error y llama a `presentarIntro`.
+
 Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)

@@ -2,7 +2,7 @@
  * Partida de "Atrapa la Ortografía": las reglas generales viven en `core/partidaPreguntas.js`.
  */
 import { PartidaPreguntas } from '../../../core/partidaPreguntas.js';
-import { generarPregunta, habilidadesParaGrado, prepararRonda, GRADO_MIN, GRADO_MAX } from './generadores.js';
+import { generarPregunta, habilidadesParaGrado, prepararRonda, NOMBRES_HABILIDAD, GRADO_MIN, GRADO_MAX } from './generadores.js';
 
 export {
     PREGUNTAS_POR_PARTIDA, PUNTOS_ACIERTO, PUNTOS_RECUPERADO, BONUS_RACHA, RACHA_PARA_BONUS
@@ -19,7 +19,8 @@ export class Partida extends PartidaPreguntas {
             habilidadesGuardadas,
             aleatorio,
             total,
-            colocacion: colocacion && { ...colocacion, habilidadesDeGrado: habilidadesParaGrado }
+            colocacion: colocacion && { ...colocacion, habilidadesDeGrado: habilidadesParaGrado },
+            nombresHabilidad: NOMBRES_HABILIDAD
         });
     }
 }

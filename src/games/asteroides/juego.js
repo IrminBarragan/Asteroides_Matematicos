@@ -20,6 +20,7 @@ import { SistemaParticulas } from '../../core/particula.js';
 import { Utilidades } from '../../core/utilidades.js';
 import { entre, elegir } from '../../core/aleatorio.js';
 import { h, vaciar } from '../../ui/dom.js';
+import { crearBotonEnsenar, pedirLeccion, presentarIntro } from '../../ui/ensenanza.js';
 import { Partida, PREGUNTAS_POR_PARTIDA } from './logica/partida.js';
 import { colocarAsteroides, repartirOpciones, poderParaPregunta, PODERES, ANCHO, ALTO } from './logica/campo.js';
 import {
@@ -121,6 +122,7 @@ export class JuegoAsteroides extends Juego {
         this.zonaPoderes = h('span', { class: 'asteroides__poderes' });
         this.textoPregunta = h('p', { class: 'asteroides__pregunta', 'aria-live': 'polite', 'data-leer': true });
         this.textoMensaje = h('p', { class: 'asteroides__mensaje', 'aria-live': 'polite' });
+        this.botonEnsenar = crearBotonEnsenar(() => pedirLeccion(this));
         this.canvas = h('canvas', {
             class: 'asteroides__canvas', width: ANCHO, height: ALTO, tabindex: '0',
             'aria-label': 'Campo de juego con asteroides. Toca el que tiene la respuesta correcta, o muévete con las flechas y dispara con la flecha arriba.'
@@ -132,6 +134,7 @@ export class JuegoAsteroides extends Juego {
             h('div', { class: 'asteroides__hud' }, this.textoProgreso, this.textoPuntos, this.textoRacha, this.zonaPoderes),
             this.textoPregunta,
             this.textoMensaje,
+            this.botonEnsenar,
             this.zonaCanvas,
             h('p', { class: 'asteroides__ayuda' }, 'Toca el asteroide con la respuesta. Con teclado: ← → para moverte y ↑ (o espacio) para disparar.'));
         contenedor.append(this.raiz);
@@ -277,6 +280,8 @@ export class JuegoAsteroides extends Juego {
 
         this.fase = 'jugando';
         this.textoPregunta.textContent = pregunta.enunciado;
+        this.botonEnsenar.hidden = true;
+        presentarIntro(this, pregunta.habilidad);
         this.mensaje(this.partida.numero === 1 ? 'Toca el asteroide con la respuesta correcta.' : '');
         this.actualizarHud();
     }
@@ -297,11 +302,13 @@ export class JuegoAsteroides extends Juego {
             if (r.cambioNivel === 'subio') {
                 this.mensaje(`${elogio} +${r.puntos} puntos · ¡Subiste de nivel en ${NOMBRES_HABILIDAD[r.habilidad] || r.habilidad}!`, 'bien');
             }
+            this.botonEnsenar.hidden = true;
             this.audio.reproducirEfecto('acierto');
         } else {
             a.estado = 'incorrecto';
             a.temblor = 26;
             this.mensaje(`Casi. Pista: ${r.pista}`, 'pista');
+            this.botonEnsenar.hidden = false;
             this.audio.reproducirEfecto('fallo');
         }
         this.actualizarHud();
@@ -342,6 +349,7 @@ export class JuegoAsteroides extends Juego {
         this.contadorFase = PASOS_TRANSICION_ESCAPE;
         this.asteroides.forEach((a) => { if (a.estado === 'activo') a.estado = 'saliendo'; });
         this.mensaje(`Se escapó. La respuesta era ${r.textoRespuesta}. ${r.pista}`, 'pista');
+        this.botonEnsenar.hidden = false;
         this.actualizarHud();
     }
 

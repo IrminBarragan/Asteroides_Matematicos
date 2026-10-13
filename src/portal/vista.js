@@ -4,6 +4,7 @@
  */
 import { h, vaciar } from '../ui/dom.js';
 import { confirmarModal, mostrarAviso, iconoSonido } from '../ui/componentes.js';
+import { mostrarLeccion } from '../ui/leccion.js';
 import { NOMBRE_PORTAL } from './config.js';
 import { pantallaPerfiles, pantallaCrear } from './vistas/perfiles.js';
 import { pantallaInicio } from './vistas/inicio.js';
@@ -64,6 +65,11 @@ export class VistaPortal {
 
     contenedorJuego() {
         return this.contenedor;
+    }
+
+    /** Muestra una lección (diálogo) y devuelve cuando el niño la termina o la cierra. */
+    mostrarLeccion(leccion, opciones) {
+        return mostrarLeccion(this.raiz, leccion, opciones);
     }
 
     /** Texto de la pregunta en pantalla: el primer elemento marcado con `data-leer` dentro del juego. */

@@ -548,3 +548,122 @@ test('contenido: modo maestro muestra el contenido de cada juego y puede repetir
     assert.equal(progreso.obtenerGradoContenido('adaptable'), null);
     assert.equal(progreso.estrellasTotales(), estrellas);
 });
+
+// ---------- Enseñanza: lecciones dentro del juego ----------
+
+class JuegoQueEnsena extends JuegoEjemplo {
+    static meta = { ...JuegoEjemplo.meta, id: 'ensena', nombre: 'Ensena', grados: [1, 2, 3, 4, 5, 6] };
+    alMontar(contenedor, contexto) {
+        super.alMontar(contenedor, contexto);
+        // Igual que los juegos reales: pide la introducción de la habilidad MIENTRAS se monta
+        this.intro = contexto.presentarHabilidad('suma', () => ({ titulo: 'Intro', pasos: [{ texto: 'hola' }] }));
+    }
+}
+const leccionDePrueba = { titulo: 'L', pasos: [{ texto: 'paso' }] };
+
+function crearEnsena({ voz = null } = {}) {
+    const base = crear();
+    const registro = new RegistroJuegos().registrar(JuegoQueEnsena).registrar(JuegoEjemplo);
+    const portal = new Portal({ registro, progreso: base.progreso, audio: base.audio, vista: base.vista, voz });
+    return { ...base, portal };
+}
+
+test('enseñanza: la introducción de una habilidad se muestra la PRIMERA vez (omitible) y no después', async () => {
+    const { portal, vista, progreso } = crearEnsena();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ensena');
+    await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 1);
+    assert.equal(vista.lecciones[0].opciones.omitible, true);
+    assert.equal(progreso.leccionesVistas('ensena', 'suma'), 1);
+    portal.irAInicio(); portal.iniciarJuego('ensena');
+    await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 1, 'no se vuelve a mostrar');
+    assert.equal(progreso.leccionesVistas('ensena', 'suma'), 1);
+});
+
+test('enseñanza: saltar la introducción también cuenta como vista (no insiste)', async () => {
+    const { portal, vista, progreso } = crearEnsena();
+    vista.respuestaLeccion = 'cerrada';
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ensena'); await vaciarMicrotasks();
+    portal.irAInicio(); portal.iniciarJuego('ensena'); await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 1);
+    assert.equal(progreso.leccionesVistas('ensena', 'suma'), 1);
+});
+
+test('enseñanza: el juego se pausa mientras la lección está abierta y se reanuda al cerrarla (aunque se pida durante el montaje)', async () => {
+    const { portal, vista } = crearEnsena();
+    let cerrar;
+    vista.mostrarLeccion = () => new Promise((resolver) => { cerrar = resolver; });
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ensena');
+    const juego = portal.juegoActual;
+    assert.equal(juego.estado, 'jugando', 'tras montar el juego está jugando');
+    await vaciarMicrotasks();
+    assert.equal(juego.estado, 'pausado', 'la lección lo pausa');
+    assert.ok(juego.llamadas.includes('pausar'));
+    cerrar('terminada');
+    await vaciarMicrotasks();
+    assert.equal(juego.estado, 'jugando', 'al cerrar la lección sigue jugando');
+    assert.ok(juego.llamadas.includes('reanudar'));
+});
+
+test('enseñanza: si el niño ya había pausado el juego, cerrar la lección NO lo reanuda', async () => {
+    const { portal, vista } = crearEnsena();
+    let cerrar;
+    vista.mostrarLeccion = () => new Promise((resolver) => { cerrar = resolver; });
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    portal.pausarJuego();
+    const promesa = portal.ensenar(leccionDePrueba);
+    await vaciarMicrotasks();
+    cerrar('terminada');
+    await promesa;
+    assert.equal(portal.juegoActual.estado, 'pausado');
+});
+
+test('enseñanza: «Ver cómo se hace» registra la lección y no se abren dos a la vez', async () => {
+    const { portal, vista, progreso } = crearEnsena();
+    let cerrar;
+    vista.mostrarLeccion = () => new Promise((resolver) => { cerrar = resolver; });
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    const pedir = (extra) => portal.ensenar(leccionDePrueba, { registro: extra.habilidad ? () => progreso.registrarLeccion('ejemplo', extra.habilidad) : null });
+    const primera = pedir({ habilidad: 'resta' });
+    await vaciarMicrotasks();
+    assert.equal(await pedir({ habilidad: 'resta' }), 'omitida', 'ya hay una abierta');
+    cerrar('cerrada');
+    assert.equal(await primera, 'cerrada');
+    assert.equal(progreso.leccionesVistas('ejemplo', 'resta'), 1);
+});
+
+test('enseñanza: si el niño sale del juego antes de que se muestre, no se muestra nada ni se rompe', async () => {
+    const { portal, vista } = crearEnsena();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ensena');
+    portal.irAInicio();
+    await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 0);
+    assert.equal(portal.enLeccion, false);
+});
+
+test('enseñanza: una lección que no se puede construir se ignora (el juego sigue)', async () => {
+    const { portal, vista } = crearEnsena();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    const silenciar = console.error; console.error = () => {};
+    try {
+        assert.equal(await portal.presentarHabilidad('ejemplo', 'x', () => { throw new Error('boom'); }), 'omitida');
+    } finally { console.error = silenciar; }
+    assert.equal(vista.lecciones.length, 0);
+});
+
+test('enseñanza: con voz disponible la lección recibe la función de leer; sin voz, no', async () => {
+    const voz = { disponible: true, leidos: [], leer(t) { this.leidos.push(t); return true; }, detener() {} };
+    const con = crearEnsena({ voz });
+    con.portal.iniciar(); con.portal.crearPerfil(luisa); con.portal.iniciarJuego('ejemplo');
+    await con.portal.ensenar(leccionDePrueba);
+    con.vista.lecciones[0].opciones.leer('hola');
+    assert.deepEqual(voz.leidos, ['hola']);
+    const sin = crearEnsena();
+    sin.portal.iniciar(); sin.portal.crearPerfil(luisa); sin.portal.iniciarJuego('ejemplo');
+    await sin.portal.ensenar(leccionDePrueba);
+    assert.equal(sin.vista.lecciones[0].opciones.leer, null);
+});

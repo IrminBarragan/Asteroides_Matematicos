@@ -9,7 +9,7 @@
  *    se sigue funcionando en memoria y se conserva una copia del dato dañado.
  */
 
-export const VERSION_ESQUEMA = 2;
+export const VERSION_ESQUEMA = 3;
 export const CLAVE_ALMACEN = 'portal-juegos-educativos';
 export const MAX_PERFILES = 40;
 export const MAX_LARGO_APODO = 16;
@@ -52,11 +52,17 @@ export function crearDatosIniciales() {
  * Migraciones: MIGRACIONES[n] convierte datos de la versión n a la n+1.
  *  - 1 → 2 (v0.2): cada perfil gana `contenido` ({ juegoId: grado de contenido }): el grado de contenido en el que
  *    el sistema decidió que debe jugar cada juego (ver adaptativo/colocacion.js). Vacío = aún no hizo la misión de inicio.
+ *  - 2 → 3 (v0.2): cada perfil gana `lecciones` ({ 'juego:habilidad': veces que vio la lección }): sirve para mostrar la
+ *    introducción de una habilidad solo la primera vez y para que la maestra sepa qué lecciones necesitó el niño.
  */
 export const MIGRACIONES = {
     1: (datos) => ({
         ...datos,
         perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, contenido: {} }]))
+    }),
+    2: (datos) => ({
+        ...datos,
+        perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, lecciones: {} }]))
     })
 };
 
@@ -80,6 +86,8 @@ function perfilValido(p) {
         && Number.isInteger(p.grado) && p.grado >= 1 && p.grado <= 6
         && esObjeto(p.juegos)
         && esObjeto(p.habilidades)
+        && esObjeto(p.lecciones)
+        && Object.values(p.lecciones).every((n) => Number.isInteger(n) && n >= 0)
         && esObjeto(p.contenido)
         && Object.values(p.contenido).every((g) => Number.isInteger(g) && g >= 1 && g <= 6);
 }
@@ -188,7 +196,7 @@ export class Progreso {
         if (yaExiste) throw new Error('Ya existe un perfil con ese apodo');
 
         const id = this.datos.siguienteId++;
-        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, creado: this.ahora() };
+        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, lecciones: {}, creado: this.ahora() };
         this.datos.perfiles[id] = perfil;
         this.datos.perfilActivo = id;
         this.guardar();
@@ -302,6 +310,21 @@ export class Progreso {
         perfil.habilidades = {};
         this.guardar();
         return true;
+    }
+
+    // ---------- Lecciones vistas ----------
+
+    /** Cuántas veces vio el perfil activo la lección de esta habilidad (introducción o «Ver cómo se hace»). */
+    leccionesVistas(juegoId, habilidad) {
+        const n = this.perfilInterno().lecciones[`${juegoId}:${habilidad}`];
+        return Number.isInteger(n) ? n : 0;
+    }
+
+    registrarLeccion(juegoId, habilidad) {
+        const lecciones = this.perfilInterno().lecciones;
+        const clave = `${juegoId}:${habilidad}`;
+        lecciones[clave] = (Number.isInteger(lecciones[clave]) ? lecciones[clave] : 0) + 1;
+        this.guardar();
     }
 
     // ---------- Ajustes ----------

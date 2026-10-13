@@ -257,3 +257,55 @@ p { margin: 0 0 .75rem; }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ============================================================
+   Lecciones (ui/leccion.js y ui/visualesLeccion.js)
+   ============================================================ */
+.modal-fondo--leccion { z-index: 60; overflow-y: auto; align-items: flex-start; }
+.modal.leccion { max-width: 640px; text-align: left; margin: auto; }
+.leccion__cabecera { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.leccion__titulo { margin: 0; font-size: clamp(1.2rem, 3vw, 1.6rem); }
+.leccion__contador { margin: .25rem 0 0; font-size: .85rem; color: var(--texto-suave); }
+.leccion__puntos { display: flex; gap: 6px; margin: .4rem 0 .8rem; }
+.leccion__punto { width: 12px; height: 12px; border-radius: 50%; background: #d1d5db; }
+.leccion__punto--hecho { background: var(--c-matematicas); }
+.leccion__punto--actual { background: var(--primario); transform: scale(1.3); }
+.leccion__visual { background: #f8fafc; border-radius: 12px; padding: .75rem; margin-bottom: .75rem; overflow-x: auto; }
+.leccion__texto { margin: 0 0 .75rem; font-size: 1.1rem; outline: none; }
+.leccion__hazlo { background: #eff6ff; border: 2px solid var(--c-matematicas); border-radius: 14px; padding: .75rem 1rem; margin-top: .5rem; }
+.leccion__hazlo-titulo { margin: 0; font-weight: 600; font-size: .9rem; color: var(--c-matematicas); }
+.leccion__hazlo-enunciado { margin: .25rem 0 .6rem; font: 700 1.6rem var(--fuente-titulo); }
+.leccion__opciones { display: flex; flex-wrap: wrap; gap: .6rem; }
+.leccion__opcion { min-width: 4.5rem; min-height: 3rem; padding: .3rem 1rem; font: 700 1.3rem var(--fuente-titulo); background: #fff; border: 3px solid var(--c-matematicas); border-radius: 14px; cursor: pointer; color: var(--texto); }
+.leccion__opcion:hover:not([aria-disabled="true"]) { background: #dbeafe; }
+.leccion__opcion[aria-disabled="true"] { cursor: default; }
+.leccion__opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }
+.leccion__opcion--incorrecta { background: #f3f4f6; border-color: #9ca3af; color: #6b7280; text-decoration: line-through; }
+.leccion__mensaje { margin: .5rem 0 0; min-height: 1.5rem; font-weight: 600; color: #9a3412; }
+.leccion__mensaje--bien { color: var(--exito); }
+
+.leccion-fila { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: flex-end; }
+.leccion-figura { margin: 0; text-align: center; }
+.leccion-figura figcaption { font-size: .85rem; color: var(--texto-suave); }
+.leccion-figura--reloj .reloj { width: 150px; height: 150px; }
+.leccion-svg { max-width: 100%; height: auto; }
+.leccion-celda { stroke: #1e3a8a; stroke-width: 1; }
+.leccion-celda--decena { fill: #60a5fa; }
+.leccion-celda--unidad { fill: #fbbf24; stroke: #92400e; }
+.leccion-linea { stroke: #1f2937; stroke-width: 3; stroke-linecap: round; }
+.leccion-marca { stroke: #4b5563; stroke-width: 1.5; }
+.leccion-marca--fuerte { stroke: var(--c-matematicas); stroke-width: 3; }
+.leccion-numero { font: 600 12px var(--fuente); fill: #4b5563; }
+.leccion-numero--fuerte { font: 700 15px var(--fuente-titulo); fill: var(--c-matematicas); }
+.leccion-salto { fill: none; stroke: #c2410c; stroke-width: 3; stroke-linecap: round; }
+.leccion-etiqueta-salto { font: 700 15px var(--fuente-titulo); fill: #c2410c; }
+.leccion-caja { fill: #fff; stroke: var(--c-matematicas); stroke-width: 2; }
+.leccion-objeto { fill: #f59e0b; stroke: #92400e; stroke-width: 1; }
+.leccion-fila--grupos { align-items: center; }
+.leccion-leyenda { flex-basis: 100%; margin: 0; text-align: center; font-weight: 600; color: var(--texto-suave); }
+.leccion-operacion { margin: 0 auto; width: fit-content; font: 700 1.8rem/1.3 'Courier New', monospace; color: var(--texto); }
+.leccion-ejemplo { text-align: center; }
+.leccion-enunciado { margin: 0 0 .5rem; font: 700 1.5rem var(--fuente-titulo); }
+.leccion-opciones { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; list-style: none; padding: 0; margin: .5rem 0 0; }
+.leccion-opcion { background: #fff; border: 2px solid #9ca3af; border-radius: 10px; padding: .2rem .8rem; font-weight: 600; }
+.leccion-opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }

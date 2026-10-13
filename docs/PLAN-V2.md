@@ -43,7 +43,7 @@ Además: el sonido son solo efectos sintéticos cortos (`src/core/gestorAudio.js
 | Fase | Nombre | Contenido | Entrega |
 |---|---|---|---|
 | **10** ✅ | **Rescate** | Nueva regla de estrellas · nivel de partida independiente del grado, **decidido por el sistema** (misión de inicio + adaptación) · escalones nuevos por debajo (suma y resta hasta 10 y 20; tablas del 2, 5 y 10) · «modo tranquilo» en Asteroides | **v0.2-alfa** |
-| **11** | **Aprende dentro de cada juego** | Componente **lección** (pasos guiados + material arrastrable) · «**Ver cómo se hace**» tras fallar · **mini-lección previa** al subir a un escalón nuevo · aplicado a los juegos existentes (Asteroides, Reloj, Fracciones…) | **Responde la queja principal** |
+| **11** ✅ | **Aprende dentro de cada juego** | Componente **lección** (pasos guiados + material arrastrable) · «**Ver cómo se hace**» tras fallar · **mini-lección previa** al subir a un escalón nuevo · aplicado a los juegos existentes (Asteroides, Reloj, Fracciones…) | **Responde la queja principal** |
 | **12** | **Música y color** | Música generada en el navegador, **apagada por omisión** en el equipo · volumen de música y efectos separados · mascota «entrenador» · confeti y celebraciones · fondos animados por área · «modo ligero» · álbum de logros | v0.2-beta |
 | **13** | **Sumas y restas guiadas** (juego nuevo) | Sumar/restar con material (recta numérica, «hacer 10», marcos de 10) · tema juvenil | Juego 1 |
 | **14** | **Valor posicional y llevadas** (juego nuevo) | Bloques de unidades/decenas/centenas, acarreo y préstamo animados | Juego 2 |
@@ -99,7 +99,7 @@ Propuesta (a validar contigo):
 - **Colección de pegatinas** (álbum): cada partida terminada da una pegatina; **motivación sin castigo** y razón para volver.
 - **Restricciones (no negociables):** `prefers-reduced-motion` desactiva el movimiento; **«modo ligero»** apaga fondos animados en PCs lentas; animaciones solo con `transform`/`opacity`; se mantiene el contraste WCAG (hay prueba) y el presupuesto de tamaño.
 
-### Fase 11 — Enseñar dentro de cada juego (la prioridad pedagógica)
+### Fase 11 — Enseñar dentro de cada juego (la prioridad pedagógica) — ✅ hecha, ver [`AUDITORIA-FASE-11.md`](AUDITORIA-FASE-11.md)
 
 Es el cambio que más responde a la queja. Se construye **una vez** el componente `Leccion` y se conecta a los juegos existentes:
 

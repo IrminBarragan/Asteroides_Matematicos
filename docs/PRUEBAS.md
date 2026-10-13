@@ -23,6 +23,7 @@ En **todas** las pruebas, además de lo propio de cada una, se vigila que haya: 
 - `humo.test.mjs`: abre el portal; valida el formulario; un apodo con HTML no se ejecuta (XSS); por cada grado (1.º–6.º) abre **cada juego**, lo pausa con Escape, continúa y sale; el jugador sobrevive a recargar; móvil 375×667 sin desborde horizontal; **sin fugas** (abrir/cerrar juegos 10 veces no acumula elementos); la carga tarda < 2 s.
 - `fracciones.test.mjs`: una **partida completa** por grado (3.º–6.º) jugada como lo haría un niño sin saber las respuestas (prueba botones hasta acertar, pinta partes), hasta la pantalla de resultados; pintar con teclado.
 - `voz.test.mjs`: con una síntesis de voz falsa, «Escuchar» y la lectura automática; en pausa no se lee; **sin voz en el navegador** no hay botones y el juego funciona igual.
+- `lecciones.test.mjs`: la introducción de una habilidad (omitible, una sola vez, no en la misión), «Ver cómo se hace» (ejemplo resuelto, Escape cierra y la pregunta sigue), la lección de Asteroides con material y «hazlo tú» obligatorio, «Escuchar» con voz y el diálogo en móvil.
 - `presupuesto.test.mjs`: tamaño de `dist/` (app.js < 80 KB gz, CSS < 15 KB gz, todo < 1 MB) y que no haya URLs externas.
 
 ## Cómo configurarlas

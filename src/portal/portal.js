@@ -39,6 +39,7 @@ export class Portal {
         this.metaActual = null;
         this.ultimoJuegoId = null;
         this.pausado = false;
+        this.enLeccion = false;
         this.audio.establecerActivo(this.progreso.ajustes().sonido);
     }
 
@@ -216,7 +217,12 @@ export class Portal {
                 colocacion: nivel.colocacion,
                 perfil,
                 audio: this.audio,
-                habilidades: nivel.colocacion ? null : this.progreso.obtenerHabilidades(id)
+                habilidades: nivel.colocacion ? null : this.progreso.obtenerHabilidades(id),
+                // Enseñanza: el juego pide lecciones y el portal las muestra (pausando el juego)
+                ensenar: (leccion, extra = {}) => this.ensenar(leccion, {
+                    registro: extra.habilidad ? () => this.progreso.registrarLeccion(id, extra.habilidad) : null
+                }),
+                presentarHabilidad: (habilidad, construir) => this.presentarHabilidad(id, habilidad, construir)
             });
             this.vista.observarTexto(() => this.alCambiarTexto());
         } catch (error) {
@@ -249,6 +255,46 @@ export class Portal {
         const guardado = this.progreso.obtenerGradoContenido(Clase.meta.id);
         if (guardado === null) return { grado: escalera.gradoMax, colocacion: { ...escalera } };
         return { grado: Math.min(Math.max(guardado, escalera.gradoMin), escalera.gradoMax), colocacion: null };
+    }
+
+    // ---------- Enseñanza (lecciones dentro del juego) ----------
+
+    /**
+     * Muestra una lección y mantiene el juego en pausa mientras está abierta.
+     * Se puede llamar mientras el juego aún se está montando: la pausa se difiere un instante (hasta que esté «jugando»).
+     * @returns {Promise<'terminada'|'cerrada'|'omitida'>}
+     */
+    async ensenar(leccion, { omitible = false, registro = null } = {}) {
+        if (!this.juegoActual || this.enLeccion) return 'omitida';
+        const juego = this.juegoActual;
+        this.enLeccion = true;
+        const estabaPausado = this.pausado;
+        await Promise.resolve();
+        if (juego !== this.juegoActual) { this.enLeccion = false; return 'omitida'; }
+        juego.pausar();
+        if (this.voz) this.voz.detener();
+        if (registro) registro();
+        let resultado = 'cerrada';
+        try {
+            resultado = await this.vista.mostrarLeccion(leccion, { omitible, leer: this.vozDisponible() ? (t) => this.voz.leer(t) : null });
+        } finally {
+            this.enLeccion = false;
+        }
+        if (juego === this.juegoActual && !estabaPausado && !this.pausado) juego.reanudar();
+        return resultado;
+    }
+
+    /** La primera vez que aparece una habilidad se muestra su lección de introducción (omitible); después, nunca. */
+    presentarHabilidad(juegoId, habilidad, construir) {
+        if (this.progreso.leccionesVistas(juegoId, habilidad) > 0) return Promise.resolve('omitida');
+        let leccion;
+        try {
+            leccion = construir();
+        } catch (error) {
+            console.error('No se pudo preparar la lección:', error);
+            return Promise.resolve('omitida');
+        }
+        return this.ensenar(leccion, { omitible: true, registro: () => this.progreso.registrarLeccion(juegoId, habilidad) });
     }
 
     pausarJuego() {

@@ -76,3 +76,42 @@ export async function salirDelJuego(pagina) {
     await pagina.click('text=Sí, salir');
     await pagina.waitForSelector('.tarjeta-juego');
 }
+
+/**
+ * Juega una partida COMPLETA de Tren de Fracciones como lo haría un niño sin saber las respuestas: en cada pregunta
+ * de opciones prueba los botones en orden hasta acertar (cada error da una pista y se puede reintentar); en «pintar»
+ * toca las partes que pide el enunciado. Si aparece una lección de introducción, la salta (y la anota).
+ * @returns {Promise<{preguntas:number, lecciones:string[]}>}  cuántas preguntas se jugaron y los títulos de las lecciones vistas
+ */
+export async function jugarPartidaFracciones(pagina) {
+    const lecciones = [];
+    for (let guardia = 0; guardia < 14; guardia++) {
+        const que = await Promise.race([
+            pagina.waitForSelector('.fracciones-juego__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
+        ]);
+        if (que === 'fin') return { preguntas: guardia, lecciones };
+        await pagina.evaluate(() => new Promise((r) => setTimeout(r, 40))); // deja que aparezca una lección de introducción, si toca
+        if (await pagina.locator('.modal-fondo--leccion').count()) {
+            lecciones.push(await pagina.textContent('.leccion__titulo'));
+            await pagina.click('.modal-fondo--leccion >> text=Saltar');
+            await pagina.waitForSelector('.modal-fondo--leccion', { state: 'detached' });
+        }
+        const enunciado = await pagina.textContent('.fracciones-juego__enunciado');
+        if (await pagina.locator('.fraccion-parte[tabindex]').count()) {
+            const n = Number(/Pinta (\d+)\//.exec(enunciado)[1]);
+            for (let i = 0; i < n; i++) await pagina.locator('.fraccion-parte').nth(i).click();
+            await pagina.click('text=Comprobar');
+        } else {
+            const botones = pagina.locator('.fracciones-juego__opcion');
+            const total = await botones.count();
+            for (let i = 0; i < total; i++) {
+                await botones.nth(i).click();
+                if (await pagina.locator('text=Siguiente ➜').isVisible()) break;
+            }
+        }
+        await pagina.waitForSelector('text=Siguiente ➜', { state: 'visible' });
+        await pagina.click('text=Siguiente ➜');
+    }
+    throw new Error('la partida no terminó en 14 preguntas');
+}

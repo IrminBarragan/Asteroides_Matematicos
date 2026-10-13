@@ -40,6 +40,15 @@ La **primera vez** que un niño juega cada juego de preguntas hace una **misión
 - Tú lo ves en el **modo maestro**: columna **«Contenido que le toca»**. Es una **estimación**: 8 preguntas son pocas; se afina partida a partida.
 - Si crees que el resultado no es justo (el niño estaba distraído, nervioso o adivinó), usa **«Repetir misión»** en el modo maestro (no borra sus estrellas).
 
+### Los juegos enseñan (no solo evalúan)
+
+- **«Ver cómo se hace»:** después de equivocarse aparece este botón. Abre una explicación paso a paso con **un ejemplo parecido ya resuelto** (con otros números, para no regalar la respuesta) y, en los pasos clave, el niño **hace el paso él mismo** ("Ahora tú"). Al cerrarla, vuelve a su misma pregunta.
+- **Introducción de cada habilidad:** la primera vez que aparece una habilidad nueva (por ejemplo, restar con préstamo) se muestra una explicación corta, que el niño puede **saltar**. No se repite.
+- **Suma, resta, multiplicación, división, orden de operaciones, múltiplos y decimales** tienen lecciones con material visual (bloques de decenas y unidades, recta numérica, grupos de objetos, operaciones en columnas). Fracciones, reloj y ortografía muestran un ejemplo resuelto con sus dibujos.
+- Mientras una lección está abierta, **el juego queda en pausa**. «Cerrar» o la tecla Escape la cierran siempre.
+- Si la computadora tiene voz en español, cada paso tiene un botón **«Escuchar»**.
+- **No se muestran lecciones durante la misión de inicio** (ahí se mide lo que el niño sabe).
+
 ### Cómo se trata el error (importante para quien acompaña)
 
 - **No hay vidas ni «game over».** Equivocarse **no resta puntos ni acelera el juego**: muestra una **pista** y se puede **reintentar**.

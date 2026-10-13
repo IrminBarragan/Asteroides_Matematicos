@@ -87,7 +87,7 @@ function suma(grado, nivel, az) {
     const a = entre(az, min, max);
     const b = entre(az, min, max);
     const r = a + b;
-    return { enunciado: `${a} + ${b} = ?`, respuesta: r, pista: pistaSuma(a, b), preferidos: [r + 1, r - 1, r + 10, r - 10] };
+    return { enunciado: `${a} + ${b} = ?`, respuesta: r, pista: pistaSuma(a, b), preferidos: [r + 1, r - 1, r + 10, r - 10], datos: { a, b } };
 }
 
 function resta(grado, nivel, az) {
@@ -99,7 +99,8 @@ function resta(grado, nivel, az) {
     return {
         enunciado: `${a} − ${b} = ?`, respuesta: r,
         pista: `Piensa: ¿cuánto le falta a ${b} para llegar a ${a}?`,
-        preferidos: [r + 1, r - 1, a + b, r + 10, r - 10] // a + b: usar la operación contraria
+        preferidos: [r + 1, r - 1, a + b, r + 10, r - 10], // a + b: usar la operación contraria
+        datos: { a, b }
     };
 }
 
@@ -119,7 +120,8 @@ function multiplicacion(grado, nivel, az) {
     return {
         enunciado: `${a} × ${b} = ?`, respuesta: r, pista: pistaMultiplicacion(a, b),
         // Errores típicos: equivocarse de fila de la tabla (una vez de más o de menos)
-        preferidos: [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b]
+        preferidos: [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b],
+        datos: { a, b }
     };
 }
 
@@ -138,7 +140,8 @@ function division(grado, nivel, az) {
     return {
         enunciado: `${a} ÷ ${d} = ?`, respuesta: q,
         pista: `Piensa en la tabla del ${d}: ¿qué número multiplicado por ${d} da ${a}?`,
-        preferidos: [q + 1, q - 1, q + 2, q - 2]
+        preferidos: [q + 1, q - 1, q + 2, q - 2],
+        datos: { a, d }
     };
 }
 
@@ -150,7 +153,8 @@ function combinadas(grado, nivel, az) {
         return {
             enunciado: `${a} + ${b} × ${c} = ?`, respuesta: a + b * c,
             pista: `Primero la multiplicación: ${b} × ${c} = ${b * c}. Después suma ${a}.`,
-            preferidos: [(a + b) * c] // error típico: ir de izquierda a derecha
+            preferidos: [(a + b) * c], // error típico: ir de izquierda a derecha
+            datos: pasosCombinada(`${a} + ${b} × ${c}`, `Primero la multiplicación: ${b} × ${c} = ${b * c}.`, `${a} + ${b * c}`, `Ahora la suma: ${a} + ${b * c} = ${a + b * c}.`, a + b * c, { enunciado: `${b} × ${c} = ?`, respuesta: b * c })
         };
     }
     if (nivel === 2) {
@@ -161,7 +165,8 @@ function combinadas(grado, nivel, az) {
             return {
                 enunciado: `${a} × ${b} − ${c} = ?`, respuesta: a * b - c,
                 pista: `Primero la multiplicación: ${a} × ${b} = ${a * b}. Después resta ${c}.`,
-                preferidos: [a * b + c, a * (b - c)]
+                preferidos: [a * b + c, a * (b - c)],
+                datos: pasosCombinada(`${a} × ${b} − ${c}`, `Primero la multiplicación: ${a} × ${b} = ${a * b}.`, `${a * b} − ${c}`, `Ahora la resta: ${a * b} − ${c} = ${a * b - c}.`, a * b - c, { enunciado: `${a} × ${b} = ?`, respuesta: a * b })
             };
         }
         const b = entre(az, 2, 5); // a − b × c
@@ -170,7 +175,8 @@ function combinadas(grado, nivel, az) {
         return {
             enunciado: `${a} − ${b} × ${c} = ?`, respuesta: a - b * c,
             pista: `Primero la multiplicación: ${b} × ${c} = ${b * c}. Después resta de ${a}.`,
-            preferidos: [(a - b) * c, a + b * c]
+            preferidos: [(a - b) * c, a + b * c],
+            datos: pasosCombinada(`${a} − ${b} × ${c}`, `Primero la multiplicación: ${b} × ${c} = ${b * c}.`, `${a} − ${b * c}`, `Ahora la resta: ${a} − ${b * c} = ${a - b * c}.`, a - b * c, { enunciado: `${b} × ${c} = ?`, respuesta: b * c })
         };
     }
     if (az() < 0.5) { // (a + b) × c
@@ -180,7 +186,8 @@ function combinadas(grado, nivel, az) {
         return {
             enunciado: `(${a} + ${b}) × ${c} = ?`, respuesta: (a + b) * c,
             pista: `Primero lo que está entre paréntesis: ${a} + ${b} = ${a + b}. Luego × ${c}.`,
-            preferidos: [a + b * c, a * c + b]
+            preferidos: [a + b * c, a * c + b],
+            datos: pasosCombinada(`(${a} + ${b}) × ${c}`, `Primero lo que está entre paréntesis: ${a} + ${b} = ${a + b}.`, `${a + b} × ${c}`, `Ahora la multiplicación: ${a + b} × ${c} = ${(a + b) * c}.`, (a + b) * c, { enunciado: `${a} + ${b} = ?`, respuesta: a + b })
         };
     }
     const b = entre(az, 4, 15); // a × (b − c)
@@ -189,8 +196,14 @@ function combinadas(grado, nivel, az) {
     return {
         enunciado: `${a} × (${b} − ${c}) = ?`, respuesta: a * (b - c),
         pista: `Primero lo que está entre paréntesis: ${b} − ${c} = ${b - c}. Luego ${a} ×.`,
-        preferidos: [a * b - c, a * b + a * c]
+        preferidos: [a * b - c, a * b + a * c],
+        datos: pasosCombinada(`${a} × (${b} − ${c})`, `Primero lo que está entre paréntesis: ${b} − ${c} = ${b - c}.`, `${a} × ${b - c}`, `Ahora la multiplicación: ${a} × ${b - c} = ${a * (b - c)}.`, a * (b - c), { enunciado: `${b} − ${c} = ?`, respuesta: b - c })
     };
+}
+
+/** Pasos explícitos de una operación combinada (los usa la lección «El orden de las operaciones»). */
+function pasosCombinada(inicial, nota1, intermedia, nota2, resultado, primero) {
+    return { pasos: [{ expr: inicial, nota: nota1 }, { expr: intermedia, nota: nota2 }, { expr: String(resultado), nota: '' }], primero };
 }
 
 const GRUPOS_MULTIPLOS = { 1: [2, 3, 4, 5], 2: [6, 7, 8, 9], 3: [11, 12, 13, 15] };
@@ -202,7 +215,8 @@ function multiplos(grado, nivel, az) {
     return {
         enunciado: `¿Cuál es múltiplo de ${n}?`, respuesta: r,
         pista: `Los múltiplos de ${n} están en su tabla: ${n}, ${2 * n}, ${3 * n}, ${4 * n}…`,
-        fabricarDistractores: (cantidad) => distractoresNoMultiplos(r, n, az, cantidad)
+        fabricarDistractores: (cantidad) => distractoresNoMultiplos(r, n, az, cantidad),
+        datos: { n }
     };
 }
 
@@ -221,7 +235,8 @@ function decimales(grado, nivel, az) {
     return {
         enunciado: `${formato(a)} ${esSuma ? '+' : '−'} ${formato(b)} = ?`, respuesta: r, formato,
         pista: `Alinea los puntos decimales y ${esSuma ? 'suma' : 'resta'} como si fueran números enteros.`,
-        preferidos: [r + 1, r - 1, r + 10, r - 10, r + unidad, r - unidad]
+        preferidos: [r + 1, r - 1, r + 10, r - 10, r + unidad, r - unidad],
+        datos: { a, b, decimales: decimalesDe, esSuma }
     };
 }
 
@@ -259,6 +274,7 @@ export function generarPregunta({ grado, habilidad, nivel, cantidad = 4, aleator
         respuesta: base.respuesta,
         textoRespuesta: formato(base.respuesta),
         opciones,
-        pista: base.pista
+        pista: base.pista,
+        datos: base.datos
     };
 }
