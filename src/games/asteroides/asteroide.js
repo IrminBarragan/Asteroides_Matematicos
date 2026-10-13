@@ -1,9 +1,12 @@
+import { CONFIG } from './configuracion.js';
+import { Utilidades } from '../../core/utilidades.js';
+
 /**
  * Clase Asteroide
  * Principio SOLID: Single Responsibility - Solo maneja lógica de asteroides
  */
 
-class Asteroide {
+export class Asteroide {
     constructor(numero, esRespuestaCorrecta = false) {
         this.numero = numero;
         this.esRespuestaCorrecta = esRespuestaCorrecta;
@@ -65,8 +68,8 @@ class Asteroide {
     /**
      * Actualiza la posición del asteroide
      */
-    actualizar() {
-        this.y += this.velocidad;
+    actualizar(factorVelocidad = 1) {
+        this.y += this.velocidad * factorVelocidad;
         this.rotacion += this.velocidadRotacion;
         this.pulsacion += 0.05;
     }

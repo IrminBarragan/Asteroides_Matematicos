@@ -1,9 +1,11 @@
+import { CONFIG } from '../games/asteroides/configuracion.js';
+
 /**
  * Sistema de Inteligencia Artificial Adaptativa
  * Analiza el desempeño del jugador y ajusta la dificultad dinámicamente
  */
 
-class SistemaIA {
+export class SistemaIA {
     constructor() {
         // Historial de desempeño
         this.historialRespuestas = [];
@@ -260,7 +262,7 @@ class SistemaIA {
     obtenerRecomendacionActual() {
         // Ordenar por prioridad
         const prioridades = { alta: 3, media: 2, baja: 1 };
-        const recomendacionesOrdenadas = this.recomendaciones.sort((a, b) => {
+        const recomendacionesOrdenadas = [...this.recomendaciones].sort((a, b) => {
             return prioridades[b.prioridad] - prioridades[a.prioridad];
         });
 
@@ -323,7 +325,21 @@ class SistemaIA {
             multiplicacion: 0,
             division: 0
         };
-        this.metricas.racha = 0;
+        this.metricas = {
+            precisionActual: 1.0,
+            tiempoPromedioRespuesta: 0,
+            velocidadAprendizaje: 0,
+            operacionMasDificil: null,
+            racha: 0,
+            rachaMaxima: 0
+        };
+        this.perfilJugador = {
+            nivelHabilidad: 'principiante',
+            estiloJuego: 'equilibrado',
+            necesitaAyuda: false,
+            motivacion: 'alta'
+        };
         this.recomendaciones = [];
+        this.ultimaEvaluacion = 0;
     }
 }

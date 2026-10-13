@@ -1,9 +1,12 @@
+import { CONFIG } from './configuracion.js';
+import { Utilidades } from '../../core/utilidades.js';
+
 /**
  * Clase para ítems especiales
  * Principio SOLID: Single Responsibility - Solo maneja power-ups
  */
 
-class ItemEspecial {
+export class ItemEspecial {
     constructor(tipo, x, y) {
         this.tipo = tipo;
         this.x = x;

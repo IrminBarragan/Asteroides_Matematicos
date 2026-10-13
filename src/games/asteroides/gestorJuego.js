@@ -1,9 +1,20 @@
+import { CONFIG } from './configuracion.js';
+import { Utilidades } from '../../core/utilidades.js';
+import { GestorAudio } from '../../core/gestorAudio.js';
+import { SistemaParticulas } from '../../core/particula.js';
+import { SistemaIA } from '../../adaptativo/sistemaia.js';
+import { OperacionMatematica } from './operacionMatematica.js';
+import { Asteroide } from './asteroide.js';
+import { Nave } from './nave.js';
+import { ItemEspecial } from './itemEspecial.js';
+import { GestorNivel } from './gestorNivel.js';
+
 /**
  * Gestor Principal del Juego con IA Adaptativa
  * Principio SOLID: Coordina todos los componentes (Dependency Injection)
  */
 
-class GestorJuego {
+export class GestorJuego {
     constructor(canvas) {
         if (!canvas) {
             throw new Error('Canvas no proporcionado al GestorJuego');
@@ -34,7 +45,6 @@ class GestorJuego {
         // Configurar eventos
         this.configurarEventos();
 
-        console.log('GestorJuego con IA inicializado correctamente');
     }
 
     /**
@@ -253,11 +263,6 @@ class GestorJuego {
                 Math.min(this.gestorNivel.cantidadAsteroides, CONFIG.ASTEROIDE.CANTIDAD_MAXIMA)
             );
 
-            console.log('🤖 IA ajustó dificultad:', {
-                velocidad: this.gestorNivel.velocidadAsteroides,
-                cantidad: this.gestorNivel.cantidadAsteroides
-            });
-
             // Mostrar mensaje de ajuste
             const recomendacion = this.sistemaIA.obtenerRecomendacionActual();
             if (recomendacion && recomendacion.tipo === 'dificultad') {
@@ -361,7 +366,6 @@ class GestorJuego {
             mensajeJuego.classList.add('oculto');
         }
         this.bucleJuego();
-        console.log('Juego iniciado');
     }
 
     /**
@@ -402,7 +406,6 @@ class GestorJuego {
         this.actualizarInterfaz();
         this.actualizarInterfazIA(); // 🤖 Actualizar panel IA
 
-        console.log('Juego reiniciado');
     }
 
     /**
@@ -536,7 +539,8 @@ class GestorJuego {
      */
     actualizar() {
         this.nave.actualizar();
-        this.asteroides.forEach(asteroide => asteroide.actualizar());
+        const factor = this.gestorNivel.factorVelocidad();
+        this.asteroides.forEach(asteroide => asteroide.actualizar(factor));
 
         this.verificarColisionesLaseres();
 
@@ -577,7 +581,7 @@ class GestorJuego {
         );
 
         this.sistemaParticulas.actualizar();
-        this.gestorNivel.actualizarMultiplicador();
+        this.gestorNivel.actualizarEfectos();
 
         if (Math.random() < 0.1) {
             this.actualizarInterfaz();
@@ -632,7 +636,6 @@ class GestorJuego {
             'Game Over',
             `Puntos: ${stats.puntos} | Nivel: ${stats.nivel} | Precisión: ${statsIA.precision}% | Racha máxima: ${statsIA.rachaMaxima}`
         );
-        console.log('Juego terminado');
     }
 
     /**

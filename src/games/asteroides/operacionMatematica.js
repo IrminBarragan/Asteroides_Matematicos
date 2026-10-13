@@ -1,9 +1,12 @@
+import { CONFIG } from './configuracion.js';
+import { Utilidades } from '../../core/utilidades.js';
+
 /**
  * Clase para gestionar operaciones matemáticas
  * Principio SOLID: Single Responsibility - Solo maneja lógica matemática
  */
 
-class OperacionMatematica {
+export class OperacionMatematica {
     constructor(nivel = 1) {
         this.nivel = nivel;
         this.operando1 = 0;
@@ -172,8 +175,6 @@ class OperacionMatematica {
         }
         
         const respuestasArray = Array.from(incorrectas);
-        console.log('Operación:', this.obtenerTexto(), 'Respuesta correcta:', this.resultado, 'Incorrectas:', respuestasArray);
-        
         return respuestasArray;
     }
 }

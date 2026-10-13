@@ -3,7 +3,7 @@
  * Principio SOLID: Single Responsibility - Solo maneja audio
  */
 
-class GestorAudio {
+export class GestorAudio {
     constructor() {
         this.activo = false;
         this.contextoAudio = null;

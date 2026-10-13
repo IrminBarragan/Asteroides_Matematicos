@@ -3,7 +3,7 @@
  * Principio SOLID: Single Responsibility - Solo maneja partículas
  */
 
-class Particula {
+export class Particula {
     constructor(x, y, color) {
         this.x = x;
         this.y = y;
@@ -43,7 +43,7 @@ class Particula {
 /**
  * Gestor de sistema de partículas
  */
-class SistemaParticulas {
+export class SistemaParticulas {
     constructor() {
         this.particulas = [];
     }
@@ -51,7 +51,7 @@ class SistemaParticulas {
     /**
      * Crea una explosión de partículas
      */
-    crearExplosion(x, y, cantidad = 20, color = CONFIG.COLORES.PARTICULA) {
+    crearExplosion(x, y, cantidad = 20, color = '#6b5ff7') {
         for (let i = 0; i < cantidad; i++) {
             this.particulas.push(new Particula(x, y, color));
         }

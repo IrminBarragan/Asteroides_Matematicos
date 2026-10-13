@@ -1,9 +1,12 @@
+import { CONFIG } from './configuracion.js';
+import { Utilidades } from '../../core/utilidades.js';
+
 /**
  * Clase Nave
  * Principio SOLID: Single Responsibility - Solo maneja la nave y láseres
  */
 
-class Laser {
+export class Laser {
     constructor(x, y, targetX, targetY) {
         this.x = x;
         this.y = y;
@@ -57,7 +60,7 @@ class Laser {
     }
 }
 
-class Nave {
+export class Nave {
     constructor() {
         this.x = CONFIG.CANVAS.ANCHO / 2;
         this.y = CONFIG.NAVE.POSICION_Y;
@@ -80,7 +83,6 @@ class Nave {
         this.imagenCargada = false;
         this.imagen.onload = () => {
             this.imagenCargada = true;
-            console.log('Imagen de la nave cargada correctamente');
         };
         this.imagen.onerror = () => {
             console.warn('No se pudo cargar la imagen de la nave, usando diseño por defecto');

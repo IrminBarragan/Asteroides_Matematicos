@@ -1,0 +1,22 @@
+# Portal de Juegos Educativos para Primaria
+
+Videojuegos educativos para niños de 1° a 6° de primaria. Empezó como *Asteroides Matemáticos* y está
+creciendo a un portal con varios juegos. Funciona **sin internet** y se abre con doble clic.
+
+Plan completo y estado de las fases: [`docs/PLAN.md`](docs/PLAN.md).
+
+## Uso rápido
+
+Requiere [Node.js](https://nodejs.org) 20 o superior (solo para desarrollar; las PCs donde se juega no lo necesitan).
+
+```bash
+npm install      # una vez
+npm test         # pruebas de la lógica
+npm run build    # genera dist/
+```
+
+Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autocontenida: se puede copiar a una USB.
+
+## Estructura
+
+Ver [`docs/PLAN.md`](docs/PLAN.md#2-estructura-objetivo). Las auditorías de cada fase están en `docs/AUDITORIA-FASE-N.md`.

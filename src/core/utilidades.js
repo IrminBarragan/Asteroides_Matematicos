@@ -3,7 +3,7 @@
  * Principio SOLID: Single Responsibility - Funciones auxiliares reutilizables
  */
 
-const Utilidades = {
+export const Utilidades = {
     /**
      * Genera un número aleatorio entre min y max
      */

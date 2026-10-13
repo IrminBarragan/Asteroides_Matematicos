@@ -3,27 +3,17 @@
  * Punto de entrada principal
  */
 
-// Variable global del gestor de juego
+import { CONFIG } from './configuracion.js';
+import { GestorJuego } from './gestorJuego.js';
+
+// Gestor de juego (el módulo ya no expone globales)
 let gestorJuego;
 
 /**
  * Inicializa el juego cuando el DOM está listo
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM cargado, inicializando juego...');
-    
     try {
-        // Verificar dependencias
-        if (typeof CONFIG === 'undefined') {
-            throw new Error('CONFIG no está definido. Verifica que configuracion.js se haya cargado.');
-        }
-        if (typeof Utilidades === 'undefined') {
-            throw new Error('Utilidades no está definido. Verifica que utilidades.js se haya cargado.');
-        }
-        if (typeof GestorJuego === 'undefined') {
-            throw new Error('GestorJuego no está definido. Verifica que gestorJuego.js se haya cargado.');
-        }
-        
         // Obtener canvas
         const canvas = document.getElementById('canvas');
         if (!canvas) {
@@ -41,9 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Evento de redimensionamiento
         window.addEventListener('resize', ajustarCanvas);
-        
-        console.log('🚀 Asteroides Matemáticos cargado correctamente');
-        
+
     } catch (error) {
         console.error('Error al inicializar el juego:', error);
         alert('Error al inicializar el juego: ' + error.message);

@@ -1,9 +1,11 @@
+import { CONFIG } from './configuracion.js';
+
 /**
  * Gestor de niveles y dificultad
  * Principio SOLID: Single Responsibility - Solo maneja progresión de niveles
  */
 
-class GestorNivel {
+export class GestorNivel {
     constructor() {
         this.nivel = 1;
         this.puntos = 0;
@@ -15,6 +17,7 @@ class GestorNivel {
         this.cantidadAsteroides = CONFIG.ASTEROIDE.CANTIDAD_INICIAL;
         this.multiplicadorPuntos = 1;
         this.tiempoMultiplicador = 0;
+        this.tiempoRalentizacion = 0; // frames restantes
     }
 
     /**
@@ -27,7 +30,7 @@ class GestorNivel {
         const nuevoNivel = Math.floor(this.puntos / CONFIG.NIVELES.PUNTOS_POR_NIVEL) + 1;
         
         if (nuevoNivel > this.nivel && this.nivel < CONFIG.NIVELES.NIVEL_MAX) {
-            this.nivel = nuevoNivel;
+            this.nivel = Math.min(nuevoNivel, CONFIG.NIVELES.NIVEL_MAX);
             this.actualizarDificultad();
             return true; // Indica que subió de nivel
         }
@@ -134,15 +137,29 @@ class GestorNivel {
     }
 
     /**
-     * Ralentiza los asteroides temporalmente
+     * Ralentiza los asteroides durante `duracion` frames.
+     * Se cuenta en frames (no con setTimeout) para que respete la pausa
+     * y no pise la velocidad base cuando sube el nivel.
      */
     ralentizarAsteroides(duracion = 600) {
-        const velocidadOriginal = this.velocidadAsteroides;
-        this.velocidadAsteroides *= 0.5;
-        
-        setTimeout(() => {
-            this.velocidadAsteroides = velocidadOriginal;
-        }, duracion * 16.67); // Convertir frames a ms
+        this.tiempoRalentizacion = duracion;
+    }
+
+    /**
+     * Factor que se aplica al avance de los asteroides (1 = normal)
+     */
+    factorVelocidad() {
+        return this.tiempoRalentizacion > 0 ? 0.5 : 1;
+    }
+
+    /**
+     * Avanza un frame los efectos temporales
+     */
+    actualizarEfectos() {
+        this.actualizarMultiplicador();
+        if (this.tiempoRalentizacion > 0) {
+            this.tiempoRalentizacion--;
+        }
     }
 
     /**
@@ -187,5 +204,6 @@ class GestorNivel {
         this.cantidadAsteroides = CONFIG.ASTEROIDE.CANTIDAD_INICIAL;
         this.multiplicadorPuntos = 1;
         this.tiempoMultiplicador = 0;
+        this.tiempoRalentizacion = 0;
     }
 }

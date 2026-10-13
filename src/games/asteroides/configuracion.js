@@ -3,7 +3,7 @@
  * Principio SOLID: Single Responsibility - Este módulo solo maneja constantes
  */
 
-const CONFIG = {
+export const CONFIG = {
     // Dimensiones del canvas
     CANVAS: {
         ANCHO: 900,
@@ -27,7 +27,7 @@ const CONFIG = {
         ALTO: 120,
         POSICION_Y: 500,
         VELOCIDAD_LASER: 8,
-        IMAGEN_URL: 'img/nave.png'
+        IMAGEN_URL: 'assets/nave.png'
     },
 
     // Configuración de puntuación
