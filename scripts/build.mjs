@@ -6,7 +6,7 @@
  * los <script type="module"> no cargan desde file:// en Chrome.
  */
 import { build } from 'esbuild';
-import { cp, mkdir, rm, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, rm, readFile, writeFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -16,44 +16,39 @@ const dist = (...p) => path.join(raiz, 'dist', ...p);
 const modulos = (...p) => path.join(raiz, 'node_modules', ...p);
 
 await rm(dist(), { recursive: true, force: true });
-await mkdir(dist('assets', 'vendor', 'bootstrap-icons'), { recursive: true });
 await mkdir(dist('assets', 'fonts'), { recursive: true });
 
-// 1. JavaScript: scripts clásicos (iife), compatibles con navegadores antiguos
-const opcionesJs = {
+// 1. JavaScript: un script clásico (iife), compatible con navegadores antiguos
+await build({
+    entryPoints: [src('main.js')],
+    outfile: dist('app.js'),
     bundle: true,
     format: 'iife',
     target: ['es2018', 'chrome70', 'firefox68'],
     legalComments: 'none',
     logLevel: 'warning'
-};
-await build({ ...opcionesJs, entryPoints: [src('main.js')], outfile: dist('app.js') });
-// Versión anterior de Asteroides: sigue disponible hasta que se migre al portal (Fase 3)
-await build({ ...opcionesJs, entryPoints: [src('games', 'asteroides', 'juego.js')], outfile: dist('legacy-app.js') });
+});
 
-// 2. HTML, CSS propio e imágenes
+// 2. HTML y CSS. El CSS es el del portal + el de cada juego (src/games/<juego>/estilos.css), en un solo archivo
 await cp(src('index.html'), dist('index.html'));
-await cp(src('estilos', 'portal.css'), dist('portal.css'));
-await cp(src('games', 'asteroides', 'legacy.html'), dist('asteroides-legacy.html'));
-await cp(src('games', 'asteroides', 'estilos-legacy.css'), dist('estilos-legacy.css'));
+let css = await readFile(src('estilos', 'portal.css'), 'utf8');
+for (const juego of await readdir(src('games'), { withFileTypes: true })) {
+    if (!juego.isDirectory()) continue;
+    try {
+        css += `\n${await readFile(src('games', juego.name, 'estilos.css'), 'utf8')}`;
+    } catch (error) {
+        if (error.code !== 'ENOENT') throw error; // un juego sin CSS propio es válido
+    }
+}
+await writeFile(dist('portal.css'), css);
 await cp(src('games', 'asteroides', 'nave.png'), dist('assets', 'nave.png'));
 
-// 3. Dependencias visuales locales (antes venían de un CDN)
-const quitarSourceMap = (css) => css.replace(/\/\*# sourceMappingURL=.*?\*\//g, '');
-const bootstrapCss = await readFile(modulos('bootstrap', 'dist', 'css', 'bootstrap.min.css'), 'utf8');
-await writeFile(dist('assets', 'vendor', 'bootstrap.min.css'), quitarSourceMap(bootstrapCss));
-
-const iconosCss = await readFile(modulos('bootstrap-icons', 'font', 'bootstrap-icons.min.css'), 'utf8');
-await writeFile(dist('assets', 'vendor', 'bootstrap-icons', 'bootstrap-icons.min.css'), quitarSourceMap(iconosCss));
-await cp(modulos('bootstrap-icons', 'font', 'fonts'), dist('assets', 'vendor', 'bootstrap-icons', 'fonts'), { recursive: true });
-
-for (const peso of [300, 400, 500, 600, 700]) {
-    const archivo = `poppins-latin-${peso}-normal.woff2`;
-    await cp(modulos('@fontsource', 'poppins', 'files', archivo), dist('assets', 'fonts', archivo));
-}
+// 3. Fuentes locales (antes venían de un CDN)
 for (const peso of [400, 500, 600, 700]) {
-    const archivo = `fredoka-latin-${peso}-normal.woff2`;
-    await cp(modulos('@fontsource', 'fredoka', 'files', archivo), dist('assets', 'fonts', archivo));
+    for (const [paquete, nombre] of [['poppins', 'poppins'], ['fredoka', 'fredoka']]) {
+        const archivo = `${nombre}-latin-${peso}-normal.woff2`;
+        await cp(modulos('@fontsource', paquete, 'files', archivo), dist('assets', 'fonts', archivo));
+    }
 }
 
 console.log('Build listo en dist/ (abre dist/index.html)');

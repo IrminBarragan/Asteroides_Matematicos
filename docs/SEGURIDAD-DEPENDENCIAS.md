@@ -20,9 +20,9 @@ El proyecto usa **pnpm** en lugar de npm. Estas son las medidas y su razón; deb
   comprometidos suelen detectarse y retirarse en horas o pocos días.
 - `blockExoticSubdeps: true` — las dependencias transitivas no pueden venir de git ni de tarballs arbitrarios.
 
-Además: todas las versiones están **fijadas exactas** en `package.json` (sin `^`), solo hay 4 dependencias de
-desarrollo, y **ninguna va dentro de `dist/`** salvo CSS, fuentes e íconos copiados como archivos estáticos
-(no hay código de terceros ejecutándose en el navegador del niño).
+Además: todas las versiones están **fijadas exactas** en `package.json` (sin `^`), solo hay 3 dependencias de
+desarrollo (esbuild y dos paquetes de fuentes), y **ninguna va dentro de `dist/`** salvo las fuentes copiadas como archivos estáticos
+(no hay código de terceros ejecutándose en el navegador del niño). En la Fase 3 se eliminaron Bootstrap y Bootstrap Icons.
 
 ## Reglas de trabajo
 

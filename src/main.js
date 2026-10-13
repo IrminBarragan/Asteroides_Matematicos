@@ -7,11 +7,11 @@ import { GestorAudio } from './core/gestorAudio.js';
 import { RegistroJuegos } from './core/registro.js';
 import { Portal } from './portal/portal.js';
 import { VistaPortal } from './portal/vista.js';
-import { JuegoPractica } from './games/practica/juego.js';
+import { JuegoAsteroides } from './games/asteroides/juego.js';
 
 function arrancar() {
     const registro = new RegistroJuegos()
-        .registrar(JuegoPractica);
+        .registrar(JuegoAsteroides);
 
     const vista = new VistaPortal(document.getElementById('app'));
     const portal = new Portal({

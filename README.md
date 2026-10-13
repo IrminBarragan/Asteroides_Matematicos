@@ -18,7 +18,6 @@ pnpm build       # genera dist/
 Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autocontenida: se puede copiar a una USB.
 
 - **Modo maestro:** botón "Modo maestro" al pie de la pantalla de inicio. PIN por defecto `2468` (cámbialo en `src/portal/config.js` antes de presentar).
-- La versión anterior de Asteroides sigue disponible en `dist/asteroides-legacy.html` mientras se migra al portal (Fase 3).
 
 ## Estructura
 

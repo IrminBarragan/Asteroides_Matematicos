@@ -2,6 +2,7 @@
  * Sistema de partículas para efectos visuales
  * Principio SOLID: Single Responsibility - Solo maneja partículas
  */
+import { Utilidades } from './utilidades.js';
 
 export class Particula {
     constructor(x, y, color) {

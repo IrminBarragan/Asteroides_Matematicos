@@ -64,6 +64,24 @@ juego para ese niño (o `null`). Si el resultado de `finalizar()` trae `habilida
 - El portal destruye el juego al terminar, al salir y al abrir otro (nunca hay dos a la vez).
 - Si `alMontar` lanza, el niño ve una pantalla de error amable y el juego se limpia.
 
+## Anatomía de un juego (ejemplo: Asteroides, Fase 3)
+
+Un juego se parte en capas; solo la última toca el navegador:
+
+```
+src/games/asteroides/
+  logica/generadores.js   preguntas por grado × nivel × habilidad        ┐
+  logica/distractores.js  errores típicos como respuestas incorrectas    │ lógica PURA: se prueba
+  logica/campo.js         cuántos asteroides, velocidad, carriles, poderes│ en Node con generadores
+  logica/partida.js       reglas, puntos, rachas, motor adaptativo       ┘ aleatorios sembrados
+  dibujo.js               pintar en canvas (sin reglas)
+  juego.js                clase `Juego`: une entrada + bucle + HUD + dibujo
+  estilos.css             CSS del juego (el build lo une con el del portal)
+```
+
+Regla: **si algo se puede probar sin DOM, no vive en `juego.js`.** Los tests de `logica/` verifican la matemática con un evaluador
+independiente (no con el mismo código que genera la pregunta).
+
 ## El contrato de juego
 
 ```js

@@ -54,3 +54,11 @@ Archivos más importantes: `scripts/build.mjs`, `src/games/asteroides/gestorNive
 
 Por seguridad el proyecto usa **pnpm**. Ver [`SEGURIDAD-DEPENDENCIAS.md`](SEGURIDAD-DEPENDENCIAS.md).
 Se reemplazó `package-lock.json` por `pnpm-lock.yaml` y se añadió `pnpm-workspace.yaml` con la configuración de seguridad.
+
+## Corrección posterior (descubierta en la Fase 3)
+
+Al convertir los scripts a módulos ES (Fase 0) quité de `particula.js` el import de `CONFIG` pero **nunca importé `Utilidades`**, que ese
+archivo también usaba. Resultado: crear una explosión de partículas lanzaba `ReferenceError` en ejecución. Las pruebas no lo vieron porque
+ninguna ejercitaba las partículas, y mi prueba de humo del navegador solo arrancaba el juego un segundo (sin llegar a una explosión).
+Corregido en la Fase 3 con `tests/particula.test.js` (que falla sin el import).
+**Lección:** al migrar a módulos, el riesgo no es lo que se rompe al cargar sino lo que se rompe *al usar*; hay que ejercitar cada módulo.

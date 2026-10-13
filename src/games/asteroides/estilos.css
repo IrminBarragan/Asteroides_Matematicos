@@ -1,0 +1,22 @@
+/* ---------- Asteroides Matemáticos ---------- */
+.asteroides { max-width: 1000px; margin: 0 auto; text-align: center; }
+.asteroides__hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1.25rem; min-height: 2rem; font-weight: 600; }
+.asteroides__dato { background: #eef2ff; border-radius: 999px; padding: .1rem .9rem; font-size: .95rem; }
+.asteroides__dato:empty { display: none; }
+.asteroides__poderes { display: inline-flex; gap: .5rem; }
+.asteroides__poderes:empty { display: none; }
+.insignia-poder { border-radius: 999px; padding: .1rem .8rem; font-size: .85rem; font-weight: 700; color: #1f2937; }
+.insignia-poder--lento { background: #bae6fd; }
+.insignia-poder--doble { background: #fde68a; }
+
+.asteroides__pregunta { min-height: 1.25em; margin: .25rem 0 0; font: 700 clamp(2rem, 6vw, 3rem) var(--fuente-titulo); letter-spacing: .02em; }
+.asteroides__mensaje { min-height: 3.2rem; margin: 0 0 .4rem; font-weight: 600; font-size: 1rem; color: var(--texto-suave); }
+.asteroides__mensaje--bien { color: var(--exito); }
+.asteroides__mensaje--pista { color: #9a3412; }
+.asteroides__mensaje--poder { color: var(--primario-oscuro); }
+
+.asteroides__lienzo { display: flex; justify-content: center; }
+.asteroides__canvas { display: block; border-radius: 14px; box-shadow: var(--sombra); background: #0b1026; touch-action: none; max-width: 100%; cursor: crosshair; }
+.asteroides__canvas:focus-visible { outline: 4px solid var(--enfoque); outline-offset: 3px; }
+.asteroides__ayuda { margin: .6rem 0 0; font-size: .8rem; color: var(--texto-suave); }
+@media (max-width: 600px) { .asteroides__ayuda { display: none; } }
