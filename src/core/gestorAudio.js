@@ -25,6 +25,24 @@ export class GestorAudio {
     }
 
     /**
+     * Los navegadores crean el contexto "suspendido" hasta que hay un gesto del usuario.
+     * Llamar a esto dentro de un clic lo despierta.
+     */
+    reanudar() {
+        if (this.contextoAudio && this.contextoAudio.state === 'suspended') {
+            this.contextoAudio.resume();
+        }
+    }
+
+    /**
+     * Fija el estado del audio (para restaurar el ajuste guardado del perfil).
+     */
+    establecerActivo(activo) {
+        this.activo = Boolean(activo);
+        return this.activo;
+    }
+
+    /**
      * Activa o desactiva el audio
      */
     alternar() {
@@ -37,6 +55,7 @@ export class GestorAudio {
      */
     reproducirEfecto(tipo) {
         if (!this.activo || !this.contextoAudio) return;
+        if (!['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel'].includes(tipo)) return;
 
         const oscilador = this.contextoAudio.createOscillator();
         const ganancia = this.contextoAudio.createGain();

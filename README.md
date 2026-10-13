@@ -19,6 +19,6 @@ Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autoconten
 
 ## Estructura
 
-Ver [`docs/PLAN.md`](docs/PLAN.md#2-estructura-objetivo). Las auditorías de cada fase están en `docs/AUDITORIA-FASE-N.md`.
+Ver [`docs/PLAN.md`](docs/PLAN.md#2-estructura-objetivo) y [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md). Las auditorías de cada fase están en `docs/AUDITORIA-FASE-N.md`.
 
 > El proyecto usa **pnpm** (no npm) por seguridad: ver [`docs/SEGURIDAD-DEPENDENCIAS.md`](docs/SEGURIDAD-DEPENDENCIAS.md).

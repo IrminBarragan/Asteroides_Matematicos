@@ -80,7 +80,7 @@ Cada fase termina con commits separados, tests en verde y un `docs/AUDITORIA-FAS
 | Fase | Contenido | Estado |
 |---|---|---|
 | 0 | Cimientos: estructura `src/`, esbuild, tests, sin CDN, bugs conocidos | ✅ Hecha |
-| 1 | Núcleo compartido: bucle, input unificado (mouse+táctil), audio, storage, eventos, contrato `Juego` | Pendiente |
+| 1 | Núcleo compartido: bucle, input unificado (mouse+táctil), audio, storage, eventos, contrato `Juego`, motor adaptativo | ✅ Hecha |
 | 2 | Portal: inicio, perfil (apodo+avatar), grado, galería, resultados, modo maestro, tema infantil | Pendiente |
 | 3 | Asteroides Matemáticos: migración al contrato, contenido por grado, reglas amigables, táctil | Pendiente |
 | 4 | Memorama de Palabras (primer juego basado en DOM) | Pendiente |
