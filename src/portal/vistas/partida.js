@@ -10,6 +10,19 @@ export function pantallaJugando({ meta }, portal, ctx) {
         onClick: () => { const activo = portal.alternarSonido(); botonSonido.setAttribute('aria-pressed', String(activo)); botonSonido.replaceChildren(iconoSonido(activo)); }
     }, iconoSonido(portal.sonidoActivo()));
 
+    // Lectura en voz alta: solo si el navegador tiene síntesis de voz (si no, no se muestra nada)
+    const controlesVoz = [];
+    if (portal.vozDisponible()) {
+        const botonAuto = h('button', {
+            class: 'boton boton--secundario', type: 'button', 'aria-pressed': String(portal.lecturaAutomatica()),
+            title: 'Lee cada pregunta nueva en voz alta',
+            onClick: () => botonAuto.setAttribute('aria-pressed', String(portal.alternarLecturaAutomatica()))
+        }, 'Lectura automática');
+        controlesVoz.push(
+            h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => portal.leerPantalla() }, 'Escuchar'),
+            botonAuto);
+    }
+
     const pausa = h('div', { class: 'pausa', hidden: true, role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'pausa-titulo' },
         h('div', { class: 'pausa__caja' },
             h('h2', { id: 'pausa-titulo' }, 'Juego en pausa'),
@@ -22,6 +35,7 @@ export function pantallaJugando({ meta }, portal, ctx) {
             h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => ctx.pedirSalida() }, '← Salir'),
             h('h1', { tabindex: '-1', 'data-foco': true, class: 'partida__titulo' }, meta.nombre),
             h('div', { class: 'partida__controles' },
+                ...controlesVoz,
                 botonSonido,
                 h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => portal.pausarJuego() }, 'Pausa'))),
         contenedor,

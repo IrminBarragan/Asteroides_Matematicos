@@ -74,7 +74,7 @@ export class JuegoFracciones extends Juego {
         this.textoPuntos = h('span', { class: 'fracciones-juego__dato' });
         this.textoRacha = h('span', { class: 'fracciones-juego__dato' });
         this.vagones = h('div', { class: 'fracciones-juego__tren', 'aria-hidden': 'true' });
-        this.textoEnunciado = h('p', { class: 'fracciones-juego__enunciado', 'aria-live': 'polite' });
+        this.textoEnunciado = h('p', { class: 'fracciones-juego__enunciado', 'aria-live': 'polite', 'data-leer': true });
         this.zonaVisual = h('div', { class: 'fracciones-juego__visual' });
         this.zonaAcciones = h('div', { class: 'fracciones-juego__acciones' });
         this.textoMensaje = h('p', { class: 'fracciones-juego__mensaje', 'aria-live': 'polite' });

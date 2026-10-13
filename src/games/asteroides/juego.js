@@ -115,7 +115,7 @@ export class JuegoAsteroides extends Juego {
         this.textoPuntos = h('span', { class: 'asteroides__dato' });
         this.textoRacha = h('span', { class: 'asteroides__dato' });
         this.zonaPoderes = h('span', { class: 'asteroides__poderes' });
-        this.textoPregunta = h('p', { class: 'asteroides__pregunta', 'aria-live': 'polite' });
+        this.textoPregunta = h('p', { class: 'asteroides__pregunta', 'aria-live': 'polite', 'data-leer': true });
         this.textoMensaje = h('p', { class: 'asteroides__mensaje', 'aria-live': 'polite' });
         this.canvas = h('canvas', {
             class: 'asteroides__canvas', width: ANCHO, height: ALTO, tabindex: '0',

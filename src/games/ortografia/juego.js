@@ -85,7 +85,7 @@ export class JuegoOrtografia extends Juego {
         this.textoProgreso = h('span', { class: 'ortografia__dato' });
         this.textoPuntos = h('span', { class: 'ortografia__dato' });
         this.textoRacha = h('span', { class: 'ortografia__dato' });
-        this.textoEnunciado = h('p', { class: 'ortografia__enunciado', 'aria-live': 'polite' });
+        this.textoEnunciado = h('p', { class: 'ortografia__enunciado', 'aria-live': 'polite', 'data-leer': true });
         this.textoMensaje = h('p', { class: 'ortografia__mensaje', 'aria-live': 'polite' });
         this.botonSiguiente = h('button', { class: 'boton boton--secundario ortografia__siguiente', type: 'button', hidden: true, onClick: () => this.irASiguiente() }, 'Siguiente ➜');
         this.cielo = h('div', { class: 'ortografia__cielo', role: 'group', 'aria-label': 'Palabras que caen' },

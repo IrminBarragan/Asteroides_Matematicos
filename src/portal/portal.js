@@ -21,13 +21,15 @@ export class Portal {
      * @param {import('../core/storage.js').Progreso} dependencias.progreso
      * @param {import('../core/gestorAudio.js').GestorAudio} dependencias.audio
      * @param {Object} dependencias.vista
+     * @param {import('../core/voz.js').Voz} [dependencias.voz]  lectura en voz alta (opcional: sin ella no hay botones)
      * @param {string} [dependencias.pin]
      */
-    constructor({ registro, progreso, audio, vista, pin = PIN_MAESTRO }) {
+    constructor({ registro, progreso, audio, vista, voz = null, pin = PIN_MAESTRO }) {
         this.registro = registro;
         this.progreso = progreso;
         this.audio = audio;
         this.vista = vista;
+        this.voz = voz;
         this.pin = pin;
 
         this.pantalla = null;
@@ -145,6 +147,37 @@ export class Portal {
         return nuevo;
     }
 
+    // ---------- Lectura en voz alta ----------
+
+    vozDisponible() {
+        return Boolean(this.voz && this.voz.disponible);
+    }
+
+    lecturaAutomatica() {
+        return this.progreso.ajustes().lecturaAsistida;
+    }
+
+    /** Activa o desactiva leer cada pregunta nueva sin que el niño toque nada. Devuelve el nuevo valor. */
+    alternarLecturaAutomatica() {
+        const nuevo = !this.lecturaAutomatica();
+        this.progreso.establecerAjuste('lecturaAsistida', nuevo);
+        if (!this.vozDisponible()) return nuevo;
+        if (nuevo) this.leerPantalla(); else this.voz.detener();
+        return nuevo;
+    }
+
+    /** Lee en voz alta la pregunta que hay en pantalla (botón «Escuchar»). */
+    leerPantalla() {
+        if (!this.vozDisponible()) return false;
+        const texto = this.vista.textoALeer();
+        return texto ? this.voz.leer(texto) : false;
+    }
+
+    /** La vista avisa cuando cambia el texto de la pregunta. */
+    alCambiarTexto() {
+        if (this.juegoActual && !this.pausado && this.lecturaAutomatica()) this.leerPantalla();
+    }
+
     /** Los navegadores solo permiten audio tras un gesto del usuario: se despierta en acciones del niño. */
     despertarAudio() {
         this.audio.inicializar();
@@ -178,6 +211,7 @@ export class Portal {
                 audio: this.audio,
                 habilidades: this.progreso.obtenerHabilidades(id)
             });
+            this.vista.observarTexto(() => this.alCambiarTexto());
         } catch (error) {
             console.error(`Error al montar el juego "${id}":`, error);
             this.limpiarJuego();
@@ -189,6 +223,7 @@ export class Portal {
         if (!this.juegoActual || this.pausado) return;
         this.juegoActual.pausar();
         this.pausado = true;
+        if (this.voz) this.voz.detener();
         this.vista.mostrarPausa(true);
     }
 
@@ -246,6 +281,8 @@ export class Portal {
         const juego = this.juegoActual;
         this.juegoActual = null;
         this.pausado = false;
+        this.vista.dejarDeObservarTexto();
+        if (this.voz) this.voz.detener();
         if (juego) {
             try {
                 juego.destruir();

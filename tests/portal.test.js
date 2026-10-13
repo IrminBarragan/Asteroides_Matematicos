@@ -352,3 +352,76 @@ test('el CSV neutraliza apodos que parecen fórmulas de Excel', async () => {
     progreso.registrarResultado('ejemplo', { aciertos: 1, fallos: 0, tiempoMs: 1, puntaje: 10, estrellas: 3 });
     assert.match(portal.csvProgreso(), /\r\n'=SUMA\(1\+1\),2,/);
 });
+
+// ---------- Lectura en voz alta ----------
+
+function crearVozFalsa(disponible = true) {
+    return { disponible, leidos: [], detenciones: 0, leer(t) { this.leidos.push(t); return true; }, detener() { this.detenciones++; } };
+}
+
+function crearConVoz(voz) {
+    const base = crear();
+    const portal = new Portal({ registro: base.registro, progreso: base.progreso, audio: base.audio, vista: base.vista, voz });
+    return { ...base, portal };
+}
+
+test('voz: el portal sabe si hay voz disponible (sin voz, nada se ofrece)', () => {
+    assert.equal(crearConVoz(crearVozFalsa(true)).portal.vozDisponible(), true);
+    assert.equal(crearConVoz(crearVozFalsa(false)).portal.vozDisponible(), false);
+    assert.equal(crear().portal.vozDisponible(), false); // sin dependencia
+    const { portal } = crear();
+    assert.equal(portal.leerPantalla(), false);
+    assert.doesNotThrow(() => portal.alternarLecturaAutomatica());
+});
+
+test('voz: «Escuchar» lee el texto que la vista indica', () => {
+    const voz = crearVozFalsa();
+    const { portal, vista } = crearConVoz(voz);
+    portal.iniciar(); portal.crearPerfil(luisa);
+    vista.texto = '¿Cuánto es 3/4?';
+    assert.equal(portal.leerPantalla(), true);
+    assert.deepEqual(voz.leidos, ['¿Cuánto es 3/4?']);
+});
+
+test('voz: con lectura automática, cada texto nuevo se lee; sin ella, no', () => {
+    const voz = crearVozFalsa();
+    const { portal, vista, progreso } = crearConVoz(voz);
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ejemplo');
+    assert.equal(vista.observadores, 1, 'el portal observa el texto del juego');
+
+    vista.texto = 'pregunta 1';
+    vista.alCambiarTexto();
+    assert.deepEqual(voz.leidos, [], 'lectura automática apagada por omisión');
+
+    assert.equal(portal.alternarLecturaAutomatica(), true);
+    assert.equal(progreso.ajustes().lecturaAsistida, true);
+    assert.deepEqual(voz.leidos, ['pregunta 1'], 'al activarla lee la pregunta actual');
+
+    vista.texto = 'pregunta 2';
+    vista.alCambiarTexto();
+    assert.deepEqual(voz.leidos, ['pregunta 1', 'pregunta 2']);
+
+    assert.equal(portal.alternarLecturaAutomatica(), false);
+    vista.alCambiarTexto();
+    assert.equal(voz.leidos.length, 2, 'apagada no lee más');
+});
+
+test('voz: en pausa no lee, y pausar, salir o terminar callan la voz', async () => {
+    const voz = crearVozFalsa();
+    const { portal, vista } = crearConVoz(voz);
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.alternarLecturaAutomatica();
+    portal.iniciarJuego('ejemplo');
+    const alCambiar = vista.alCambiarTexto;
+    const antes = voz.detenciones;
+    portal.pausarJuego();
+    assert.ok(voz.detenciones > antes, 'pausar calla la voz');
+    vista.texto = 'nueva';
+    alCambiar();
+    assert.deepEqual(voz.leidos, [], 'en pausa no se lee');
+    portal.reanudarJuego();
+    portal.irAInicio();
+    assert.equal(vista.alCambiarTexto, null, 'al salir deja de observar');
+    assert.ok(voz.detenciones >= 2);
+});

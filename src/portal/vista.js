@@ -35,6 +35,7 @@ export class VistaPortal {
         const portal = this.portal;
         const ctx = this.contexto();
         this.raiz.dataset.pantalla = nombre;
+        this.dejarDeObservarTexto();
         this.contenedor = null;
         this.capaPausa = null;
         vaciar(this.principal);
@@ -63,6 +64,30 @@ export class VistaPortal {
 
     contenedorJuego() {
         return this.contenedor;
+    }
+
+    /** Texto de la pregunta en pantalla: el primer elemento marcado con `data-leer` dentro del juego. */
+    textoALeer() {
+        const nodo = this.contenedor && this.contenedor.querySelector('[data-leer]');
+        return nodo ? nodo.textContent.trim() : '';
+    }
+
+    /** Avisa (`alCambiar`) cuando el texto de la pregunta cambia, y una vez al empezar si ya hay pregunta. */
+    observarTexto(alCambiar) {
+        this.dejarDeObservarTexto();
+        if (!this.contenedor || typeof MutationObserver === 'undefined') return;
+        let ultimo = '';
+        const revisar = () => {
+            const actual = this.textoALeer();
+            if (actual && actual !== ultimo) { ultimo = actual; alCambiar(); }
+        };
+        this.observador = new MutationObserver(revisar);
+        this.observador.observe(this.contenedor, { childList: true, subtree: true, characterData: true });
+        revisar();
+    }
+
+    dejarDeObservarTexto() {
+        if (this.observador) { this.observador.disconnect(); this.observador = null; }
     }
 
     mostrarPausa(activa) {

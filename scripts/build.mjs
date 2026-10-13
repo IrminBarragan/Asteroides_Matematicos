@@ -26,6 +26,7 @@ await build({
     format: 'iife',
     target: ['es2018', 'chrome70', 'firefox68'],
     legalComments: 'none',
+    minify: !process.env.SIN_MINIFICAR, // SIN_MINIFICAR=1 pnpm build → código legible para depurar en la escuela
     logLevel: 'warning'
 });
 

@@ -4,6 +4,7 @@
  */
 import { Progreso } from './core/storage.js';
 import { GestorAudio } from './core/gestorAudio.js';
+import { Voz } from './core/voz.js';
 import { RegistroJuegos } from './core/registro.js';
 import { Portal } from './portal/portal.js';
 import { VistaPortal } from './portal/vista.js';
@@ -26,6 +27,7 @@ function arrancar() {
         registro,
         progreso: new Progreso(),
         audio: new GestorAudio(),
+        voz: new Voz(),
         vista
     });
     vista.conectar(portal);

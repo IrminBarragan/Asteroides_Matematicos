@@ -20,7 +20,7 @@
     --exito: #15803d;
     --peligro: #b91c1c;
     --borde: #d1d5db;
-    --enfoque: #f59e0b;
+    --enfoque: #b45309;
     --sombra: 0 6px 20px rgba(49, 46, 129, .14);
     --radio: 18px;
 
@@ -198,7 +198,7 @@ p { margin: 0 0 .75rem; }
 .partida { position: relative; }
 .partida__barra { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .75rem; }
 .partida__titulo { font-size: 1.3rem; margin: 0; text-align: center; flex: 1 1 200px; }
-.partida__controles { display: flex; gap: .5rem; }
+.partida__controles { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .5rem; }
 .zona-juego { background: var(--superficie); border-radius: var(--radio); box-shadow: var(--sombra); min-height: 420px; padding: 1.25rem; }
 
 .pausa { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(31, 41, 55, .75); border-radius: var(--radio); }

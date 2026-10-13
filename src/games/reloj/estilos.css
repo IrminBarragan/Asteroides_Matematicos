@@ -13,7 +13,7 @@
 .reloj--interactivo { cursor: grab; touch-action: none; }
 .reloj--interactivo .reloj__mano { cursor: grab; outline: none; }
 .reloj__mano--activa .reloj__trazo { filter: drop-shadow(0 0 5px #fbbf24); }
-.reloj__mano:focus-visible .reloj__trazo { stroke: #f59e0b; filter: drop-shadow(0 0 5px #fbbf24); }
+.reloj__mano:focus-visible .reloj__trazo { stroke: var(--enfoque); filter: drop-shadow(0 0 5px #fbbf24); }
 
 /* ---------- Reloj Aventurero ---------- */
 .reloj-juego { max-width: 820px; margin: 0 auto; text-align: center; }

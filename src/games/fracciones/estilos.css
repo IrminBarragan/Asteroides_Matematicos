@@ -7,7 +7,7 @@
 .fraccion-figura--pintable .fraccion-parte { cursor: pointer; }
 .fraccion-figura--pintable .fraccion-parte:hover { fill: #dbeafe; }
 .fraccion-figura--pintable .fraccion-parte--pintada:hover { fill: #3b82f6; }
-.fraccion-parte:focus-visible { outline: none; stroke: #f59e0b; stroke-width: 5; }
+.fraccion-parte:focus-visible { outline: none; stroke: var(--enfoque); stroke-width: 5; }
 
 .fraccion { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1.1; font-family: var(--fuente-titulo); font-weight: 700; }
 .fraccion__num { padding: 0 .25em; border-bottom: .12em solid currentColor; min-width: 1.2em; text-align: center; }

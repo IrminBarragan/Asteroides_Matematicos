@@ -11,8 +11,10 @@ Requiere [Node.js](https://nodejs.org) 20 o superior y [pnpm](https://pnpm.io) 1
 
 ```bash
 pnpm install     # una vez
-pnpm test        # pruebas de la lógica
+pnpm test        # pruebas de la lógica (rápidas, sin navegador)
 pnpm build       # genera dist/
+pnpm test:e2e    # pruebas en un Chromium real sobre dist/ (necesita Chromium; ver docs/PRUEBAS.md)
+pnpm verificar   # todo lo anterior
 ```
 
 Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autocontenida: se puede copiar a una USB.

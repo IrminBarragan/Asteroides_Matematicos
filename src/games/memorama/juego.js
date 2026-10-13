@@ -101,7 +101,7 @@ export class JuegoMemorama extends Juego {
         this.textoTablero = h('span', { class: 'memorama__dato' });
         this.textoParejas = h('span', { class: 'memorama__dato' });
         this.textoPuntos = h('span', { class: 'memorama__dato' });
-        this.textoInstruccion = h('p', { class: 'memorama__instruccion', 'aria-live': 'polite' });
+        this.textoInstruccion = h('p', { class: 'memorama__instruccion', 'aria-live': 'polite', 'data-leer': true });
         this.zonaTablero = h('div', { class: 'memorama__tablero', role: 'group', 'aria-label': 'Cartas del memorama' });
         this.textoMensaje = h('p', { class: 'memorama__mensaje', 'aria-live': 'polite' });
         this.raiz = h('section', { class: 'memorama', 'aria-label': 'Memorama de Palabras' },

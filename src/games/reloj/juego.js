@@ -74,7 +74,7 @@ export class JuegoReloj extends Juego {
         this.textoProgreso = h('span', { class: 'reloj-juego__dato' });
         this.textoPuntos = h('span', { class: 'reloj-juego__dato' });
         this.textoRacha = h('span', { class: 'reloj-juego__dato' });
-        this.textoEnunciado = h('p', { class: 'reloj-juego__enunciado', 'aria-live': 'polite' });
+        this.textoEnunciado = h('p', { class: 'reloj-juego__enunciado', 'aria-live': 'polite', 'data-leer': true });
         this.zonaRelojes = h('div', { class: 'reloj-juego__relojes' });
         this.zonaAcciones = h('div', { class: 'reloj-juego__acciones' });
         this.textoMensaje = h('p', { class: 'reloj-juego__mensaje', 'aria-live': 'polite' });

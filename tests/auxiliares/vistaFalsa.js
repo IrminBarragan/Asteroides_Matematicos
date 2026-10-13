@@ -9,6 +9,11 @@ export function crearVistaFalsa() {
         contenedorJuego() { return vista.contenedor; },
         mostrarPausa(activa) { vista.pausas.push(activa); },
         aviso(texto, tipo) { vista.avisos.push({ texto, tipo }); },
+        texto: '',
+        textoALeer() { return vista.texto; },
+        observadores: 0,
+        observarTexto(cb) { vista.observadores++; vista.alCambiarTexto = cb; },
+        dejarDeObservarTexto() { vista.alCambiarTexto = null; },
         ultima() { return vista.pantallas[vista.pantallas.length - 1]; }
     };
     return vista;
