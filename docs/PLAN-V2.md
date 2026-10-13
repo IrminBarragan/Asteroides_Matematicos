@@ -72,7 +72,7 @@ Propuesta (a validar contigo):
 **10.2 Nivel de partida por habilidad, independiente del grado.**
 - Cada perfil guarda un `nivelContenido` (por área o por juego) además del `grado`. Esquema versionado con **migración** (los perfiles actuales siguen funcionando).
 - **Misión de inicio** (≈ 2 minutos, presentada como aventura, no como examen): 6–8 preguntas que suben o bajan de dificultad rápido y fijan el punto de partida por habilidad. Reutiliza el `MotorAdaptativo` con un modo «búsqueda» (cambia de nivel más rápido que en juego normal).
-- **Modo maestro:** poder **fijar** el nivel de un niño («jugar contenido de 2.º») y volver a lanzar la misión.
+- **El sistema decide solo** (petición de la maestra). El modo maestro **muestra** el nivel detectado por habilidad y, como extra opcional, permite **volver a lanzar la misión** de un niño.
 
 **10.3 Escalones nuevos por debajo (Asteroides y Reloj/otros donde aplique).**
 - Suma y resta: hasta **5**, hasta **10**, hasta **20** (con y sin pasar la decena); **tablas del 2, 5 y 10** como primer escalón de multiplicación; conteo de 2 en 2, de 5 en 5 y de 10 en 10.
@@ -84,12 +84,12 @@ Propuesta (a validar contigo):
 
 **Criterios de aceptación:** un perfil nuevo de 4.º que falla todo en la misión **empieza** en el escalón más bajo; ningún niño que **termina** una partida se queda con 0 estrellas; los perfiles guardados con la v0.1 se migran sin perder datos; todo con pruebas.
 
-### Fase 11 — Música y color
+### Fase 12 — Música y color
 
 **Música (técnica):** se **sintetiza en el navegador** con la Web Audio API (osciladores y envolventes), sin archivos de audio.
 - *Por qué:* funciona **sin internet**, pesa **unos KB** y **no hay derechos de autor** que resolver (descargar música «gratis» y meterla en un proyecto escolar es un riesgo de licencias). *Costo:* suena «chiptune»/simple, no orquestal.
 - 3–4 melodías en bucle (menú, juego tranquilo, juego animado, victoria), con **progresiones alegres** (escala pentatónica: suena bien casi sin importar la combinación).
-- **Controles:** música y efectos **por separado**, volumen, y se **silencia mientras hay pausa o lectura en voz alta**. Valor por omisión **bajo** (una sala con 30 niños + música alta es un problema real: confirmarlo con la maestra, §7).
+- **Controles:** música y efectos **por separado**, volumen, y se **silencia mientras hay pausa o lectura en voz alta**. Como en el aula hay **bocinas** (no audífonos), la música **viene apagada** y la maestra la activa en el modo maestro («música en este equipo»); los efectos son cortos y bajos.
 - Más efectos: toque de botones, estrella ganada, subir de nivel, mascota.
 
 **Color y animación:**
