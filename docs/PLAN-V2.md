@@ -17,6 +17,16 @@ Además: el sonido son solo efectos sintéticos cortos (`src/core/gestorAudio.js
 
 > **Lo que NO afirmo:** no sé con exactitud qué contenidos faltan ni en qué grados. Esa información la tienes tú y la maestra (ver §7). El plan está hecho para **no depender de adivinarlo**: el sistema debe **encontrar solo el punto de partida** de cada niño.
 
+## 1b. Lo que se supo después (respuestas de la maestra)
+
+| Dato | Consecuencia para el plan |
+|---|---|
+| Probaron **niños de 6.º**, que **jugaron todos los juegos** | Incluso en el grado más alto la mayoría no domina las operaciones: el **piso de contenido** debe bajar mucho y el sistema debe **encontrarlo solo**. Y son niños de ~11–12 años: **la estética no puede ser infantil** (ver principio 7) |
+| Queja principal: **«no se enseña, solo se evalúa»** | **Sube la prioridad de enseñar.** La enseñanza deja de ser «unos juegos nuevos al final» y pasa a ser **parte de los juegos que ya existen** (Fase 11) |
+| Quieren que el niño **aprenda** y que **el sistema decida** el nivel | Se elimina el ajuste manual como requisito: la **misión de inicio** y la adaptación automática son el mecanismo. El modo maestro solo **muestra** (y, opcionalmente, reinicia la misión) |
+| Hay **bocinas** (no audífonos) | **30 PCs con música = ruido**. Música **apagada por omisión** en el equipo y un ajuste visible para la maestra (Fase 12) |
+| PCs **de hace unos años** con **Chrome** | Chrome moderno: se pueden usar animaciones CSS y Web Audio sin miedo; se mantiene el «modo ligero» por prudencia y se **mide** en una de esas PCs |
+
 ## 2. Principios del rediseño (y por qué)
 
 1. **Desacoplar «grado» de «nivel de contenido».** El grado dice dónde está el niño en la escuela; el **nivel de partida** dice qué sabe hacer. Un niño de 5.º puede jugar contenido de 2.º sin que sea humillante ni se note.
@@ -25,18 +35,22 @@ Además: el sonido son solo efectos sintéticos cortos (`src/core/gestorAudio.js
 4. **Dificultad que se adapta *dentro* de la sesión y *entre* sesiones**, con una escalera de niveles más fina por debajo.
 5. **Motivación sin presión:** música, color, mascota que reacciona, colección de pegatinas. Nada de cronómetros nuevos ni vidas.
 6. **Nada de lo bonito puede romper lo existente:** funciona sin internet, en PCs viejas, accesible (movimiento reducido, contraste, teclado) y dentro del presupuesto de tamaño.
+7. **Respetar la edad.** Un niño de 6.º que repasa sumas no debe sentir que juega «cosas de primero». La **ayuda es la misma, la presentación no es infantil**: temas neutros (laboratorio, ciudad, espacio, deportes), mascota tipo «entrenador», lenguaje de reto, y el nivel de contenido **no se muestra** como «grado 2».
+8. **Enseñar dentro del juego, no aparte.** Cada vez que el niño se atora, el juego le **enseña ese paso** en ese momento («¿quieres ver cómo se hace?»); no hace falta ir a otro lugar.
 
 ## 3. Fases
 
 | Fase | Nombre | Contenido | Entrega |
 |---|---|---|---|
-| **10** | **Rescate** | Nueva regla de estrellas · nivel de partida independiente del grado · misión de inicio (diagnóstico) · escalones nuevos por debajo (suma y resta hasta 10 y 20; tablas del 2, 5 y 10) · «modo tranquilo» en Asteroides · la maestra puede ajustar el nivel de cada niño | **v0.2-alfa:** se puede volver a probar con los mismos niños |
-| **11** | **Música y color** | Música de fondo generada en el navegador (sin archivos) · volumen de música y de efectos por separado · mascota animada que reacciona · confeti y celebraciones · fondos animados por área · «modo ligero» para PCs lentas | v0.2-beta |
-| **12** | **Aprende primero** | Infraestructura de **lecciones** (pasos guiados, material arrastrable, recta numérica) + **Granja de Sumas** (sumar y restar con objetos) | Primer juego que enseña |
-| **13** | **Casa de las Decenas** | Valor posicional con bloques y **llevadas** animadas | Juego 2 |
-| **14** | **Fábrica de Tablas** | Multiplicar como **grupos iguales y arreglos** + tablas | Juego 3 |
-| **15** | **Reparto Justo** | Dividir como **repartir** y agrupar, con residuo | Juego 4 |
-| **16** | **Pulido y piloto 2** | Auditorías, pruebas, manual actualizado, ZIP v0.2.0, **protocolo de observación** para la segunda prueba con niños | v0.2.0 |
+| **10** | **Rescate** | Nueva regla de estrellas · nivel de partida independiente del grado, **decidido por el sistema** (misión de inicio + adaptación) · escalones nuevos por debajo (suma y resta hasta 10 y 20; tablas del 2, 5 y 10) · «modo tranquilo» en Asteroides | **v0.2-alfa** |
+| **11** | **Aprende dentro de cada juego** | Componente **lección** (pasos guiados + material arrastrable) · «**Ver cómo se hace**» tras fallar · **mini-lección previa** al subir a un escalón nuevo · aplicado a los juegos existentes (Asteroides, Reloj, Fracciones…) | **Responde la queja principal** |
+| **12** | **Música y color** | Música generada en el navegador, **apagada por omisión** en el equipo · volumen de música y efectos separados · mascota «entrenador» · confeti y celebraciones · fondos animados por área · «modo ligero» · álbum de logros | v0.2-beta |
+| **13** | **Sumas y restas guiadas** (juego nuevo) | Sumar/restar con material (recta numérica, «hacer 10», marcos de 10) · tema juvenil | Juego 1 |
+| **14** | **Valor posicional y llevadas** (juego nuevo) | Bloques de unidades/decenas/centenas, acarreo y préstamo animados | Juego 2 |
+| **15** | **Tablas y reparto** (juego nuevo) | Multiplicar como grupos y arreglos; dividir como repartir, con residuo | Juego 3 |
+| **16** | **Pulido y segunda prueba** | Auditorías, manual, ZIP v0.2.0, protocolo de observación, registro de errores comunes | v0.2.0 |
+
+*(Los cuatro juegos nuevos del plan original se reducen a tres: «Tablas» y «Reparto» comparten material y se pueden hacer juntos. Se vuelve a separar si hace falta.)*
 
 Cada fase termina con commits separados, pruebas en verde (unitarias **y** de navegador) y su `docs/AUDITORIA-FASE-N.md`, como hasta ahora.
 
@@ -85,7 +99,17 @@ Propuesta (a validar contigo):
 - **Colección de pegatinas** (álbum): cada partida terminada da una pegatina; **motivación sin castigo** y razón para volver.
 - **Restricciones (no negociables):** `prefers-reduced-motion` desactiva el movimiento; **«modo ligero»** apaga fondos animados en PCs lentas; animaciones solo con `transform`/`opacity`; se mantiene el contraste WCAG (hay prueba) y el presupuesto de tamaño.
 
-### Fases 12–15 — Juegos que **enseñan** las operaciones
+### Fase 11 — Enseñar dentro de cada juego (la prioridad pedagógica)
+
+Es el cambio que más responde a la queja. Se construye **una vez** el componente `Leccion` y se conecta a los juegos existentes:
+
+- **«Ver cómo se hace»:** tras el **primer error** de una pregunta aparece (además de la pista) un botón que abre una **mini-lección animada de ese caso** (por ejemplo, `47 + 28`: descomponer, sumar decenas, sumar unidades, juntar). El niño puede **hacer el paso él mismo** con material (arrastrar bloques, mover una ficha en la recta).
+- **Mini-lección al subir de escalón:** la primera vez que aparece una habilidad nueva, se muestra un ejemplo guiado de 20–30 segundos (se puede saltar).
+- **Andamiaje que se retira:** al principio de una habilidad hay apoyos visuales; si el niño acierta, **desaparecen**; si falla, **vuelven**.
+- Cada lección es **datos** (pasos y material), no código: añadir una es escribir una lista.
+- *Por qué dentro del juego:* el niño aprende **cuando lo necesita**, justo después de equivocarse, que es cuando más atención presta.
+
+### Fases 13–15 — Juegos nuevos que **enseñan** las operaciones
 
 Los cuatro comparten una **estructura de tres modos**:
 
@@ -95,10 +119,10 @@ Los cuatro comparten una **estructura de tres modos**:
 
 | Juego | Grados | Qué enseña | Material (concreto/pictórico) | Escalera de niveles (ejemplo) |
 |---|---|---|---|---|
-| **Granja de Sumas** (F12) | 1.º–3.º | Sumar y restar como **juntar/quitar**; recta numérica; «hacer 10» | Animales y objetos arrastrables a un corral; **ten-frame** (marcos de 10); **ranita** que salta en la recta | Hasta 5 → 10 → 20 sin pasar → 20 pasando la decena → hasta 100 |
-| **Casa de las Decenas** (F13) | 2.º–4.º | **Valor posicional** y **llevadas** (acarreo) en suma y resta con préstamo | Bloques de unidades, decenas y centenas; «**10 unidades se cambian por 1 decena**» animado | 2 dígitos sin llevar → con llevada → 3 dígitos → resta con préstamo |
-| **Fábrica de Tablas** (F14) | 3.º–5.º | Multiplicar como **grupos iguales** y **arreglos** (filas × columnas); patrones de las tablas | Cajas con el mismo número de objetos; **cuadrícula** que se llena; conteo de 2 en 2, 5 en 5, 10 en 10 | Tablas 2, 5, 10 → 3, 4 → 6, 7, 8, 9 → ×10, ×100 |
-| **Reparto Justo** (F15) | 4.º–6.º | Dividir como **repartir equitativamente** y **agrupar**; el residuo | Galletas que se reparten en platos (arrastrar); sobrantes | Dividir entre 2, 5, 10 → exactas → con residuo → 2 dígitos |
+| **Sumas y restas guiadas** (F13) *(tema neutro; nombre provisional)* | 1.º–6.º (según el nivel que detecte el sistema) | Sumar y restar como **juntar/quitar**; recta numérica; «hacer 10» | Objetos arrastrables a una caja; **marcos de 10**; **recta numérica** con un personaje que salta | Hasta 5 → 10 → 20 sin pasar → 20 pasando la decena → hasta 100 |
+| **Valor posicional y llevadas** (F14) | 1.º–6.º (según el nivel) | **Valor posicional** y **llevadas** (acarreo) en suma y resta con préstamo | Bloques de unidades, decenas y centenas; «**10 unidades se cambian por 1 decena**» animado | 2 dígitos sin llevar → con llevada → 3 dígitos → resta con préstamo |
+| **Tablas** (F15) | 1.º–6.º (según el nivel) | Multiplicar como **grupos iguales** y **arreglos** (filas × columnas); patrones de las tablas | Cajas con el mismo número de objetos; **cuadrícula** que se llena; conteo de 2 en 2, 5 en 5, 10 en 10 | Tablas 2, 5, 10 → 3, 4 → 6, 7, 8, 9 → ×10, ×100 |
+| **Reparto** (F15) | 1.º–6.º (según el nivel) | Dividir como **repartir equitativamente** y **agrupar**; el residuo | Objetos que se reparten en grupos (arrastrar); sobrantes | Dividir entre 2, 5, 10 → exactas → con residuo → 2 dígitos |
 
 - **Por qué estos y en este orden:** son la **cadena de prerrequisitos** (contar → sumar/restar → valor posicional → multiplicar → dividir). Cada eslabón se apoya en el anterior: si falla la suma con llevadas, la multiplicación de 2 cifras no tiene base.
 - Se reutiliza **toda la infraestructura existente** (contrato `Juego`, `PartidaPreguntas`, motor adaptativo, voz, pruebas) y se añade **un solo componente nuevo**: la **lección** (pasos + material arrastrable accesible con teclado y táctil).
@@ -123,11 +147,12 @@ Los cuatro comparten una **estructura de tres modos**:
 ## 4. Orden recomendado y por qué
 
 1. **Fase 10 primero.** Resuelve el problema que **ya observaste** (sin estrellas, sin punto de partida) y es **barato**. Con la v0.2-alfa puedes repetir la prueba con los mismos niños y comparar.
-2. **Fase 11 después.** Responde lo que **pidieron los niños** y sube la atención; tiene riesgo técnico (PCs viejas) y conviene medirlo.
-3. **Fases 12–15 una por una**, cada una con su mini-prueba. Son las más grandes; **empezar por Granja de Sumas** porque es la base de todo lo demás.
-4. **Fase 16** al final.
+2. **Fase 11 enseguida.** Es la **queja principal** («no se enseña»). Con 10 + 11 tienes una v0.2 que **evalúa menos y enseña más**, usando los juegos que ya existen.
+3. **Fase 12 (música y color)** después: lo que **pidieron los niños**. Con bocinas conviene medir el ruido.
+4. **Fases 13–15 una por una**, cada una con su mini-prueba; **empezar por sumas y restas guiadas**, base de todo lo demás.
+5. **Fase 16** al final.
 
-*Alternativa si hay prisa (por ejemplo, otra prueba en pocos días):* hacer **10 + parte de 11** (música y mascota) y dejar los juegos nuevos para después.
+*Alternativa si hay prisa (otra prueba en pocos días):* **10 + 11** ya cambian lo esencial; música y juegos nuevos pueden esperar.
 
 ## 5. Qué se queda igual
 
@@ -138,20 +163,22 @@ Funciona sin internet y con doble clic; JavaScript puro; pnpm con la misma polí
 | Riesgo | Mitigación |
 |---|---|
 | Animaciones y música **ralentizan PCs viejas** | Solo `transform`/`opacity`, «modo ligero», medir en un navegador real y en la PC de la escuela antes de generalizar |
-| **Ruido** en el aula (30 niños con música) | Música baja por omisión, interruptor visible, consultar a la maestra |
+| **Ruido** en el aula (30 PCs con **bocinas**) | Música **apagada por omisión**; ajuste en el modo maestro «música en este equipo»; efectos cortos y bajos; sin música durante la lectura en voz |
 | Las **estrellas «regaladas»** pierden valor | Se premia terminar y mejorar; la exactitud sigue visible para la maestra |
 | La **misión de inicio** parece examen y asusta | Presentarla como aventura, sin nota ni fallo visible |
 | **Contenido incorrecto para el grado** | Revisión docente (el mismo pendiente de v1; ahora más importante) |
-| Se **estigmatiza** al niño por jugar «contenido de grados menores» | El nivel es invisible para él: ve juegos y niveles, no «grado 2» |
+| **Niños de 6.º que sienten que juegan «cosas de bebés»** | Estética **juvenil y neutra**, lenguaje de reto, nivel de contenido invisible (principio 7); validar con ellos |
+| **Las lecciones se saltan sin leer** | Cortas, interactivas (el niño **hace** el paso) y solo en el momento en que las necesita |
 | **Alcance grande** | Fases ordenadas por valor; se puede detener tras cualquiera sin romper lo anterior |
 
-## 7. Preguntas abiertas (me ayudarían a acertar)
+## 7. Preguntas abiertas
 
-Para ti y la maestra, **no hace falta tener todo**:
+**Ya respondidas** (ver §1b): grado probado (6.º), queja principal (enseñar), tipo de equipos (Chrome, PCs de hace unos años), sonido (bocinas), nivel decidido por el sistema.
 
-1. ¿Qué **grados** probaste y cuántos niños? ¿Hubo niños de 1.º–2.º que sí pudieron?
-2. ¿Qué **operaciones concretas** fallaron? (¿sumar hasta 20? ¿sumar con llevadas? ¿las tablas? ¿dividir?). Aunque sea una lista aproximada de lo que vio la maestra.
-3. ¿Fue por **no saber** la operación, por **no entender** la pregunta/lectura, o por **la prisa** de los asteroides?
-4. ¿Se puede poner **música** en el aula? ¿Tienen **audífonos** o solo bocinas?
-5. ¿Cómo son las **PCs** (año, navegador, pantalla táctil o mouse)? Condiciona el «modo ligero».
-6. ¿La **maestra** quiere poder fijar el nivel de cada niño, o prefiere que el sistema lo decida solo?
+**Siguen abiertas** (no bloquean la Fase 10):
+
+1. ¿Qué **operaciones** concretas vio la maestra que no dominan? (sumar con llevadas, tablas, dividir, fracciones…). Orienta qué lecciones escribir primero.
+2. ¿Fallaron por **no saber la operación**, por **no entender el enunciado** o por **la prisa** de los asteroides?
+3. ¿Las PCs tienen **pantalla táctil** o solo mouse? ¿Qué tan **grandes** son las pantallas?
+4. ¿A los niños de 6.º les gustan más temas de **deportes, espacio, videojuegos, laboratorio…**? Ayuda a elegir el tema de los juegos nuevos.
+5. ¿Hay **internet** en el aula en algún momento (por ejemplo, para publicar en GitHub Pages) o todo debe ir en USB?
