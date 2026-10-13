@@ -103,6 +103,13 @@ Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, o
 | `core/lectura.js` | `tiempoDeLectura(texto)`: cuánto esperar para que un niño lea una explicación (compartido por Ortografía y Reloj) |
 | `ui/relojSvg.js` | `RelojSvg`: reloj analógico en SVG, de lectura o **interactivo** (puntero + teclado como `slider`). Solo dibuja y conecta eventos; la geometría está en `core/tiempo.js` |
 
+## Componentes y utilidades del núcleo añadidos en la Fase 7
+
+| Archivo | Qué es |
+|---|---|
+| `core/fracciones.js` | Aritmética de fracciones **solo con enteros** (mcd, mcm, comparar por multiplicación cruzada, sumar, restar, simplificar, mixtas, centésimas para decimales). Sin punto flotante: 0.1 + 0.2 no existe aquí |
+| `ui/fraccionSvg.js` | `figuraFraccion` (barra o pastel, solo lectura), `FiguraPintable` (el niño toca partes; ratón, dedo o teclado como `checkbox`), `fraccionApilada`/`mixtaApilada`/`expresionDom` (numerador sobre denominador en DOM) |
+
 Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)

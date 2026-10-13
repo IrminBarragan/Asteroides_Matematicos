@@ -59,7 +59,7 @@ class Juego {
 | Memorama de Palabras | Lectura | 1°: dibujo↔palabra, dibujo↔sílaba inicial · 2°: sílaba inicial, contar sílabas, rimas · 3°: rimas, sinónimos, antónimos | ✔ | ✔ | ✔ | | | |
 | Reloj Aventurero | Medición | 1°: en punto y media · 2°: cuartos y decir la hora · 3°: minutos y duración · 4°: reloj de 24 h y duraciones | ✔ | ✔ | ✔ | ✔ | | |
 | Atrapa la Ortografía | Español | 3°: b/v, g/j, h · 4°: + c/s/z, ll/y · 5°: acentuación · 6°: homófonos, tilde diacrítica, porque/por qué | | | ✔ | ✔ | ✔ | ✔ |
-| Tren de Fracciones | Fracciones | 3°: mitades y cuartos · 4°: equivalentes y comparación · 5°: suma/resta · 6°: mixtas y decimales | | | ✔ | ✔ | ✔ | ✔ |
+| Tren de Fracciones | Fracciones | 3°: leer, pintar y comparar con dibujos · 4°: equivalentes y comparación · 5°: simplificar, suma/resta (mismo denominador o múltiplos) · 6°: suma/resta general, mixtas, decimales | | | ✔ | ✔ | ✔ | ✔ |
 
 Las imágenes y los íconos serán SVG propios (los emojis no se ven en color en Windows 7 / 10 viejos).
 
@@ -86,7 +86,7 @@ Cada fase termina con commits separados, tests en verde y un `docs/AUDITORIA-FAS
 | 4 | Memorama de Palabras (1.º–3.º; primer juego basado en DOM) | ✅ Hecha |
 | 5 | Atrapa la Ortografía (3.º–6.º) | ✅ Hecha |
 | 6 | Reloj Aventurero (1.º–4.º) | ✅ Hecha |
-| 7 | Tren de Fracciones (aritmética en enteros, sin decimales flotantes) | Pendiente |
+| 7 | Tren de Fracciones (3.º–6.º; aritmética en enteros, sin decimales flotantes) | ✅ Hecha |
 | 8 | Pulido: accesibilidad, humo automatizado con Chromium headless, rendimiento | Pendiente |
 | 9 | Entrega: ZIP de `dist/`, manual del maestro, guion de demo, guía de defensa | Pendiente |
 

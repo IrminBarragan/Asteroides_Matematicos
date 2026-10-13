@@ -11,13 +11,15 @@ import { JuegoAsteroides } from './games/asteroides/juego.js';
 import { JuegoMemorama } from './games/memorama/juego.js';
 import { JuegoOrtografia } from './games/ortografia/juego.js';
 import { JuegoReloj } from './games/reloj/juego.js';
+import { JuegoFracciones } from './games/fracciones/juego.js';
 
 function arrancar() {
     const registro = new RegistroJuegos()
         .registrar(JuegoAsteroides)
         .registrar(JuegoMemorama)
         .registrar(JuegoOrtografia)
-        .registrar(JuegoReloj);
+        .registrar(JuegoReloj)
+        .registrar(JuegoFracciones);
 
     const vista = new VistaPortal(document.getElementById('app'));
     const portal = new Portal({
