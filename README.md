@@ -27,6 +27,7 @@ Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autoconten
 - **Para la escuela:** [`docs/MANUAL-MAESTRO.md`](docs/MANUAL-MAESTRO.md) y el `LEEME.txt` que va dentro del ZIP (`pnpm empaquetar`).
 - **Para presentar:** [`docs/GUION-DEMO.md`](docs/GUION-DEMO.md) (guion y checklist) y [`docs/GUIA-DEFENSA.md`](docs/GUIA-DEFENSA.md) (preguntas del jurado y cómo razonarlas).
 - **Pruebas:** [`docs/PRUEBAS.md`](docs/PRUEBAS.md).
+- **Publicar en GitHub Pages:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) (Actions: `.github/workflows/`).
 
 ## Estructura
 

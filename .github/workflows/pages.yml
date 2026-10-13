@@ -1,0 +1,55 @@
+# Despliega el portal en GitHub Pages cada vez que se actualiza main (o a mano desde la pestaña Actions).
+# Requisito único (una vez): Settings → Pages → Build and deployment → Source: «GitHub Actions».
+name: Desplegar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permisos mínimos: leer el código, escribir en Pages y pedir el token OIDC que usa deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un solo despliegue a la vez; uno nuevo reemplaza al que esté esperando (no cancela el que ya está publicando)
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Si las pruebas fallan, NO se publica nada
+      - name: Pruebas unitarias y build
+        run: pnpm check
+
+      - name: Pruebas en navegador (Chrome real)
+        run: pnpm test:e2e
+
+      - uses: actions/configure-pages@v5
+
+      # Se publica solo dist/ (el resultado del build), nunca el código fuente
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  desplegar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v4
