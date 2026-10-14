@@ -855,3 +855,54 @@ test('álbum: la pantalla recibe lo que el niño ya tiene; sin perfil activo vue
     portal.irAAlbum();
     assert.equal(vista.ultima().nombre, 'perfiles');
 });
+
+// ---------- Lo que más confunden (Fase 16) ----------
+
+const conErrores = (errores) => ({ aciertos: 1, fallos: 1, tiempoMs: 1, puntaje: 5, estrellas: 1, errores });
+
+test('modo maestro: «lo que más confunden» suma a todo el grupo, cuenta niños y ordena de más a menos', () => {
+    const { portal, progreso } = crear();
+    portal.iniciar();
+    portal.crearPerfil({ apodo: 'Ana', avatar: 'gato', grado: 4 });
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'olvidó la llevada', veces: 3 }, { habilidad: 'resta', tipo: 'restó al revés', veces: 1 }]));
+    portal.crearPerfil({ apodo: 'Beto', avatar: 'perro', grado: 4 });
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'olvidó la llevada', veces: 4 }]));
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'otra equivocación', veces: 2 }]));
+
+    const grupo = portal.erroresDelGrupo();
+    assert.deepEqual(grupo.map((e) => [e.habilidad, e.tipo, e.veces, e.ninos]), [
+        ['suma', 'olvidó la llevada', 7, 2],
+        ['suma', 'otra equivocación', 2, 1],
+        ['resta', 'restó al revés', 1, 1]
+    ]);
+    assert.equal(grupo[0].juego, 'Juego de Ejemplo');
+    assert.equal(portal.erroresDelGrupo(2).length, 2, 'el límite recorta');
+
+    portal.irAModoMaestro();
+    // (la pantalla del maestro recibe `errores` ya calculados)
+});
+
+test('csvErrores: una fila por niño, habilidad y equivocación, con BOM y sin fórmulas de Excel', () => {
+    const { portal, progreso } = crear();
+    portal.iniciar();
+    portal.crearPerfil({ apodo: '=HIPERVINCULO("x")', avatar: 'gato', grado: 5 });
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'tabla', tipo: 'sumó en vez de multiplicar', veces: 6 }]));
+    const csv = portal.csvErrores();
+    assert.ok(csv.startsWith('﻿jugador,grado,juego,habilidad,equivocacion,veces\r\n'));
+    assert.match(csv, /\r\n'=HIPERVINCULO\("x"\)|\r\n"'=HIPERVINCULO/);
+    assert.match(csv, /Juego de Ejemplo,tabla,sumó en vez de multiplicar,6\r\n$/);
+    const vacio = crear().portal;
+    vacio.iniciar();
+    assert.equal(vacio.csvErrores(), '﻿jugador,grado,juego,habilidad,equivocacion,veces\r\n', 'sin equivocaciones, solo los encabezados');
+});
+
+test('el panel del maestro recibe los errores del grupo (y no falla si nadie se ha equivocado)', () => {
+    const { portal, progreso, vista } = crear();
+    portal.iniciar();
+    portal.crearPerfil({ apodo: 'Ana', avatar: 'gato', grado: 4 });
+    portal.irAModoMaestro();
+    assert.deepEqual(vista.ultima().datos.errores, []);
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'olvidó la llevada', veces: 1 }]));
+    portal.irAModoMaestro();
+    assert.equal(vista.ultima().datos.errores.length, 1);
+});

@@ -449,3 +449,8 @@ p { margin: 0 0 .75rem; }
     .forma, .confeti, .mascota, .mascota[data-estado], .resultados__pegatinas .pegatina { animation: none !important; }
     .tarjeta-juego:hover, .boton--primario:hover { transform: none; }
 }
+
+/* Modo maestro: lo que más confunde el grupo */
+.maestro-errores { margin: 1rem 0; padding: 1rem; background: #fffbeb; border: 3px solid #f59e0b; border-radius: 14px; }
+.maestro-errores h2 { margin-top: 0; }
+.maestro-errores__nota { margin: 0 0 .6rem; color: var(--texto-suave); }

@@ -30,6 +30,8 @@ export const PUNTOS_RECUPERADO = 5;
 export const BONUS_RACHA = 5;
 export const RACHA_PARA_BONUS = 3;
 export const ERRORES_PARA_ALIVIO = 2;
+export const OTRA_EQUIVOCACION = 'otra equivocación';
+export const SE_ESCAPO = 'se le escapó el asteroide o la palabra';
 
 export class PartidaPreguntas {
     /**
@@ -74,6 +76,8 @@ export class PartidaPreguntas {
         this.puntaje = 0;
         this.racha = 0;
         this.rachaMaxima = 0;
+
+        this.errores = new Map(); // «habilidad\u0000tipo» → veces: qué confunde el niño (ver resultado.js → limpiarErrores)
 
         this.pregunta = null;
         this.huboError = false;
@@ -176,6 +180,8 @@ export class PartidaPreguntas {
         const tiempo = ahoraMs - this.inicioPregunta;
 
         if (id !== this.pregunta.respuesta) {
+            const elegida = (this.pregunta.opciones || []).find((o) => o.id === id);
+            this.contarEquivocacion(habilidad, elegida && elegida.error ? elegida.error : OTRA_EQUIVOCACION);
             this.registrarErrorSiEsElPrimero(tiempo);
             return { tipo: 'incorrecta', pista: this.pregunta.pista };
         }
@@ -205,6 +211,7 @@ export class PartidaPreguntas {
     escapo({ ahoraMs = 0 } = {}) {
         if (this.resuelta || !this.pregunta) return { tipo: 'ignorada' };
         this.resuelta = true;
+        this.contarEquivocacion(this.pregunta.habilidad, SE_ESCAPO);
         this.registrarErrorSiEsElPrimero(ahoraMs - this.inicioPregunta);
         return {
             tipo: 'escapo',
@@ -212,6 +219,12 @@ export class PartidaPreguntas {
             pista: this.pregunta.pista,
             explicacion: this.pregunta.explicacion ?? null
         };
+    }
+
+    /** Cuenta CADA respuesta equivocada que elige el niño, con el nombre del error que representa (si lo tiene). */
+    contarEquivocacion(habilidad, tipo) {
+        const clave = `${habilidad}\u0000${tipo}`;
+        this.errores.set(clave, (this.errores.get(clave) ?? 0) + 1);
     }
 
     registrarErrorSiEsElPrimero(tiempo) {
@@ -231,6 +244,7 @@ export class PartidaPreguntas {
     /** Resultado en el formato común de todos los juegos (ver core/resultado.js). */
     resultado(tiempoMs) {
         const base = {
+            errores: [...this.errores].map(([clave, veces]) => { const [habilidad, tipo] = clave.split('\u0000'); return { habilidad, tipo, veces }; }),
             aciertos: this.aciertos,
             fallos: this.fallos,
             recuperadas: this.recuperadas,

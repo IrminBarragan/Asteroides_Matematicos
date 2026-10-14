@@ -10,8 +10,9 @@
  */
 
 import { listaPegatinasValida } from './pegatinas.js';
+import { limpiarErrores } from './resultado.js';
 
-export const VERSION_ESQUEMA = 4;
+export const VERSION_ESQUEMA = 5;
 export const CLAVE_ALMACEN = 'portal-juegos-educativos';
 
 /**
@@ -65,6 +66,8 @@ export function crearDatosIniciales() {
  *  - 1 → 2 (v0.2): cada perfil gana `contenido` ({ juegoId: grado de contenido }): el grado de contenido en el que
  *    el sistema decidió que debe jugar cada juego (ver adaptativo/colocacion.js). Vacío = aún no hizo la misión de inicio.
  *  - 3 → 4 (v0.2): cada perfil gana `pegatinas` (lista de ids del álbum, ver core/pegatinas.js).
+ *  - 4 → 5 (v0.2): cada perfil gana `errores` ({ juegoId: { habilidad: { 'tipo de equivocación': veces } } }): qué
+ *    confunde el niño, no solo cuánto falla (ver core/resultado.js → limpiarErrores). Son CONTEOS, no respuestas sueltas.
  *  - 2 → 3 (v0.2): cada perfil gana `lecciones` ({ 'juego:habilidad': veces que vio la lección }): sirve para mostrar la
  *    introducción de una habilidad solo la primera vez y para que la maestra sepa qué lecciones necesitó el niño.
  */
@@ -80,6 +83,10 @@ export const MIGRACIONES = {
     3: (datos) => ({
         ...datos,
         perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, pegatinas: [] }]))
+    }),
+    4: (datos) => ({
+        ...datos,
+        perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, errores: {} }]))
     })
 };
 
@@ -95,6 +102,10 @@ export function migrar(datos, migraciones = MIGRACIONES, versionObjetivo = VERSI
 
 const esObjeto = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 
+/** { juegoId: { habilidad: { tipo: veces } } } con solo enteros positivos al fondo. */
+const erroresValidos = (e) => esObjeto(e) && Object.values(e).every((porHabilidad) => esObjeto(porHabilidad)
+    && Object.values(porHabilidad).every((porTipo) => esObjeto(porTipo) && Object.values(porTipo).every((n) => Number.isInteger(n) && n > 0)));
+
 function perfilValido(p) {
     return esObjeto(p)
         && Number.isInteger(p.id)
@@ -104,6 +115,7 @@ function perfilValido(p) {
         && esObjeto(p.juegos)
         && esObjeto(p.habilidades)
         && esObjeto(p.lecciones)
+        && erroresValidos(p.errores)
         && listaPegatinasValida(p.pegatinas)
         && Object.values(p.lecciones).every((n) => Number.isInteger(n) && n >= 0)
         && esObjeto(p.contenido)
@@ -214,7 +226,7 @@ export class Progreso {
         if (yaExiste) throw new Error('Ya existe un perfil con ese apodo');
 
         const id = this.datos.siguienteId++;
-        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, lecciones: {}, pegatinas: [], creado: this.ahora() };
+        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, lecciones: {}, errores: {}, pegatinas: [], creado: this.ahora() };
         this.datos.perfiles[id] = perfil;
         this.datos.perfilActivo = id;
         this.guardar();
@@ -273,8 +285,17 @@ export class Progreso {
             mejorEstrellas,
             ultimaPartida: this.ahora()
         };
+        this.sumarErrores(perfil, juegoId, resultado.errores);
         this.guardar();
         return { esRecord, estrellasGanadas: mejorEstrellas - previo.mejorEstrellas };
+    }
+
+    /** Suma las equivocaciones de una partida a los conteos del perfil (ver `limpiarErrores`). */
+    sumarErrores(perfil, juegoId, errores) {
+        for (const { habilidad, tipo, veces } of limpiarErrores(errores)) {
+            const porHabilidad = ((perfil.errores[juegoId] ??= {})[habilidad] ??= {});
+            porHabilidad[tipo] = (porHabilidad[tipo] ?? 0) + veces;
+        }
     }
 
     estadoJuego(juegoId) {

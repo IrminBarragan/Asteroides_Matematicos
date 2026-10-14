@@ -50,13 +50,13 @@ export const prepararRonda = (grado, nivel) => ({ cantidad: cantidadOpciones(niv
 // ---------- Opciones ----------
 
 /** Opciones {id: valor, texto}, mezcladas; `obligatorios` es el error más revelador (siempre se ofrece si es válido). */
-function armarOpciones(respuesta, { preferidos, obligatorios = [] }, cantidad, aleatorio) {
+function armarOpciones(respuesta, { preferidos, obligatorios = [], error = null }, cantidad, aleatorio) {
     const valido = (n) => Number.isInteger(n) && n >= 0 && n !== respuesta;
     const fijos = [...new Set(obligatorios.filter(valido))].slice(0, cantidad - 1);
     const errores = generarDistractores(respuesta, aleatorio, cantidad - 1 - fijos.length, {
         preferidos: preferidos.filter((p) => valido(p) && !fijos.includes(p)), excluir: fijos
     });
-    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: String(valor) })));
+    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: String(valor), ...(error && fijos.includes(valor) ? { error } : {}) })));
 }
 
 // ---------- Palabras ----------
@@ -111,7 +111,7 @@ function grupos({ grado, nivel, cantidad, aleatorio }) {
         material: { tipo: 'grupos', modo: 'construir', grupos: a, objetivo: b, contenedor: cont.s, cosa: cosa.p },
         respuesta: total,
         textoRespuesta: String(total),
-        opciones: armarOpciones(total, { preferidos: [a * (b + 1), (a + 1) * b, a * (b - 1), (a - 1) * b], obligatorios: [a + b] }, cantidad, aleatorio),
+        opciones: armarOpciones(total, { preferidos: [a * (b + 1), (a + 1) * b, a * (b - 1), (a - 1) * b], obligatorios: [a + b], error: 'sumó en vez de multiplicar' }, cantidad, aleatorio),
         pista: PISTAS.grupos,
         explicacion: `${a} grupos de ${b} son ${total}: ${Array(a).fill(b).join(' + ')} = ${total}.`,
         datos: { a, b }
@@ -129,7 +129,7 @@ function arreglo({ grado, nivel, cantidad, aleatorio }) {
         material: { tipo: 'cuadricula', modo: 'construir', filas: f, columnas: c },
         respuesta: total,
         textoRespuesta: String(total),
-        opciones: armarOpciones(total, { preferidos: [f * (c + 1), (f + 1) * c, f * (c - 1), (f - 1) * c], obligatorios: [f + c] }, cantidad, aleatorio),
+        opciones: armarOpciones(total, { preferidos: [f * (c + 1), (f + 1) * c, f * (c - 1), (f - 1) * c], obligatorios: [f + c], error: 'sumó en vez de multiplicar' }, cantidad, aleatorio),
         pista: PISTAS.arreglo,
         explicacion: `${f} filas de ${c} cuadros: ${f} × ${c} = ${total}.`,
         datos: { a: f, b: c }
@@ -146,7 +146,7 @@ function tabla({ grado, nivel, cantidad, aleatorio, apoyo }) {
         material: apoyo === 'ninguno' || a > 10 || b > 10 ? null : { tipo: 'cuadricula', modo: 'ver', filas: a, columnas: b },
         respuesta: total,
         textoRespuesta: String(total),
-        opciones: armarOpciones(total, { preferidos: [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, total + 10, total - 10], obligatorios: [a + b] }, cantidad, aleatorio),
+        opciones: armarOpciones(total, { preferidos: [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, total + 10, total - 10], obligatorios: [a + b], error: 'sumó en vez de multiplicar' }, cantidad, aleatorio),
         pista: PISTAS.tabla,
         explicacion: `${a} × ${b} = ${total}.`,
         datos: { a, b }
@@ -191,8 +191,8 @@ function repartir({ grado, nivel, cantidad, aleatorio }) {
         respuesta,
         textoRespuesta: String(respuesta),
         opciones: armarOpciones(respuesta, pide === 'sobran'
-            ? { preferidos: [r + 1, r - 1, d - r, d, r + 2], obligatorios: [q] }
-            : { preferidos: [q + 1, q - 1, q + 2, N - d, d], obligatorios: r > 0 ? [r] : [d] }, cantidad, aleatorio),
+            ? { preferidos: [r + 1, r - 1, d - r, d, r + 2], obligatorios: [q], error: 'dio el cociente en vez del residuo' }
+            : { preferidos: [q + 1, q - 1, q + 2, N - d, d], obligatorios: r > 0 ? [r] : [d], error: r > 0 ? 'dio el residuo en vez del cociente' : 'dio el divisor en vez del cociente' }, cantidad, aleatorio),
         pista: PISTAS.repartir,
         explicacion: r === 0
             ? `${N} ÷ ${d} = ${q}: a cada plato le tocan ${q}. Para comprobar: ${d} × ${q} = ${N}.`
@@ -214,7 +214,7 @@ function inversa({ grado, nivel, cantidad, aleatorio }) {
         material: d <= 10 && q <= 12 ? { tipo: 'cuadricula', modo: 'completar', filas: d, objetivoTotal: N } : null,
         respuesta: q,
         textoRespuesta: String(q),
-        opciones: armarOpciones(q, { preferidos: [q + 1, q - 1, q + 2, d, N - d], obligatorios: [N - d] }, cantidad, aleatorio),
+        opciones: armarOpciones(q, { preferidos: [q + 1, q - 1, q + 2, d, N - d], obligatorios: [N - d], error: 'restó en vez de dividir' }, cantidad, aleatorio),
         pista: PISTAS.inversa,
         explicacion: `${d} × ${q} = ${N}, por eso ${N} ÷ ${d} = ${q}.`,
         datos: { N, d, q }
@@ -235,6 +235,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
     let datos;
     let errores;
     let obligatorios = [];
+    let nombreError = 'se equivocó en una cifra';
     const sinLlevar = (n, k) => [...String(n)].reverse().reduce((s, c, i) => s + ((Number(c) * k) % 10) * 10 ** i, 0);
     if (clase === 'por-potencia') {
         const a = entre(aleatorio, 12, 99);
@@ -243,6 +244,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
         enunciado = `${a} × ${k} = ?`;
         datos = { tipo: 'mult', a, b: k };
         obligatorios = [a * (k / 10)];
+        nombreError = 'puso un cero de menos';
         errores = [a * k * 10, a * (k / 10), a + k, a * k + a];
     } else if (clase === 'dos-por-uno' || clase === 'tres-por-uno') {
         const a = clase === 'dos-por-uno' ? entre(aleatorio, 12, 99) : entre(aleatorio, 101, 999);
@@ -251,6 +253,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
         enunciado = `${a} × ${b} = ?`;
         datos = { tipo: 'mult', a, b };
         obligatorios = [sinLlevar(a, b)];
+        nombreError = 'no llevó al multiplicar';
         errores = [respuesta + 10, respuesta - 10, respuesta + 100, respuesta - 100];
     } else if (clase === 'dos-por-decenas') {
         const a = entre(aleatorio, 12, 99);
@@ -259,6 +262,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
         enunciado = `${a} × ${b} = ?`;
         datos = { tipo: 'mult', a, b };
         obligatorios = [(a * b) / 10];
+        nombreError = 'puso un cero de menos';
         errores = [(a * b) * 10, respuesta + 100, respuesta - 100];
     } else if (clase === 'dos-por-dos') {
         const a = entre(aleatorio, 12, 99);
@@ -267,6 +271,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
         enunciado = `${a} × ${b} = ?`;
         datos = { tipo: 'mult', a, b };
         obligatorios = [a * (b - (b % 10)) + (a % 10) * (b % 10)];
+        nombreError = 'olvidó parte de los productos parciales';
         errores = [respuesta + 10, respuesta - 10, respuesta + 100, respuesta - 100];
     } else {
         const d = entre(aleatorio, 2, 9);
@@ -285,7 +290,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
         material: null,
         respuesta,
         textoRespuesta: String(respuesta),
-        opciones: armarOpciones(respuesta, { preferidos: errores, obligatorios }, cantidad, aleatorio),
+        opciones: armarOpciones(respuesta, { preferidos: errores, obligatorios, error: nombreError }, cantidad, aleatorio),
         pista: PISTAS.grande,
         explicacion: `${enunciado.replace('?', String(respuesta))}.`,
         datos

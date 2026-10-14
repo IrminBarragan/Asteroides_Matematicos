@@ -134,13 +134,13 @@ export function parPrestamo(D, nivel, aleatorio) {
  * Opciones {id: valor, texto}, mezcladas. `obligatorios` es el error MÁS revelador (siempre se ofrece, si es válido);
  * los demás errores salen de `preferidos` y, si no alcanzan, de números cercanos.
  */
-function armarOpciones(respuesta, { preferidos, obligatorios = [] }, cantidad, aleatorio) {
+function armarOpciones(respuesta, { preferidos, obligatorios = [], error = null }, cantidad, aleatorio) {
     const valido = (n) => Number.isInteger(n) && n >= 0 && n !== respuesta;
     const fijos = [...new Set(obligatorios.filter(valido))].slice(0, cantidad - 1);
     const errores = generarDistractores(respuesta, aleatorio, cantidad - 1 - fijos.length, {
         preferidos: preferidos.filter((p) => valido(p) && !fijos.includes(p)), excluir: fijos
     });
-    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: formatoNumero(valor) })));
+    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: formatoNumero(valor), ...(error && fijos.includes(valor) ? { error } : {}) })));
 }
 
 /** Errores al leer un número con bloques: invertir el orden, olvidar un cero o sumar las cifras. */
@@ -149,6 +149,7 @@ function erroresDeLectura(n) {
     const invertido = Number([...String(n)].reverse().join(''));
     const sinCeros = Number(String(n).replace(/0/g, '') || '0');
     return {
+        error: sinCeros !== n ? 'se olvidó de un cero' : 'invirtió el orden de las cifras',
         obligatorios: [sinCeros !== n ? sinCeros : invertido],
         preferidos: [invertido, cifras(n, D).reduce((s, c) => s + c, 0), n + 10, n - 10, n + 100, n - 100, n * 10]
     };
@@ -226,7 +227,7 @@ function posicion({ grado, nivel, cantidad, aleatorio, apoyo }) {
             material: verBloques ? materialVer(n) : null,
             respuesta: valor,
             textoRespuesta: formatoNumero(valor),
-            opciones: armarOpciones(valor, { preferidos: [c * 10 ** (lugar + 1), c * 10 ** Math.max(0, lugar - 1), c * 10 ** (lugar + 2), n], obligatorios: [lugar > 0 ? c : c * 10] }, cantidad, aleatorio),
+            opciones: armarOpciones(valor, { preferidos: [c * 10 ** (lugar + 1), c * 10 ** Math.max(0, lugar - 1), c * 10 ** (lugar + 2), n], obligatorios: [lugar > 0 ? c : c * 10], error: 'dijo la cifra sin su valor de lugar' }, cantidad, aleatorio),
             pista: PISTAS.posicion,
             explicacion: `El ${c} está en el lugar de las ${NOMBRES_COLUMNA.plural[lugar]}, así que vale ${formatoNumero(valor)}.`,
             datos: { n, c, lugar }
@@ -241,7 +242,7 @@ function posicion({ grado, nivel, cantidad, aleatorio, apoyo }) {
             material: null, // los bloques regalarían la respuesta: aquí se trata de pasar de la suma al número
             respuesta: n,
             textoRespuesta: formatoNumero(n),
-            opciones: armarOpciones(n, { preferidos: [Number(partes.map((p) => String(p)[0]).join('')), n + 10, n - 10, n * 10, Math.floor(n / 10)], obligatorios: [Number(partes.map((p) => String(p)[0]).join(''))] }, cantidad, aleatorio),
+            opciones: armarOpciones(n, { preferidos: [Number(partes.map((p) => String(p)[0]).join('')), n + 10, n - 10, n * 10, Math.floor(n / 10)], obligatorios: [Number(partes.map((p) => String(p)[0]).join(''))], error: 'pegó las cifras sin respetar los ceros' }, cantidad, aleatorio),
             pista: PISTAS.posicion,
             explicacion: `${partes.map(formatoNumero).join(' + ')} = ${formatoNumero(n)}. Donde falta un lugar, va un 0.`,
             datos: { n, partes }
@@ -259,7 +260,7 @@ function posicion({ grado, nivel, cantidad, aleatorio, apoyo }) {
         material: null,
         respuesta: valor,
         textoRespuesta: formatoNumero(valor),
-        opciones: armarOpciones(valor, { preferidos: [Number(`${a}${b}`), a * 10 ** alto + b, a * 10 ** alto + (b % 10) * 10 ** bajo, valor + 10 ** bajo, valor - 10 ** bajo], obligatorios: [a * 10 ** alto + (b % 10) * 10 ** bajo] }, cantidad, aleatorio),
+        opciones: armarOpciones(valor, { preferidos: [Number(`${a}${b}`), a * 10 ** alto + b, a * 10 ** alto + (b % 10) * 10 ** bajo, valor + 10 ** bajo, valor - 10 ** bajo], obligatorios: [a * 10 ** alto + (b % 10) * 10 ** bajo], error: 'no reagrupó la columna que pasaba de 9' }, cantidad, aleatorio),
         pista: PISTAS.posicion,
         explicacion: `${cantidadDeColumna(b, bajo)} son ${formatoNumero(b * 10 ** bajo)}; con ${formatoNumero(a * 10 ** alto)} forman el ${formatoNumero(valor)}.`,
         datos: { a, b, alto, bajo }
@@ -281,7 +282,8 @@ function llevada({ grado, nivel, cantidad, aleatorio, apoyo }) {
         textoRespuesta: String(r),
         opciones: armarOpciones(r, {
             preferidos: [r + 10, r - 10, r + 1, r - 1, ...columnasConLlevada.flatMap((i) => [r - 10 ** (i + 1), r + 10 ** (i + 1)])],
-            obligatorios: [sumaSinLlevar(a, b)]
+            obligatorios: [sumaSinLlevar(a, b)],
+            error: 'olvidó la llevada'
         }, cantidad, aleatorio),
         pista: PISTAS.llevada,
         explicacion: `${a} + ${b} = ${r}. Se cambiaron 10 por 1 en ${columnasConLlevada.length === 1 ? 'una columna' : `${columnasConLlevada.length} columnas`}.`,
@@ -308,7 +310,8 @@ function prestamo({ grado, nivel, cantidad, aleatorio, apoyo }) {
         textoRespuesta: String(r),
         opciones: armarOpciones(r, {
             preferidos: [r + 10, r - 10, a + b, r + 1, r - 1, ...columnasConPrestamo.flatMap((i) => [r + 10 ** (i + 1), r - 10 ** (i + 1)])],
-            obligatorios: [restaAlReves(a, b)]
+            obligatorios: [restaAlReves(a, b)],
+            error: 'restó al revés cada columna'
         }, cantidad, aleatorio),
         pista: PISTAS.prestamo,
         explicacion: `${a} − ${b} = ${r}. Para comprobar: ${r} + ${b} = ${a}.`,

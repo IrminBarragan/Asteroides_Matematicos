@@ -180,13 +180,13 @@ function pistaResta(esc, nivel, a, b) {
  * Opciones {id: valor, texto}, mezcladas. `obligatorios` es el error MÁS revelador (siempre se ofrece, si es válido);
  * los demás errores salen de `preferidos` (típicos) y, si no alcanzan, de números cercanos.
  */
-function armarOpciones(respuesta, { preferidos, obligatorios = [] }, cantidad, aleatorio, maximo = Infinity) {
+function armarOpciones(respuesta, { preferidos, obligatorios = [], error = null }, cantidad, aleatorio, maximo = Infinity) {
     const valido = (n) => Number.isInteger(n) && n >= 0 && n <= maximo && n !== respuesta;
     const fijos = [...new Set(obligatorios.filter(valido))].slice(0, cantidad - 1);
     const errores = generarDistractores(respuesta, aleatorio, cantidad - 1 - fijos.length, {
         preferidos: preferidos.filter((p) => valido(p) && !fijos.includes(p)), maximo, excluir: fijos
     });
-    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: String(valor) })));
+    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: String(valor), ...(error && fijos.includes(valor) ? { error } : {}) })));
 }
 
 function materialPara(esc, operacion, a, b) {
@@ -205,8 +205,8 @@ function sumaRestaPregunta({ operacion, grado, nivel, cantidad, aleatorio, apoyo
     const grande = esc.material === 'recta';
     // El error que más dice del niño: olvidar la llevada, restar «al revés» cada columna
     const opcionesDe = esSuma
-        ? { preferidos: [r + 1, r - 1, r + 10, r - 10, Math.max(a, b)], obligatorios: grande && nivel >= 2 ? [sumaSinLlevar(a, b)] : [] }
-        : { preferidos: [r + 1, r - 1, r + 10, r - 10, a + b], obligatorios: grande && nivel >= 2 ? [restaAlReves(a, b)] : [] };
+        ? { preferidos: [r + 1, r - 1, r + 10, r - 10, Math.max(a, b)], obligatorios: grande && nivel >= 2 ? [sumaSinLlevar(a, b)] : [], error: 'olvidó la llevada' }
+        : { preferidos: [r + 1, r - 1, r + 10, r - 10, a + b], obligatorios: grande && nivel >= 2 ? [restaAlReves(a, b)] : [], error: 'restó al revés cada columna' };
     const material = apoyo === 'ninguno' ? null : materialPara(esc, operacion, a, b);
     return {
         habilidad: operacion,
@@ -285,7 +285,7 @@ function problemaPregunta({ grado, nivel, cantidad, aleatorio, apoyo }) {
         respuesta: r,
         textoRespuesta: String(r),
         // El error clásico: usar la operación contraria
-        opciones: armarOpciones(r, { preferidos: [r + 1, r - 1, r + 10, r - 10], obligatorios: [esSuma ? Math.abs(x - y) : x + y] }, cantidad, aleatorio),
+        opciones: armarOpciones(r, { preferidos: [r + 1, r - 1, r + 10, r - 10], obligatorios: [esSuma ? Math.abs(x - y) : x + y], error: 'usó la operación contraria' }, cantidad, aleatorio),
         pista: PISTAS.problemas,
         explicacion: `${plantilla.clave} ${x} ${signo} ${y} = ${r}.`,
         datos: { operacion: plantilla.operacion, x, y, historia, clave: plantilla.clave }

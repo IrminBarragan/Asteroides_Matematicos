@@ -547,7 +547,36 @@ export class Portal {
             })),
             habilidades: this.filasHabilidades(perfil)
         }));
-        return { perfiles, ajustes: this.progreso.ajustes(), activoId: activo ? activo.id : null };
+        return { perfiles, errores: this.erroresDelGrupo(), ajustes: this.progreso.ajustes(), activoId: activo ? activo.id : null };
+    }
+
+    /** Filas {juego, habilidad, tipo, veces} de las equivocaciones de un perfil (de más a menos frecuentes). */
+    filasErrores(perfil) {
+        const filas = [];
+        for (const [juegoId, porHabilidad] of Object.entries(perfil.errores || {})) {
+            for (const [habilidad, porTipo] of Object.entries(porHabilidad)) {
+                for (const [tipo, veces] of Object.entries(porTipo)) filas.push({ juego: this.nombreJuego(juegoId), habilidad, tipo, veces });
+            }
+        }
+        return filas.sort((a, b) => b.veces - a.veces);
+    }
+
+    /**
+     * Lo que más confunde el GRUPO: las mismas equivocaciones de todos los niños sumadas, con cuántos niños la cometen.
+     * Es dato de enseñanza: dice QUÉ confunden (no solo cuánto fallan) para dirigir la clase.
+     */
+    erroresDelGrupo(limite = 12) {
+        const grupo = new Map();
+        for (const perfil of this.progreso.listarPerfiles()) {
+            for (const f of this.filasErrores(perfil)) {
+                const clave = `${f.juego}\u0000${f.habilidad}\u0000${f.tipo}`;
+                const previo = grupo.get(clave) || { ...f, veces: 0, ninos: 0 };
+                previo.veces += f.veces;
+                previo.ninos += 1;
+                grupo.set(clave, previo);
+            }
+        }
+        return [...grupo.values()].sort((a, b) => b.veces - a.veces || b.ninos - a.ninos).slice(0, limite);
     }
 
     filasHabilidades(perfil) {
@@ -602,6 +631,14 @@ export class Portal {
             }
         }
         return aCSV(['jugador', 'grado', 'juego', 'partidas', 'mejor_puntaje', 'mejores_estrellas', 'ultima_partida', 'grado_contenido'], filas);
+    }
+
+    csvErrores() {
+        const filas = [];
+        for (const perfil of this.progreso.listarPerfiles()) {
+            for (const f of this.filasErrores(perfil)) filas.push([perfil.apodo, perfil.grado, f.juego, f.habilidad, f.tipo, f.veces]);
+        }
+        return aCSV(['jugador', 'grado', 'juego', 'habilidad', 'equivocacion', 'veces'], filas);
     }
 
     csvHabilidades() {

@@ -35,6 +35,24 @@ export function calcularEstrellas({ aciertos, fallos, recuperadas = 0 }) {
 
 const esEnteroNoNegativo = (n) => Number.isInteger(n) && n >= 0;
 
+export const MAX_LARGO_TIPO_ERROR = 40;
+export const MAX_ERRORES_POR_PARTIDA = 60;
+
+/**
+ * Lista de equivocaciones de una partida: [{ habilidad, tipo, veces }], donde `tipo` es el nombre de la equivocación
+ * («olvidó la llevada», «usó la operación contraria») o «otra equivocación» si no tiene nombre. No lanza: una lista
+ * dañada se limpia (los datos de enseñanza nunca deben impedir guardar el resultado de la partida).
+ */
+export function limpiarErrores(errores) {
+    if (!Array.isArray(errores)) return [];
+    const limpio = (t) => String(t ?? '').replace(/[\u0000-\u001f\u007f<>]/g, '').trim().slice(0, MAX_LARGO_TIPO_ERROR);
+    return errores
+        .filter((e) => e && typeof e === 'object' && Number.isInteger(e.veces) && e.veces > 0)
+        .map((e) => ({ habilidad: limpio(e.habilidad), tipo: limpio(e.tipo) || 'otra equivocación', veces: e.veces }))
+        .filter((e) => e.habilidad !== '')
+        .slice(0, MAX_ERRORES_POR_PARTIDA);
+}
+
 /**
  * Valida y normaliza un resultado. Lanza Error si es inválido.
  * @returns {Resultado} copia con `estrellas` y `puntaje` garantizados
@@ -62,6 +80,7 @@ export function normalizarResultado(resultado) {
     }
     return {
         ...resultado,
+        ...(resultado.errores === undefined ? {} : { errores: limpiarErrores(resultado.errores) }),
         estrellas,
         puntaje: resultado.puntaje === undefined ? aciertos * 10 : resultado.puntaje
     };

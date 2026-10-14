@@ -63,7 +63,7 @@ function panelAjustes({ ajustes }, portal) {
         interruptor('Modo ligero', 'Quita los fondos animados, el confeti y los saltos de la mascota. Úsalo en computadoras lentas o si el movimiento distrae.', ajustes.modoLigero, () => portal.alternarModoLigero(), 'Modo ligero'));
 }
 
-export function pantallaMaestro({ perfiles, ajustes }, portal, ctx) {
+export function pantallaMaestro({ perfiles, errores = [], ajustes }, portal, ctx) {
     const tarjetas = perfiles.map((p) => h('article', { class: 'perfil-maestro' },
         h('header', { class: 'perfil-maestro__cabecera' },
             avatar(p.avatar, 'avatar avatar--media'),
@@ -88,9 +88,15 @@ export function pantallaMaestro({ perfiles, ajustes }, portal, ctx) {
     return h('section', { class: 'pantalla' },
         h('h1', { tabindex: '-1', 'data-foco': true }, 'Modo maestro'),
         panelAjustes({ ajustes }, portal),
+        errores.length > 0 && h('section', { class: 'maestro-errores' },
+            h('h2', {}, 'Lo que más confunden'),
+            h('p', { class: 'maestro-errores__nota' }, 'Las equivocaciones más repetidas de todo el grupo. Dicen qué confunden, no solo cuánto fallan: sirven para dirigir la clase.'),
+            tabla('Equivocaciones más frecuentes del grupo', ['Juego', 'Habilidad', 'Equivocación', 'Veces', 'Niños'],
+                errores.map((e) => [e.juego, e.habilidad, e.tipo, e.veces, e.ninos]))),
         h('div', { class: 'acciones' },
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('progreso.csv', portal.csvProgreso()) }, 'Descargar progreso (CSV)'),
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('habilidades.csv', portal.csvHabilidades()) }, 'Descargar habilidades (CSV)'),
+            h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('equivocaciones.csv', portal.csvErrores()) }, 'Descargar equivocaciones (CSV)'),
             h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => portal.salirDeModoMaestro() }, 'Salir')),
         perfiles.length > 0 ? tarjetas : h('p', { class: 'vacio' }, 'No hay jugadores en este equipo.'),
         h('div', { class: 'zona-peligro' },
