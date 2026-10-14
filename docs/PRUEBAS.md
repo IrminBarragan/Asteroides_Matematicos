@@ -28,7 +28,7 @@ En **todas** las pruebas, además de lo propio de cada una, se vigila que haya: 
 - `voz.test.mjs`: con una síntesis de voz falsa, «Escuchar» y la lectura automática; en pausa no se lee; **sin voz en el navegador** no hay botones y el juego funciona igual.
 - `lecciones.test.mjs`: la introducción de una habilidad (omitible, una sola vez, no en la misión), «Ver cómo se hace» (ejemplo resuelto, Escape cierra y la pregunta sigue), la lección de Asteroides con material y «hazlo tú» obligatorio, «Escuchar» con voz y el diálogo en móvil.
 - `ambiente.test.mjs`: la música apagada de fábrica (cuenta los osciladores del navegador: 0 sin permiso, suena con permiso, se calla al apagarla y en pausa), pistas por pantalla, color por área y mascota, pegatinas/confeti/álbum que persiste, **modo ligero**, **reducir movimiento**, cuadros por segundo y móvil.
-- `presupuesto.test.mjs`: tamaño de `dist/` (app.js < 80 KB gz, CSS < 15 KB gz, todo < 1 MB) y que no haya URLs externas.
+- `presupuesto.test.mjs`: tamaño de `dist/` (app.js < 100 KB gz, CSS < 15 KB gz, todo < 1 MB) y que no haya URLs externas.
 
 ## Cómo configurarlas
 
