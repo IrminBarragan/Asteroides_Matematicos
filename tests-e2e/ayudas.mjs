@@ -227,3 +227,128 @@ export async function saltarLeccion(pagina) {
         await pagina.waitForSelector('.modal-fondo--leccion', { state: 'detached' });
     }
 }
+
+// ---------- Bloques de Valor ----------
+
+const VALOR_COLUMNA = { 'unidad': 1, 'unidades': 1, 'decena': 10, 'decenas': 10, 'centena': 100, 'centenas': 100, 'unidad de millar': 1000, 'unidades de millar': 1000, 'decena de millar': 10000, 'decenas de millar': 10000, 'centena de millar': 100000, 'centenas de millar': 100000 };
+const NOMBRES_COL = Object.keys(VALOR_COLUMNA).sort((a, b) => b.length - a.length).join('|');
+const INDICE_COLUMNA = { 1: 0, 10: 1, 100: 2, 1000: 3 };
+
+/** Valor de «3 centenas, 4 decenas y 7 unidades» (cada frase vale cantidad × valor de su columna). */
+export const valorDeFrases = (texto) => [...texto.matchAll(new RegExp(`(\\d+) (${NOMBRES_COL})`, 'g'))].reduce((s, m) => s + Number(m[1]) * VALOR_COLUMNA[m[2]], 0);
+
+/**
+ * Respuesta de las preguntas de «valor de las cifras» leyendo SOLO el texto de la pantalla (como lo haría un niño).
+ * @returns {number|null} null si el enunciado no es de ese tipo
+ */
+export function respuestaDePosicion(enunciado) {
+    const t = enunciado.replace(/ /g, '');
+    let m = /En el número (\d+), ¿qué valor tiene la cifra (\d)\?/.exec(t);
+    if (m) return Number(m[2]) * 10 ** (m[1].length - 1 - m[1].indexOf(m[2]));
+    m = /¿Qué número es ([\d +]+)\?/.exec(t);
+    if (m) return m[1].split(' + ').reduce((s, x) => s + Number(x), 0);
+    if (/¿Qué número es .* y .*\?/.test(t)) return valorDeFrases(t);
+    return null;
+}
+
+/**
+ * Resuelve la pregunta de «Bloques de Valor» que hay en pantalla como un niño que SÍ sabe: usa los bloques si son
+ * obligatorios (construye, cambia 10 por 1, quita y cambia 1 por 10) y, si no, lee el número o calcula.
+ * @returns {Promise<{via:'construir'|'juntar'|'quitar'|'leer'|'calculo'|'tanteo', apoyo:string}>}
+ */
+export async function resolverPreguntaBloques(pagina, { fallarPrimero = false } = {}) {
+    await pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)');
+    await saltarLeccion(pagina);
+    const enunciado = await pagina.textContent('.bloques-juego__enunciado');
+    const consigna = (await pagina.textContent('.bloques-juego__consigna')) || '';
+    const apoyo = (await pagina.textContent('.bloques-juego__dato--apoyo')) || '';
+    const opciones = pagina.locator('.bloques-juego__opcion');
+    const clicOpcion = async (valor) => pagina.locator('.bloques-juego__opcion', { hasText: new RegExp(`^${String(valor).replace(/\B(?=(\d{3})+(?!\d))/g, valor >= 10000 ? '\\u202f' : '')}$`) }).click();
+    const columna = (c) => pagina.locator(`.bloques-valor__columna--${c}`);
+    const leerCuenta = async (c) => Number(await columna(c).locator('.bloques-valor__numero').textContent());
+    let via;
+    let respuesta;
+
+    const obligatorio = (await opciones.count()) === 0;
+    if (obligatorio && consigna.startsWith('Construye con bloques')) {
+        for (const m of consigna.matchAll(new RegExp(`(\\d+) (${NOMBRES_COL})`, 'g'))) {
+            const c = INDICE_COLUMNA[VALOR_COLUMNA[m[2]]];
+            for (let i = 0; i < Number(m[1]); i++) await columna(c).locator('button[aria-label^="Poner"]').click();
+        }
+        respuesta = valorDeFrases(consigna);
+        via = 'construir';
+    } else if (obligatorio && consigna.startsWith('Junta los bloques')) {
+        const [a, b] = consigna.match(/\d+/g).map(Number).slice(0, 2);
+        for (let c = 0; c < 4 && (await columna(c).count()); c++) {
+            while ((await leerCuenta(c)) >= 10 && (await columna(c).locator('.bloques-valor__cambio').count())) await columna(c).locator('.bloques-valor__cambio').click();
+        }
+        respuesta = a + b;
+        via = 'juntar';
+    } else if (obligatorio && consigna.startsWith('Están los bloques')) {
+        const [a, b] = consigna.match(/\d+/g).map(Number).slice(0, 2);
+        const quitar = String(b).split('').reverse().map(Number);
+        const columnas = await pagina.locator('.bloques-valor__columna').count();
+        for (let c = 0; c < quitar.length; c++) {
+            for (let i = 0; i < quitar[c]; i++) {
+                if ((await leerCuenta(c)) === 0) {
+                    // cambia 1 por 10 desde la columna más cercana de la izquierda que tenga bloques, bajando hasta esta
+                    let alta = c + 1;
+                    while (alta < columnas && (await leerCuenta(alta)) === 0) alta++;
+                    for (let k = alta; k > c; k--) await columna(k).locator('.bloques-valor__cambio').click();
+                }
+                await columna(c).locator('button[aria-label^="Quitar una pieza"]').click();
+            }
+        }
+        respuesta = a - b;
+        via = 'quitar';
+    } else if (enunciado.startsWith('¿Qué número muestran los bloques?')) {
+        const columnas = await pagina.locator('.bloques-valor__columna').count();
+        respuesta = 0;
+        for (let c = 0; c < columnas; c++) respuesta += (await leerCuenta(c)) * 10 ** c;
+        via = 'leer';
+    } else if (/^(\d+) ([+−]) (\d+) = \?$/.test(enunciado)) {
+        const [, a, signo, b] = /^(\d+) ([+−]) (\d+) = \?$/.exec(enunciado);
+        respuesta = signo === '+' ? Number(a) + Number(b) : Number(a) - Number(b);
+        via = 'calculo';
+    } else if (enunciado.startsWith('¿Qué número tiene')) {
+        respuesta = valorDeFrases(enunciado);
+        via = 'calculo';
+    } else if (respuestaDePosicion(enunciado) !== null) {
+        respuesta = respuestaDePosicion(enunciado);
+        via = 'calculo';
+    }
+
+    if (respuesta === undefined) {
+        const total = await opciones.count();
+        for (let i = 0; i < total; i++) {
+            await opciones.nth(i).click();
+            if (await pagina.locator('text=Siguiente ➜').isVisible()) break;
+        }
+        via = 'tanteo';
+    } else {
+        await pagina.waitForSelector('.bloques-juego__opcion');
+        if (fallarPrimero) {
+            const mala = await opciones.evaluateAll((bs, bien) => bs.map((x) => x.getAttribute('aria-label')).find((t) => t.replace(/ /g, '') !== String(bien)), respuesta);
+            await pagina.locator('.bloques-juego__opcion', { hasText: mala }).first().click();
+            await pagina.waitForSelector('text=/Casi\\. Pista/');
+        }
+        await clicOpcion(respuesta);
+    }
+    await pagina.waitForSelector('text=Siguiente ➜', { state: 'visible' });
+    return { via, apoyo };
+}
+
+/** Juega una partida COMPLETA de «Bloques de Valor» resolviendo bien cada pregunta. */
+export async function jugarPartidaBloques(pagina, { max = 14 } = {}) {
+    const vias = [];
+    for (let guardia = 0; guardia < max; guardia++) {
+        const que = await Promise.race([
+            pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
+        ]);
+        if (que === 'fin') return { preguntas: guardia, vias };
+        vias.push((await resolverPreguntaBloques(pagina)).via);
+        await pagina.click('text=Siguiente ➜');
+    }
+    throw new Error(`la partida no terminó en ${max} preguntas`);
+}
