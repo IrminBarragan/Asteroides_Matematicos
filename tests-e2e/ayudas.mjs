@@ -115,3 +115,88 @@ export async function jugarPartidaFracciones(pagina) {
     }
     throw new Error('la partida no terminó en 14 preguntas');
 }
+
+/**
+ * Resuelve la pregunta de «Taller de Cálculo» que hay en pantalla como lo haría un niño que SÍ sabe: usa el material
+ * si es obligatorio (fichas o saltos) y, si no, calcula la operación. En problemas (sin material) prueba los botones
+ * en orden hasta acertar. Devuelve cómo se resolvió, para que las pruebas vean que el material de verdad se usó.
+ * @returns {Promise<{via:'marcos'|'recta'|'calculo'|'tanteo', apoyo:string}>}
+ */
+export async function resolverPreguntaCalculo(pagina, { fallarPrimero = false } = {}) {
+    await pagina.waitForSelector('.calculo-juego__enunciado:not(:empty)');
+    await pagina.evaluate(() => new Promise((r) => setTimeout(r, 40))); // por si aparece una lección de introducción
+    if (await pagina.locator('.modal-fondo--leccion').count()) {
+        await pagina.click('.modal-fondo--leccion >> text=Saltar');
+        await pagina.waitForSelector('.modal-fondo--leccion', { state: 'detached' });
+    }
+    const enunciado = await pagina.textContent('.calculo-juego__enunciado');
+    const consigna = (await pagina.textContent('.calculo-juego__consigna')) || '';
+    const apoyo = (await pagina.textContent('.calculo-juego__dato--apoyo')) || '';
+    const opciones = pagina.locator('.calculo-juego__opcion');
+    const clicOpcion = async (texto) => pagina.locator('.calculo-juego__opcion', { hasText: new RegExp(`^${texto}$`) }).click();
+    let via;
+
+    const ecuacion = /^(\d+) ([+−]) (\d+) = \?$/.exec(enunciado);
+    const obligatorio = (await opciones.count()) === 0;
+    if (obligatorio && /Pon (\d+) fichas azules y (\d+) fichas naranjas/.test(consigna)) {
+        const [, a, b] = /Pon (\d+) fichas azules y (\d+) fichas naranjas/.exec(consigna);
+        for (let i = 0; i < Number(a); i++) await pagina.click('text=Poner azul');
+        for (let i = 0; i < Number(b); i++) await pagina.click('text=Poner naranja');
+        await pagina.waitForSelector('.calculo-juego__opcion');
+        await clicOpcion(String(Number(a) + Number(b)));
+        via = 'marcos';
+    } else if (obligatorio && /Hay (\d+) fichas\. Tacha (\d+)/.test(consigna)) {
+        const [, a, b] = /Hay (\d+) fichas\. Tacha (\d+)/.exec(consigna);
+        for (let i = 0; i < Number(b); i++) await pagina.locator('button.marcos__casilla--a').first().click();
+        await pagina.waitForSelector('.calculo-juego__opcion');
+        await clicOpcion(String(Number(a) - Number(b)));
+        via = 'marcos';
+    } else if (obligatorio && /Empiezas en (\d+)\. (Avanza|Retrocede) (\d+)/.test(consigna)) {
+        const [, , verbo, b] = /Empiezas en (\d+)\. (Avanza|Retrocede) (\d+)/.exec(consigna);
+        if (fallarPrimero) {
+            await pagina.click('text=Listo'); // sin moverse: se queda en el número de partida
+            await pagina.waitForSelector('text=/Casi\\. Llegaste a/');
+        }
+        const fila = verbo === 'Avanza' ? '.recta-int__fila--avanza' : '.recta-int__fila--retrocede';
+        const signo = verbo === 'Avanza' ? '+' : '−';
+        const digitos = String(b).split('').reverse();
+        for (let p = 0; p < digitos.length; p++) {
+            for (let i = 0; i < Number(digitos[p]); i++) await pagina.locator(`${fila} button`, { hasText: new RegExp(`^\\${signo}${10 ** p}$`) }).click();
+        }
+        await pagina.click('text=Listo');
+        via = 'recta';
+    } else if (ecuacion) {
+        const [, a, signo, b] = ecuacion;
+        const r = signo === '+' ? Number(a) + Number(b) : Number(a) - Number(b);
+        if (fallarPrimero) {
+            const mala = await opciones.evaluateAll((bs, bien) => bs.map((x) => x.textContent).find((t) => t !== String(bien)), r);
+            await clicOpcion(mala);
+        }
+        await clicOpcion(String(r));
+        via = 'calculo';
+    } else {
+        const total = await opciones.count();
+        for (let i = 0; i < total; i++) {
+            await opciones.nth(i).click();
+            if (await pagina.locator('text=Siguiente ➜').isVisible()) break;
+        }
+        via = 'tanteo';
+    }
+    await pagina.waitForSelector('text=Siguiente ➜', { state: 'visible' });
+    return { via, apoyo };
+}
+
+/** Juega una partida COMPLETA de «Taller de Cálculo» resolviendo bien cada pregunta. @returns {Promise<{preguntas:number, vias:string[]}>} */
+export async function jugarPartidaCalculo(pagina, { max = 14 } = {}) {
+    const vias = [];
+    for (let guardia = 0; guardia < max; guardia++) {
+        const que = await Promise.race([
+            pagina.waitForSelector('.calculo-juego__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
+        ]);
+        if (que === 'fin') return { preguntas: guardia, vias };
+        vias.push((await resolverPreguntaCalculo(pagina)).via);
+        await pagina.click('text=Siguiente ➜');
+    }
+    throw new Error(`la partida no terminó en ${max} preguntas`);
+}

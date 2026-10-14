@@ -294,6 +294,27 @@ export function leccionDecimales({ a, b, decimales, esSuma }) {
     });
 }
 
+// ---------- Problemas ----------
+
+/**
+ * `datos`: { operacion: 'suma'|'resta', x, y, historia, clave } que ya armó el generador del problema.
+ * Se enseña el HÁBITO, no la regla: leer, decidir si se junta o se quita, y recién entonces calcular.
+ */
+export function leccionProblema({ operacion, x, y, historia, clave }) {
+    const esSuma = operacion === 'suma';
+    const signo = esSuma ? '+' : '−';
+    const r = esSuma ? x + y : x - y;
+    return validarLeccion({
+        titulo: 'Cómo resolver un problema',
+        pasos: [
+            { texto: 'Antes de calcular, lee con calma y pregúntate dos cosas: ¿qué datos tengo? y ¿qué me preguntan?', visual: { tipo: 'ejemplo', enunciado: historia } },
+            { texto: `Ahora decide: ¿se junta o se quita? ${clave} Entonces la operación es ${esSuma ? 'una suma' : 'una resta'}.`, visual: { tipo: 'ejemplo', enunciado: `${x} ${signo} ${y}` } },
+            { texto: `Calcula con los números del problema.`, hazlo: hazloEn(`${x} ${signo} ${y} = ?`, r, esSuma ? 'Suma los dos números.' : 'Quita el segundo número del primero.', r % 10 === 0 && x % 10 === 0 && y % 10 === 0 ? 10 : 1) },
+            { texto: `Respuesta: ${r}. Siempre revisa si tiene sentido: ${esSuma ? 'al juntar debe haber más que antes' : 'al quitar o comparar debe quedar menos'}.` }
+        ]
+    });
+}
+
 // ---------- Selector ----------
 
 /**
@@ -310,6 +331,7 @@ export function leccionAritmetica(habilidad, datos) {
         case 'combinadas': return leccionCombinadas(datos);
         case 'multiplos': return leccionMultiplos(datos);
         case 'decimales': return leccionDecimales(datos);
+        case 'problemas': return leccionProblema(datos);
         default: return null;
     }
 }

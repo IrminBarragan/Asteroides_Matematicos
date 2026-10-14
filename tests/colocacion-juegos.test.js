@@ -4,6 +4,7 @@ import { Partida as PartidaAsteroides } from '../src/games/asteroides/logica/par
 import { Partida as PartidaOrtografia } from '../src/games/ortografia/logica/partida.js';
 import { Partida as PartidaReloj } from '../src/games/reloj/logica/partida.js';
 import { Partida as PartidaFracciones } from '../src/games/fracciones/logica/partida.js';
+import { Partida as PartidaCalculo } from '../src/games/calculo/logica/partida.js';
 import { generarPregunta, TOPE_SUMA } from '../src/games/asteroides/logica/generadores.js';
 import { cantidadAsteroides, velocidadBase, FACTOR_TRANQUILO } from '../src/games/asteroides/logica/campo.js';
 import { crearAleatorioSembrado } from '../src/core/aleatorio.js';
@@ -16,7 +17,8 @@ const JUEGOS = [
     { nombre: 'Asteroides', Partida: PartidaAsteroides, gradoMin: 1, gradoMax: 6 },
     { nombre: 'Ortografía', Partida: PartidaOrtografia, gradoMin: 3, gradoMax: 6 },
     { nombre: 'Reloj', Partida: PartidaReloj, gradoMin: 1, gradoMax: 4 },
-    { nombre: 'Fracciones', Partida: PartidaFracciones, gradoMin: 3, gradoMax: 6 }
+    { nombre: 'Fracciones', Partida: PartidaFracciones, gradoMin: 3, gradoMax: 6 },
+    { nombre: 'Taller de Cálculo', Partida: PartidaCalculo, gradoMin: 1, gradoMax: 6 }
 ];
 
 for (const { nombre, Partida, gradoMin, gradoMax } of JUEGOS) {

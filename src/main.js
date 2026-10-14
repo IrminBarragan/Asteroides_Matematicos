@@ -15,6 +15,7 @@ import { JuegoMemorama } from './games/memorama/juego.js';
 import { JuegoOrtografia } from './games/ortografia/juego.js';
 import { JuegoReloj } from './games/reloj/juego.js';
 import { JuegoFracciones } from './games/fracciones/juego.js';
+import { JuegoCalculo } from './games/calculo/juego.js';
 
 function arrancar() {
     const registro = new RegistroJuegos()
@@ -22,7 +23,8 @@ function arrancar() {
         .registrar(JuegoMemorama)
         .registrar(JuegoOrtografia)
         .registrar(JuegoReloj)
-        .registrar(JuegoFracciones);
+        .registrar(JuegoFracciones)
+        .registrar(JuegoCalculo);
 
     const vista = new VistaPortal(document.getElementById('app'));
     const audio = new GestorAudio();

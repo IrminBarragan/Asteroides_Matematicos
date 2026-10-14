@@ -1,0 +1,62 @@
+/* ---------- Material (componentes ui/marcosDiez.js y ui/rectaInteractiva.js) ---------- */
+.marcos { display: flex; flex-direction: column; align-items: center; gap: .7rem; }
+.marcos__marcos { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+.marcos__marco { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: #fff; border: 3px solid #1e3a8a; border-radius: 10px; }
+.marcos__casilla { width: clamp(38px, 9vw, 52px); height: clamp(38px, 9vw, 52px); padding: 0; border: 2px dashed #94a3b8; border-radius: 50%; background: #f8fafc; position: relative; }
+button.marcos__casilla:not(:disabled) { cursor: pointer; }
+.marcos__casilla--a { background: #2563eb; border: 2px solid #1e3a8a; }
+.marcos__casilla--b { background: #f97316; border: 2px solid #9a3412; }
+.marcos__casilla--b::after { content: ""; position: absolute; inset: 32%; border-radius: 50%; background: #fff; }
+.marcos__casilla--tachada { background: #e5e7eb; border: 2px solid #6b7280; }
+.marcos__casilla--tachada::after { content: "✕"; position: absolute; inset: 0; display: grid; place-items: center; font: 700 1.4rem var(--fuente-titulo); color: #b91c1c; }
+.marcos__casilla:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 2px; }
+.marcos__controles { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.marcos__poner--a { border-color: #2563eb; }
+.marcos__poner--b { border-color: #f97316; }
+.marcos__contador { margin: 0; font-weight: 600; color: var(--texto-suave); }
+
+.recta-int { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+.recta-int__dibujo { width: min(100%, 640px); height: auto; }
+.recta-int__linea { stroke: #1e3a8a; stroke-width: 4; stroke-linecap: round; }
+.recta-int__marca { stroke: #1e3a8a; stroke-width: 3; }
+.recta-int__arco { fill: none; stroke-width: 4; stroke-linecap: round; }
+.recta-int__arco--avanza { stroke: #16a34a; }
+.recta-int__arco--retrocede { stroke: #dc2626; stroke-dasharray: 8 6; }
+.recta-int__rotulo { font: 600 18px var(--fuente-titulo); fill: #1f2937; }
+.recta-int__rotulo--ahora { fill: #1d4ed8; font-weight: 700; }
+.recta-int__ficha { fill: #f59e0b; stroke: #92400e; stroke-width: 3; }
+.recta-int__posicion { margin: 0; font: 700 1.3rem var(--fuente-titulo); }
+.recta-int__cadena { margin: 0; font-weight: 600; color: var(--texto-suave); max-width: 640px; overflow-wrap: anywhere; }
+.recta-int__fila { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.recta-int__salto { min-width: 4.2rem; min-height: 3rem; padding: .2rem .8rem; font: 700 1.2rem var(--fuente-titulo); background: #fff; border: 3px solid #16a34a; border-radius: 14px; cursor: pointer; }
+.recta-int__fila--retrocede .recta-int__salto { border-color: #dc2626; }
+.recta-int__salto:disabled { opacity: .5; cursor: default; }
+.recta-int__salto:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 2px; }
+.recta-int__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+
+/* ---------- Taller de Cálculo ---------- */
+.calculo-juego { max-width: 860px; margin: 0 auto; text-align: center; }
+.calculo-juego__hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem; font-weight: 600; min-height: 2rem; }
+.calculo-juego__dato { background: #dbeafe; border-radius: 999px; padding: .1rem .9rem; font-size: .95rem; }
+.calculo-juego__dato--apoyo { background: #fef3c7; }
+.calculo-juego__dato:empty { display: none; }
+.calculo-juego__barra { display: flex; justify-content: center; gap: 6px; margin: .5rem 0; }
+.calculo-juego__ficha { width: 22px; height: 22px; border-radius: 50%; background: #cbd5e1; transition: background .2s ease; }
+.calculo-juego__ficha--lista { background: var(--c-matematicas); }
+.calculo-juego__enunciado { margin: .5rem 0 .4rem; font: 600 clamp(1.35rem, 3.4vw, 2rem) var(--fuente-titulo); min-height: 2.4rem; }
+.calculo-juego__consigna { margin: 0 0 .6rem; font-weight: 600; color: var(--texto-suave); min-height: 1.4rem; }
+.calculo-juego__consigna[hidden] { display: none; }
+.calculo-juego__material { display: flex; flex-direction: column; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.calculo-juego__material [hidden] { display: none; }
+.calculo-juego__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; }
+.calculo-juego__opcion { min-width: 8rem; min-height: 4rem; padding: .4rem 1.2rem; font: 700 1.5rem var(--fuente-titulo); color: var(--texto); background: #fff; border: 4px solid var(--c-matematicas); border-radius: 18px; cursor: pointer; transition: transform .12s ease, background .12s ease; }
+.calculo-juego__opcion:hover:not([aria-disabled="true"]) { background: #eff6ff; transform: translateY(-2px); }
+.calculo-juego__opcion[aria-disabled="true"] { cursor: default; }
+.calculo-juego__opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }
+.calculo-juego__opcion--incorrecta { background: #f3f4f6; border-color: #9ca3af; color: #6b7280; opacity: .7; }
+.calculo-juego__pie { min-height: 4.2rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-top: 1rem; }
+.calculo-juego__mensaje { margin: 0; font-weight: 600; font-size: 1rem; color: var(--texto-suave); max-width: 760px; }
+.calculo-juego__mensaje--bien { color: var(--exito); }
+.calculo-juego__mensaje--pista { color: #9a3412; }
+.calculo-juego__pie [hidden] { display: none; }
+@media (max-width: 600px) { .calculo-juego__opcion { min-width: 6.5rem; font-size: 1.25rem; } }
