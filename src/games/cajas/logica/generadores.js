@@ -243,7 +243,7 @@ function grande({ grado, nivel, cantidad, aleatorio }) {
         enunciado = `${a} × ${k} = ?`;
         datos = { tipo: 'mult', a, b: k };
         obligatorios = [a * (k / 10)];
-        errores = [a * k * 10, a * (k / 10), a + k, Number(`${a}${'0'.repeat(String(k).length - 2)}`)];
+        errores = [a * k * 10, a * (k / 10), a + k, a * k + a];
     } else if (clase === 'dos-por-uno' || clase === 'tres-por-uno') {
         const a = clase === 'dos-por-uno' ? entre(aleatorio, 12, 99) : entre(aleatorio, 101, 999);
         const b = entre(aleatorio, 3, 9);

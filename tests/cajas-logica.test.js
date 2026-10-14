@@ -33,6 +33,19 @@ function paraTodas(fn) {
     }
 }
 
+/** Las tablas de cada grado y nivel, escritas aparte del código: es la especificación que se revisa con una maestra. */
+const TABLAS_ESPERADAS = {
+    2: [[2, 10], [5], [3, 4]],
+    3: [[2, 5, 10], [3, 4, 6], [7, 8, 9]],
+    4: [[6, 7], [8, 9], [6, 7, 8, 9]],
+    5: [[6, 7, 8, 9], [11, 12], [7, 8, 9, 11, 12]],
+    6: [[6, 7, 8, 9], [11, 12], [7, 8, 9, 11, 12]]
+};
+
+test('las tablas de cada grado y nivel son las acordadas', () => {
+    assert.deepEqual(TABLAS, TABLAS_ESPERADAS);
+});
+
 const numeros = (t) => (t.match(/\d+/g) || []).map(Number);
 
 test('meta válida: juego de matemáticas para los seis grados con misión de inicio', () => {
@@ -110,7 +123,7 @@ test('tabla: el producto, la tabla del nivel y la cuadrícula de ayuda con las m
         assert.ok(m, q.enunciado);
         const [a, b] = [Number(m[1]), Number(m[2])];
         assert.equal(q.respuesta, a * b);
-        assert.ok(TABLAS[c.grado][c.nivel - 1].includes(a) || TABLAS[c.grado][c.nivel - 1].includes(b), `${q.enunciado}: una de las dos tablas del nivel`);
+        assert.ok(TABLAS_ESPERADAS[c.grado][c.nivel - 1].includes(a) || TABLAS_ESPERADAS[c.grado][c.nivel - 1].includes(b), `${q.enunciado}: una de las dos tablas del nivel`);
         if (c.apoyo === 'ninguno' || a > 10 || b > 10) assert.equal(q.material, null);
         else {
             assert.equal(q.material.modo, 'ver');
@@ -163,7 +176,7 @@ test('inversa: las tres formas de escribirla dan el mismo cociente, y se llega a
         assert.ok(m, q.enunciado);
         assert.equal(N % d, 0, 'división exacta');
         assert.equal(q.respuesta, N / d, q.enunciado);
-        assert.ok(TABLAS[c.grado][c.nivel - 1].includes(d), `${q.enunciado}: el divisor es de las tablas del nivel`);
+        assert.ok(TABLAS_ESPERADAS[c.grado][c.nivel - 1].includes(d), `${q.enunciado}: el divisor es de las tablas del nivel`);
         assert.ok(q.opciones.some((o) => o.id === N - d) || N - d === q.respuesta, 'el error de restar en vez de dividir se ofrece');
         if (c.apoyo !== 'ninguno' && q.material) {
             const e = new EstadoCuadricula({ filas: q.material.filas, filasFijas: true });
