@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EstadoMarcos, EstadoRecta } from '../src/core/material.js';
+import { EstadoMarcos, EstadoRecta, EstadoBloques } from '../src/core/material.js';
 import { apoyoInicial, siguienteApoyo, APOYOS } from '../src/games/calculo/logica/apoyo.js';
 
 // ---------- Marcos de diez ----------
@@ -138,4 +138,89 @@ test('apoyo: un error sube un escalón y no pasa de «completo»', () => {
     assert.equal(siguienteApoyo('completo', { acerto: false }), 'completo');
     assert.throws(() => siguienteApoyo('mucho', { acerto: true }), /desconocido/);
     assert.deepEqual(APOYOS, ['completo', 'ligero', 'ninguno']);
+});
+
+// ---------- Bloques de valor posicional ----------
+
+test('bloques: juntar cambia 10 por 1 de la columna siguiente y separar hace lo contrario', () => {
+    const b = new EstadoBloques({ columnas: 3, inicial: [12, 3, 0] });
+    assert.equal(b.valor(), 12 + 30);
+    assert.equal(b.juntar(0), true);
+    assert.deepEqual(b.cuenta, [2, 4, 0]);
+    assert.equal(b.valor(), 42, 'cambiar no cambia el valor');
+    assert.equal(b.separar(1), true);
+    assert.deepEqual(b.cuenta, [12, 3, 0]);
+});
+
+test('bloques: no se puede juntar con menos de 10, ni salirse de las columnas, ni separar de las unidades', () => {
+    const b = new EstadoBloques({ columnas: 2, inicial: [9, 5] });
+    assert.equal(b.juntar(0), false);
+    const c = new EstadoBloques({ columnas: 2, inicial: [0, 12] });
+    assert.equal(c.juntar(1), false, 'no hay columna siguiente');
+    assert.equal(c.separar(0), false, 'las unidades no se separan');
+    assert.equal(c.juntar(7), false);
+    assert.equal(c.separar(-1), false);
+    assert.equal(new EstadoBloques({ columnas: 2, inicial: [0, 0] }).separar(1), false, 'no hay bloque que separar');
+});
+
+test('bloques: agregar y retirar respetan el máximo y el cero', () => {
+    const b = new EstadoBloques({ columnas: 2, maximoPorColumna: 3 });
+    for (let i = 0; i < 3; i++) assert.equal(b.agregar(0), true);
+    assert.equal(b.agregar(0), false, 'columna llena');
+    assert.equal(b.retirar(1), false, 'nada que retirar');
+    assert.equal(b.retirar(0), true);
+    assert.equal(b.valor(), 2);
+});
+
+test('bloques: quitar cuenta lo quitado y separar da bloques para poder quitar', () => {
+    // 52 − 38: hay que pedir prestado una decena
+    const b = new EstadoBloques({ columnas: 2, inicial: [2, 5] });
+    assert.equal(b.quitar(0), true);
+    assert.equal(b.quitar(0), true);
+    assert.equal(b.quitar(0), false, 'ya no hay unidades: hay que separar una decena');
+    assert.equal(b.separar(1), true);
+    for (let i = 0; i < 6; i++) assert.equal(b.quitar(0), true);
+    for (let i = 0; i < 3; i++) assert.equal(b.quitar(1), true);
+    assert.equal(b.quitoExactamente([8, 3]), true);
+    assert.equal(b.valorQuitado(), 38);
+    assert.equal(b.valor(), 52 - 38);
+});
+
+test('bloques: valor + valor quitado se conserva con cualquier secuencia de cambios', () => {
+    for (let semilla = 1; semilla <= 60; semilla++) {
+        let e = semilla * 7919;
+        const az = () => { e = (e * 1103515245 + 12345) % 2147483648; return e / 2147483648; };
+        const b = new EstadoBloques({ columnas: 4, inicial: [3, 12, 5, 1] });
+        const total = b.valor();
+        for (let i = 0; i < 100; i++) {
+            const col = Math.floor(az() * 4);
+            const accion = az();
+            if (accion < 0.35) b.juntar(col); else if (accion < 0.7) b.separar(col); else if (accion < 0.9) b.quitar(col); else b.deshacer();
+            assert.equal(b.valor() + b.valorQuitado(), total, `semilla ${semilla}, paso ${i}`);
+            assert.ok(b.cuenta.every((n) => n >= 0 && n <= 30));
+        }
+    }
+});
+
+test('bloques: deshacer vuelve al estado anterior y reiniciar al inicial; normalizado y coincideCon', () => {
+    const b = new EstadoBloques({ columnas: 2, inicial: [14, 2] });
+    assert.equal(b.normalizado, false);
+    assert.equal(b.deshacer(), false);
+    b.juntar(0);
+    assert.equal(b.normalizado, true);
+    assert.equal(b.coincideCon([4, 3]), true);
+    assert.equal(b.coincideCon([4, 2]), false);
+    assert.equal(b.deshacer(), true);
+    assert.deepEqual(b.cuenta, [14, 2]);
+    b.juntar(0); b.quitar(1);
+    b.reiniciar();
+    assert.deepEqual(b.cuenta, [14, 2]);
+    assert.deepEqual(b.quitadas, [0, 0]);
+});
+
+test('bloques: parámetros inválidos se rechazan', () => {
+    assert.throws(() => new EstadoBloques({ columnas: 0 }));
+    assert.throws(() => new EstadoBloques({ columnas: 7 }));
+    assert.throws(() => new EstadoBloques({ columnas: 2, inicial: [1, 2, 3] }));
+    assert.throws(() => new EstadoBloques({ columnas: 2, inicial: [-1] }));
 });

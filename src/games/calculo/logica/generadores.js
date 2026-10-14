@@ -21,6 +21,7 @@
  */
 import { entre, elegir, mezclar } from '../../../core/aleatorio.js';
 import { generarDistractores } from '../../../core/distractores.js';
+import { cifras, sumaDeCifras, hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves } from '../../../core/cifras.js';
 
 export const NIVEL_MAX = 3;
 export const GRADO_MIN = 1;
@@ -62,59 +63,9 @@ export const cantidadOpciones = (nivel) => (nivel <= 1 ? 3 : 4);
 
 export const prepararRonda = (grado, nivel) => ({ cantidad: cantidadOpciones(nivel) });
 
-// ---------- Aritmética de cifras (independiente de cualquier librería) ----------
+// ---------- Aritmética de cifras (ahora en core/cifras.js; se reexporta para no cambiar las pruebas) ----------
 
-/** Cifras de n de las unidades hacia arriba, rellenas con ceros hasta `largo`. */
-export function cifras(n, largo) {
-    const lista = String(n).split('').reverse().map(Number);
-    while (lista.length < largo) lista.push(0);
-    return lista;
-}
-
-export const sumaDeCifras = (n) => cifras(n, 0).reduce((s, c) => s + c, 0);
-
-/** ¿Alguna columna de a + b se pasa de 9 (hay que llevar)? */
-export function hayLlevada(a, b) {
-    const largo = Math.max(String(a).length, String(b).length);
-    const x = cifras(a, largo);
-    const y = cifras(b, largo);
-    let lleva = 0;
-    for (let i = 0; i < largo; i++) {
-        const s = x[i] + y[i] + lleva;
-        lleva = s >= 10 ? 1 : 0;
-        if (lleva) return true;
-    }
-    return false;
-}
-
-/** ¿Alguna columna de a − b obliga a pedir prestado? (a ≥ b) */
-export function hayPrestamo(a, b) {
-    const largo = String(a).length;
-    const x = cifras(a, largo);
-    const y = cifras(b, largo);
-    let presta = 0;
-    for (let i = 0; i < largo; i++) {
-        if (x[i] - presta < y[i]) return true;
-        presta = 0;
-    }
-    return false;
-}
-
-/** Error típico: sumar cada columna e ignorar lo que se lleva (47 + 38 → 75). */
-export function sumaSinLlevar(a, b) {
-    const largo = Math.max(String(a).length, String(b).length);
-    const x = cifras(a, largo);
-    const y = cifras(b, largo);
-    return x.reduce((total, _, i) => total + ((x[i] + y[i]) % 10) * 10 ** i, 0);
-}
-
-/** Error típico: en cada columna restar el menor del mayor (52 − 38 → 26, y no 14). */
-export function restaAlReves(a, b) {
-    const largo = String(a).length;
-    const x = cifras(a, largo);
-    const y = cifras(b, largo);
-    return x.reduce((total, _, i) => total + Math.abs(x[i] - y[i]) * 10 ** i, 0);
-}
+export { cifras, sumaDeCifras, hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves };
 
 // ---------- Pares de números ----------
 

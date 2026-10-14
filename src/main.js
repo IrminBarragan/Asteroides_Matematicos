@@ -16,6 +16,7 @@ import { JuegoOrtografia } from './games/ortografia/juego.js';
 import { JuegoReloj } from './games/reloj/juego.js';
 import { JuegoFracciones } from './games/fracciones/juego.js';
 import { JuegoCalculo } from './games/calculo/juego.js';
+import { JuegoBloques } from './games/bloques/juego.js';
 
 function arrancar() {
     const registro = new RegistroJuegos()
@@ -24,7 +25,8 @@ function arrancar() {
         .registrar(JuegoOrtografia)
         .registrar(JuegoReloj)
         .registrar(JuegoFracciones)
-        .registrar(JuegoCalculo);
+        .registrar(JuegoCalculo)
+        .registrar(JuegoBloques);
 
     const vista = new VistaPortal(document.getElementById('app'));
     const audio = new GestorAudio();
