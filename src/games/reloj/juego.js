@@ -12,6 +12,7 @@ import { elegir } from '../../core/aleatorio.js';
 import { tiempoDeLectura } from '../../core/lectura.js';
 import { codigoHora, formatoDigital } from '../../core/tiempo.js';
 import { h, vaciar } from '../../ui/dom.js';
+import { crearBotonEnsenar, pedirLeccion, presentarIntro } from '../../ui/ensenanza.js';
 import { RelojSvg } from '../../ui/relojSvg.js';
 import { Partida, PREGUNTAS_POR_PARTIDA } from './logica/partida.js';
 import { NOMBRES_HABILIDAD } from './logica/generadores.js';
@@ -19,6 +20,9 @@ import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 const ELOGIOS = ['¡Correcto!', '¡Muy bien!', '¡Excelente!', '¡Genial!', '¡Perfecto!'];
 
 export class JuegoReloj extends Juego {
+    /** El portal le hace al niño la misión de inicio antes de la primera partida (ver adaptativo/colocacion.js). */
+    static admiteColocacion = true;
+
     static meta = {
         id: 'reloj',
         nombre: 'Reloj Aventurero',
@@ -44,7 +48,8 @@ export class JuegoReloj extends Juego {
         this.partida = new Partida({
             grado: contexto.grado || 1,
             habilidadesGuardadas: contexto.habilidades,
-            aleatorio: this.aleatorio
+            aleatorio: this.aleatorio,
+            colocacion: contexto.colocacion
         });
         this.construirInterfaz(contenedor);
 
@@ -78,11 +83,12 @@ export class JuegoReloj extends Juego {
         this.zonaRelojes = h('div', { class: 'reloj-juego__relojes' });
         this.zonaAcciones = h('div', { class: 'reloj-juego__acciones' });
         this.textoMensaje = h('p', { class: 'reloj-juego__mensaje', 'aria-live': 'polite' });
+        this.botonEnsenar = crearBotonEnsenar(() => pedirLeccion(this));
         this.botonSiguiente = h('button', { class: 'boton boton--secundario', type: 'button', hidden: true, onClick: () => this.irASiguiente() }, 'Siguiente ➜');
         this.raiz = h('section', { class: 'reloj-juego', 'aria-label': 'Reloj Aventurero' },
             h('div', { class: 'reloj-juego__hud' }, this.textoProgreso, this.textoPuntos, this.textoRacha),
             this.textoEnunciado, this.zonaRelojes, this.zonaAcciones,
-            h('div', { class: 'reloj-juego__pie' }, this.textoMensaje, this.botonSiguiente));
+            h('div', { class: 'reloj-juego__pie' }, this.textoMensaje, this.botonEnsenar, this.botonSiguiente));
         contenedor.append(this.raiz);
     }
 
@@ -107,6 +113,7 @@ export class JuegoReloj extends Juego {
         const { pregunta } = info;
         this.fase = 'jugando';
         this.botonSiguiente.hidden = true;
+        this.botonEnsenar.hidden = true;
         if (this.relojInteractivo) { this.relojInteractivo.desactivar(); this.relojInteractivo = null; }
         this.botonesActuales = null;
         this.botonComprobar = null;
@@ -117,6 +124,7 @@ export class JuegoReloj extends Juego {
         if (pregunta.tipo === 'poner') this.montarPoner(pregunta);
         else this.montarOpciones(pregunta);
 
+        presentarIntro(this, pregunta.habilidad);
         this.mensaje(this.partida.numero === 1 ? (pregunta.tipo === 'poner' ? 'Arrastra las manecillas y toca «Comprobar».' : 'Elige la respuesta correcta.') : '');
         this.actualizarHud();
     }
@@ -178,6 +186,7 @@ export class JuegoReloj extends Juego {
             this.mensaje(texto, 'bien');
             this.audio.reproducirEfecto('acierto');
             this.fase = 'transicion';
+            this.botonEnsenar.hidden = true;
             this.botonSiguiente.hidden = false;
             this.tareaSiguiente = this.planificador.programar(tiempoDeLectura(texto), () => this.irASiguiente());
         } else {
@@ -187,6 +196,7 @@ export class JuegoReloj extends Juego {
             }
             const tuReloj = horaPuesta ? `Tu reloj marca ${horaPuesta}. ` : '';
             this.mensaje(`Casi. ${tuReloj}Pista: ${r.pista}`, 'pista');
+            this.botonEnsenar.hidden = false;
             this.audio.reproducirEfecto('fallo');
         }
         this.actualizarHud();

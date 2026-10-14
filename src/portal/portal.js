@@ -13,6 +13,8 @@
  */
 import { aCSV } from './csv.js';
 import { PIN_MAESTRO } from './config.js';
+import { ajustarGradoContenido } from '../adaptativo/colocacion.js';
+import { elegirPegatina, pegatinasGanadas } from '../core/pegatinas.js';
 
 export class Portal {
     /**
@@ -24,12 +26,15 @@ export class Portal {
      * @param {import('../core/voz.js').Voz} [dependencias.voz]  lectura en voz alta (opcional: sin ella no hay botones)
      * @param {string} [dependencias.pin]
      */
-    constructor({ registro, progreso, audio, vista, voz = null, pin = PIN_MAESTRO }) {
+    constructor({ registro, progreso, audio, vista, voz = null, musica = null, equipoLento = false, aleatorio = Math.random, pin = PIN_MAESTRO }) {
         this.registro = registro;
         this.progreso = progreso;
         this.audio = audio;
         this.vista = vista;
         this.voz = voz;
+        this.musica = musica;
+        this.equipoLento = equipoLento;
+        this.aleatorio = aleatorio;
         this.pin = pin;
 
         this.pantalla = null;
@@ -38,13 +43,17 @@ export class Portal {
         this.metaActual = null;
         this.ultimoJuegoId = null;
         this.pausado = false;
+        this.enLeccion = false;
         this.audio.establecerActivo(this.progreso.ajustes().sonido);
+        // La mascota y el confeti reaccionan a los efectos de sonido que piden los juegos (acierto, fallo, nivel)
+        if (typeof audio.alEfecto === 'function') audio.alEfecto((tipo) => this.alEfecto(tipo));
     }
 
     // ---------- Arranque y navegación ----------
 
     /** Al abrir la página siempre se pregunta "¿quién juega?": el equipo lo comparten varios niños. */
     iniciar() {
+        this.vista.aplicarAjustes({ ligero: this.modoLigero() });
         if (this.progreso.listarPerfiles().length === 0) {
             this.irACrearPerfil();
         } else {
@@ -56,6 +65,7 @@ export class Portal {
     mostrar(nombre, datos = {}) {
         this.pantalla = nombre;
         this.vista.mostrar(nombre, datos);
+        this.sincronizarMusica();
     }
 
     irAPerfiles() {
@@ -147,6 +157,96 @@ export class Portal {
         return nuevo;
     }
 
+    // ---------- Música, mascota y movimiento ----------
+
+    /** ¿La maestra permitió música en este equipo? (apagada por omisión: hay bocinas, no audífonos) */
+    musicaPermitida() {
+        return this.progreso.ajustes().musicaPermitida;
+    }
+
+    /** Suena solo si está permitida Y el niño no la apagó. */
+    musicaActiva() {
+        const a = this.progreso.ajustes();
+        return a.musicaPermitida && a.musica;
+    }
+
+    /** Aplica los ajustes a la música y pone la pista que toca según la pantalla (juego o menú). */
+    sincronizarMusica() {
+        if (!this.musica) return;
+        const a = this.progreso.ajustes();
+        this.musica.establecerVolumen(a.volumenMusica);
+        this.musica.establecerActiva(this.musicaActiva());
+        if (this.musicaActiva()) this.musica.reproducir(this.pantalla === 'jugando' ? 'juego' : 'menu');
+    }
+
+    alternarMusica() {
+        this.despertarAudio();
+        const nuevo = !this.progreso.ajustes().musica;
+        this.progreso.establecerAjuste('musica', nuevo);
+        this.sincronizarMusica();
+        return nuevo;
+    }
+
+    /** Modo maestro: permitir o no la música en este equipo. */
+    permitirMusica(permitida) {
+        this.progreso.establecerAjuste('musicaPermitida', Boolean(permitida));
+        this.despertarAudio();
+        this.irAModoMaestro();
+    }
+
+    establecerVolumenMusica(volumen) {
+        this.progreso.establecerAjuste('volumenMusica', volumen);
+        this.sincronizarMusica();
+        this.irAModoMaestro();
+    }
+
+    /** Modo ligero: lo pidió la maestra o el equipo parece lento. */
+    modoLigero() {
+        return this.progreso.ajustes().modoLigero || this.equipoLento;
+    }
+
+    alternarModoLigero() {
+        this.progreso.establecerAjuste('modoLigero', !this.progreso.ajustes().modoLigero);
+        this.vista.aplicarAjustes({ ligero: this.modoLigero() });
+        this.irAModoMaestro();
+    }
+
+    /** La mascota y el confeti reaccionan a los efectos que piden los juegos. */
+    alEfecto(tipo) {
+        if (tipo === 'acierto') this.vista.reaccionar('acierto');
+        else if (tipo === 'fallo') this.vista.reaccionar('error');
+        else if (tipo === 'nivel') { this.vista.reaccionar('nivel'); this.vista.confeti(30); }
+    }
+
+    /** Habla (lectura en voz alta) bajando un momento la música para que se entienda. */
+    hablar(texto) {
+        if (this.musica) this.musica.atenuar(6000);
+        return this.voz.leer(texto);
+    }
+
+    // ---------- Álbum de pegatinas ----------
+
+    /** Otorga las pegatinas de una partida (1 por esforzarse, 2 con las 3 estrellas). @returns {number[]} ids nuevos */
+    otorgarPegatinas(estrellas) {
+        const nuevas = [];
+        try {
+            for (let i = 0; i < pegatinasGanadas(estrellas); i++) {
+                const id = elegirPegatina(this.progreso.pegatinas(), this.aleatorio);
+                if (id !== null && this.progreso.agregarPegatina(id)) nuevas.push(id);
+            }
+        } catch (error) {
+            console.error('No se pudo guardar la pegatina:', error);
+        }
+        return nuevas;
+    }
+
+    irAAlbum() {
+        this.limpiarJuego();
+        const perfil = this.progreso.perfilActivo();
+        if (!perfil) return this.irAPerfiles();
+        this.mostrar('album', { perfil, poseidas: this.progreso.pegatinas() });
+    }
+
     // ---------- Lectura en voz alta ----------
 
     vozDisponible() {
@@ -170,7 +270,7 @@ export class Portal {
     leerPantalla() {
         if (!this.vozDisponible()) return false;
         const texto = this.vista.textoALeer();
-        return texto ? this.voz.leer(texto) : false;
+        return texto ? this.hablar(texto) : false;
     }
 
     /** La vista avisa cuando cambia el texto de la pregunta. */
@@ -182,6 +282,7 @@ export class Portal {
     despertarAudio() {
         this.audio.inicializar();
         this.audio.reanudar();
+        this.sincronizarMusica(); // la música solo puede empezar tras el primer gesto del niño
     }
 
     // ---------- Partida ----------
@@ -201,15 +302,26 @@ export class Portal {
         this.pausado = false;
         this.mostrar('jugando', { meta: Clase.meta });
 
+        // El SISTEMA decide el grado de contenido (no el grado escolar del niño): ver adaptativo/colocacion.js
+        const nivel = this.nivelDeInicio(Clase, perfil);
+        if (nivel.colocacion) this.vista.aviso('¡Misión de inicio! Vamos a ver hasta dónde llegas.', 'info');
+
         const juego = this.registro.crear(id);
         this.juegoActual = juego;
         juego.alTerminar((resultado) => this.terminarPartida(juego, resultado));
         try {
             juego.montar(this.vista.contenedorJuego(), {
-                grado: perfil.grado,
+                grado: nivel.grado,
+                gradoEscolar: perfil.grado,
+                colocacion: nivel.colocacion,
                 perfil,
                 audio: this.audio,
-                habilidades: this.progreso.obtenerHabilidades(id)
+                habilidades: nivel.colocacion ? null : this.progreso.obtenerHabilidades(id),
+                // Enseñanza: el juego pide lecciones y el portal las muestra (pausando el juego)
+                ensenar: (leccion, extra = {}) => this.ensenar(leccion, {
+                    registro: extra.habilidad ? () => this.progreso.registrarLeccion(id, extra.habilidad) : null
+                }),
+                presentarHabilidad: (habilidad, construir) => this.presentarHabilidad(id, habilidad, construir)
             });
             this.vista.observarTexto(() => this.alCambiarTexto());
         } catch (error) {
@@ -219,11 +331,77 @@ export class Portal {
         }
     }
 
+    /**
+     * Rango de grados de contenido de un juego para este niño: desde el menor que ofrece el juego hasta el grado del
+     * niño (no se le sube por encima de lo que le toca) acotado al mayor que ofrece el juego.
+     */
+    escaleraDe(Clase, perfil) {
+        const grados = Clase.meta.grados;
+        const gradoMin = Math.min(...grados);
+        const gradoMax = Math.max(gradoMin, Math.min(perfil.grado, Math.max(...grados)));
+        return { gradoMin, gradoMax };
+    }
+
+    /**
+     * Con qué contenido juega este niño este juego:
+     *  - juegos que admiten misión de inicio: el grado de contenido guardado, o la misión si aún no la hizo;
+     *  - los demás (p. ej. el Memorama): su grado escolar.
+     * @returns {{grado:number, colocacion:Object|null}}
+     */
+    nivelDeInicio(Clase, perfil) {
+        if (!Clase.admiteColocacion) return { grado: perfil.grado, colocacion: null };
+        const escalera = this.escaleraDe(Clase, perfil);
+        const guardado = this.progreso.obtenerGradoContenido(Clase.meta.id);
+        if (guardado === null) return { grado: escalera.gradoMax, colocacion: { ...escalera } };
+        return { grado: Math.min(Math.max(guardado, escalera.gradoMin), escalera.gradoMax), colocacion: null };
+    }
+
+    // ---------- Enseñanza (lecciones dentro del juego) ----------
+
+    /**
+     * Muestra una lección y mantiene el juego en pausa mientras está abierta.
+     * Se puede llamar mientras el juego aún se está montando: la pausa se difiere un instante (hasta que esté «jugando»).
+     * @returns {Promise<'terminada'|'cerrada'|'omitida'>}
+     */
+    async ensenar(leccion, { omitible = false, registro = null } = {}) {
+        if (!this.juegoActual || this.enLeccion) return 'omitida';
+        const juego = this.juegoActual;
+        this.enLeccion = true;
+        const estabaPausado = this.pausado;
+        await Promise.resolve();
+        if (juego !== this.juegoActual) { this.enLeccion = false; return 'omitida'; }
+        juego.pausar();
+        if (this.voz) this.voz.detener();
+        if (registro) registro();
+        let resultado = 'cerrada';
+        try {
+            resultado = await this.vista.mostrarLeccion(leccion, { omitible, leer: this.vozDisponible() ? (t) => this.hablar(t) : null });
+        } finally {
+            this.enLeccion = false;
+        }
+        if (juego === this.juegoActual && !estabaPausado && !this.pausado) juego.reanudar();
+        return resultado;
+    }
+
+    /** La primera vez que aparece una habilidad se muestra su lección de introducción (omitible); después, nunca. */
+    presentarHabilidad(juegoId, habilidad, construir) {
+        if (this.progreso.leccionesVistas(juegoId, habilidad) > 0) return Promise.resolve('omitida');
+        let leccion;
+        try {
+            leccion = construir();
+        } catch (error) {
+            console.error('No se pudo preparar la lección:', error);
+            return Promise.resolve('omitida');
+        }
+        return this.ensenar(leccion, { omitible: true, registro: () => this.progreso.registrarLeccion(juegoId, habilidad) });
+    }
+
     pausarJuego() {
         if (!this.juegoActual || this.pausado) return;
         this.juegoActual.pausar();
         this.pausado = true;
         if (this.voz) this.voz.detener();
+        if (this.musica) this.musica.pausar();
         this.vista.mostrarPausa(true);
     }
 
@@ -231,6 +409,7 @@ export class Portal {
         if (!this.juegoActual || !this.pausado) return;
         this.juegoActual.reanudar();
         this.pausado = false;
+        if (this.musica) this.musica.reanudar();
         this.vista.mostrarPausa(false);
     }
 
@@ -262,18 +441,58 @@ export class Portal {
             console.error('No se pudo guardar el resultado:', error);
             registro = { esRecord: false, estrellasGanadas: 0 };
         }
+        const cambioContenido = this.actualizarGradoContenido(meta, resultado);
+        const pegatinasNuevas = this.otorgarPegatinas(resultado.estrellas);
         queueMicrotask(() => {
             if (juego !== this.juegoActual) return; // el niño salió justo en ese instante
             this.limpiarJuego();
-            if (resultado.estrellas > 0) this.audio.reproducirEfecto('nivel');
+            if (resultado.estrellas > 0) this.audio.reproducirEfecto('victoria'); // aparte de «nivel»: este no debe disparar la reacción de «subió de nivel»
+            this.celebrar(resultado.estrellas, pegatinasNuevas.length);
             this.mostrar('resultados', {
                 meta,
                 resultado,
+                colocacion: Boolean(resultado.colocacion),
+                subioContenido: cambioContenido === 'subio',
+                pegatinasNuevas,
                 esRecord: registro.esRecord,
                 estrellasGanadas: registro.estrellasGanadas,
                 estrellasTotales: this.progreso.estrellasTotales()
             });
         });
+    }
+
+    /**
+     * Guarda el grado de contenido decidido por la misión, o lo ajusta tras una partida normal.
+     * @returns {'subio'|'bajo'|null}
+     */
+    actualizarGradoContenido(meta, resultado) {
+        const Clase = this.registro.obtener(meta.id);
+        if (!Clase || !Clase.admiteColocacion) return null;
+        try {
+            if (resultado.colocacion) {
+                this.progreso.guardarGradoContenido(meta.id, resultado.gradoContenido);
+                return null;
+            }
+            const perfil = this.progreso.perfilActivo();
+            const { gradoMin, gradoMax } = this.escaleraDe(Clase, perfil);
+            const actual = this.progreso.obtenerGradoContenido(meta.id) ?? gradoMax;
+            const { grado, cambio } = ajustarGradoContenido({ grado: actual, gradoMin, gradoMax, resultado });
+            if (cambio) {
+                this.progreso.guardarGradoContenido(meta.id, grado);
+                this.progreso.reiniciarHabilidades(meta.id); // los niveles por habilidad eran del grado anterior
+            }
+            return cambio;
+        } catch (error) {
+            console.error('No se pudo actualizar el grado de contenido:', error);
+            return null;
+        }
+    }
+
+    /** Fiesta al terminar: confeti con 2–3 estrellas, destello por cada pegatina y fanfarria si hubo estrellas. */
+    celebrar(estrellas, pegatinas) {
+        if (estrellas >= 2) this.vista.confeti(estrellas === 3 ? 60 : 36);
+        if (pegatinas > 0) this.audio.reproducirEfecto('estrella');
+        if (estrellas > 0 && this.musica) this.musica.fanfarria();
     }
 
     /** Destruye el juego en curso (si lo hay). Es seguro llamarlo siempre. */
@@ -324,11 +543,40 @@ export class Portal {
             grado: perfil.grado,
             estrellas: Object.values(perfil.juegos).reduce((s, j) => s + j.mejorEstrellas, 0),
             juegos: Object.entries(perfil.juegos).map(([id, j]) => ({
-                id, nombre: this.nombreJuego(id), ...j
+                id, nombre: this.nombreJuego(id), contenido: perfil.contenido[id] ?? null, ...j
             })),
             habilidades: this.filasHabilidades(perfil)
         }));
-        return { perfiles, ajustes: this.progreso.ajustes(), activoId: activo ? activo.id : null };
+        return { perfiles, errores: this.erroresDelGrupo(), ajustes: this.progreso.ajustes(), activoId: activo ? activo.id : null };
+    }
+
+    /** Filas {juego, habilidad, tipo, veces} de las equivocaciones de un perfil (de más a menos frecuentes). */
+    filasErrores(perfil) {
+        const filas = [];
+        for (const [juegoId, porHabilidad] of Object.entries(perfil.errores || {})) {
+            for (const [habilidad, porTipo] of Object.entries(porHabilidad)) {
+                for (const [tipo, veces] of Object.entries(porTipo)) filas.push({ juego: this.nombreJuego(juegoId), habilidad, tipo, veces });
+            }
+        }
+        return filas.sort((a, b) => b.veces - a.veces);
+    }
+
+    /**
+     * Lo que más confunde el GRUPO: las mismas equivocaciones de todos los niños sumadas, con cuántos niños la cometen.
+     * Es dato de enseñanza: dice QUÉ confunden (no solo cuánto fallan) para dirigir la clase.
+     */
+    erroresDelGrupo(limite = 12) {
+        const grupo = new Map();
+        for (const perfil of this.progreso.listarPerfiles()) {
+            for (const f of this.filasErrores(perfil)) {
+                const clave = `${f.juego}\u0000${f.habilidad}\u0000${f.tipo}`;
+                const previo = grupo.get(clave) || { ...f, veces: 0, ninos: 0 };
+                previo.veces += f.veces;
+                previo.ninos += 1;
+                grupo.set(clave, previo);
+            }
+        }
+        return [...grupo.values()].sort((a, b) => b.veces - a.veces || b.ninos - a.ninos).slice(0, limite);
     }
 
     filasHabilidades(perfil) {
@@ -354,6 +602,12 @@ export class Portal {
         this.irAModoMaestro();
     }
 
+    /** Modo maestro: el niño vuelve a hacer la misión de inicio (conserva sus estrellas). */
+    repetirMision(id) {
+        this.progreso.reiniciarColocacion(id);
+        this.irAModoMaestro();
+    }
+
     reiniciarTodo() {
         this.progreso.reiniciarTodo();
         this.verTodos = false;
@@ -372,11 +626,19 @@ export class Portal {
             for (const [id, j] of Object.entries(perfil.juegos)) {
                 filas.push([
                     perfil.apodo, perfil.grado, this.nombreJuego(id), j.partidas, j.mejorPuntaje, j.mejorEstrellas,
-                    j.ultimaPartida ? new Date(j.ultimaPartida).toISOString() : ''
+                    j.ultimaPartida ? new Date(j.ultimaPartida).toISOString() : '', perfil.contenido[id] ?? ''
                 ]);
             }
         }
-        return aCSV(['jugador', 'grado', 'juego', 'partidas', 'mejor_puntaje', 'mejores_estrellas', 'ultima_partida'], filas);
+        return aCSV(['jugador', 'grado', 'juego', 'partidas', 'mejor_puntaje', 'mejores_estrellas', 'ultima_partida', 'grado_contenido'], filas);
+    }
+
+    csvErrores() {
+        const filas = [];
+        for (const perfil of this.progreso.listarPerfiles()) {
+            for (const f of this.filasErrores(perfil)) filas.push([perfil.apodo, perfil.grado, f.juego, f.habilidad, f.tipo, f.veces]);
+        }
+        return aCSV(['jugador', 'grado', 'juego', 'habilidad', 'equivocacion', 'veces'], filas);
     }
 
     csvHabilidades() {

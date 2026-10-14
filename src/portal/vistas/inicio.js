@@ -39,7 +39,9 @@ export function pantallaInicio({ perfil, estrellas: total, juegos, verTodos, tot
                 h('p', { class: 'saludo__datos' },
                     h('span', { class: 'chip' }, textoGrado(perfil.grado)),
                     h('span', { class: 'chip chip--estrellas' }, estrellas(total > 0 ? 1 : 0, { max: 1 }), `${total} ${total === 1 ? 'estrella' : 'estrellas'}`))),
-            h('button', { class: 'boton boton--secundario saludo__cambiar', type: 'button', onClick: () => portal.cerrarSesion() }, 'Cambiar de jugador')),
+            h('div', { class: 'saludo__botones' },
+                h('button', { class: 'boton boton--primario boton--chico', type: 'button', onClick: () => portal.irAAlbum() }, 'Mi álbum'),
+                h('button', { class: 'boton boton--secundario saludo__cambiar', type: 'button', onClick: () => portal.cerrarSesion() }, 'Cambiar de jugador'))),
         h('h2', {}, verTodos ? 'Todos los juegos' : `Juegos para ${textoGrado(perfil.grado)}`),
         juegos.length > 0
             ? h('ul', { class: 'rejilla-juegos' }, juegos.map((j) => tarjetaJuego(j, portal)))

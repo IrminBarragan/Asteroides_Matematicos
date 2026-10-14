@@ -13,19 +13,23 @@ export const RADIO_MAX = 44;
 const VELOCIDAD_POR_GRADO = [0.55, 0.6, 0.7, 0.8, 0.9, 1.0];
 const FACTOR_POR_NIVEL = [0.85, 1, 1.15];
 
-export function velocidadBase(grado, nivel) {
+/** Con el «modo tranquilo» los asteroides van al 60 % de la velocidad: más tiempo para pensar, sin presión. */
+export const FACTOR_TRANQUILO = 0.6;
+
+export function velocidadBase(grado, nivel, tranquilo = false) {
     const g = Math.min(Math.max(grado, 1), 6);
     const n = Math.min(Math.max(nivel, 1), 3);
-    return VELOCIDAD_POR_GRADO[g - 1] * FACTOR_POR_NIVEL[n - 1];
+    return VELOCIDAD_POR_GRADO[g - 1] * FACTOR_POR_NIVEL[n - 1] * (tranquilo ? FACTOR_TRANQUILO : 1);
 }
 
 /**
  * Cuántos asteroides (respuestas) aparecen. Pocos al inicio: más asteroides no es más aprendizaje,
  * es más ruido. Máximo 5 para que cada número se lea bien y quepa en la pantalla de un celular.
  */
-export function cantidadAsteroides(grado, nivel) {
+export function cantidadAsteroides(grado, nivel, tranquilo = false) {
     const base = grado <= 2 ? 3 : 4;
-    return Math.min(base + (nivel >= 3 ? 1 : 0), 5);
+    const normal = Math.min(base + (nivel >= 3 ? 1 : 0), 5);
+    return tranquilo ? Math.max(3, normal - 1) : normal; // con 3 opciones aún hay sentido de elegir
 }
 
 /**

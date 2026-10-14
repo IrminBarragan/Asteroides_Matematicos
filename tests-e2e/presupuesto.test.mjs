@@ -21,9 +21,12 @@ function tamanoTotal(dir) {
     }, 0);
 }
 
-test('app.js comprimido pesa menos de 80 KB', opciones, () => {
+// Presupuesto: 80 KB hasta la Fase 14; 100 KB desde la Fase 15 (ocho juegos y sus lecciones). Se subió tras MEDIR: con la CPU
+// 6 veces más lenta (una PC de hace muchos años) el portal muestra su primera pantalla en ~0,7 s, y se lee del disco, sin red.
+// Si vuelve a crecer, primero mirar qué módulo pesa (esbuild metafile) y recién después subir el límite.
+test('app.js comprimido pesa menos de 100 KB', opciones, () => {
     const gz = gzipSync(readFileSync(path.join(dist, 'app.js'))).length;
-    assert.ok(gz < 80 * KB, `app.js gz = ${(gz / KB).toFixed(1)} KB`);
+    assert.ok(gz < 100 * KB, `app.js gz = ${(gz / KB).toFixed(1)} KB`);
 });
 
 test('el CSS comprimido pesa menos de 15 KB', opciones, () => {

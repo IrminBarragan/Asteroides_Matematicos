@@ -1,0 +1,21 @@
+/* ---------- Bloques de valor posicional (componente ui/bloquesValor.js) ---------- */
+.bloques-valor { display: flex; flex-direction: column; align-items: center; gap: .7rem; width: 100%; }
+.bloques-valor__columnas { display: flex; flex-wrap: nowrap; justify-content: center; gap: clamp(.4rem, 2vw, 1rem); width: 100%; }
+.bloques-valor__columna { flex: 1 1 0; max-width: 210px; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .5rem .3rem; background: #fff; border: 3px solid #1e3a8a; border-radius: 14px; }
+.bloques-valor__columna--llena { border-color: #dc2626; background: #fef2f2; }
+.bloques-valor__nombre { margin: 0; font: 700 clamp(.7rem, 2.4vw, .95rem) var(--fuente-titulo); color: var(--texto-suave); text-align: center; min-height: 2.3em; display: flex; align-items: center; }
+.bloques-valor__piezas { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 3px; min-height: 86px; width: 100%; }
+.bloques-valor__pieza { display: block; background: #2563eb; border: 2px solid #1e3a8a; }
+.bloques-valor__pieza--0 { width: 14px; height: 14px; border-radius: 3px; }
+.bloques-valor__pieza--1 { width: 14px; height: 40px; border-radius: 3px; background: #16a34a; border-color: #14532d; }
+.bloques-valor__pieza--2 { width: 34px; height: 34px; border-radius: 4px; background: #f97316; border-color: #9a3412; }
+.bloques-valor__pieza--3 { width: 38px; height: 38px; border-radius: 8px; background: #9333ea; border-color: #581c87; box-shadow: 3px 3px 0 #581c87; }
+.bloques-valor__pieza--quitada { background: #e5e7eb; border-color: #9ca3af; border-style: dashed; opacity: .75; }
+.bloques-valor__numero { font: 700 1.5rem var(--fuente-titulo); }
+.bloques-valor__controles { display: flex; flex-direction: column; gap: .3rem; width: 100%; }
+.bloques-valor__boton { min-height: 2.6rem; width: 100%; padding: .2rem .4rem; font-weight: 700; }
+.bloques-valor__cambio { border-color: #dc2626; }
+.bloques-valor__boton:disabled { opacity: .45; }
+.bloques-valor__resumen { margin: 0; font-weight: 600; color: var(--texto-suave); text-align: center; overflow-wrap: anywhere; }
+.bloques-valor__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+

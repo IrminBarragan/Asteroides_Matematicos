@@ -1,0 +1,47 @@
+/* ---------- Juegos con material ---------- */
+.juego-material { max-width: 860px; margin: 0 auto; text-align: center; }
+.juego-material__hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem; font-weight: 600; min-height: 2rem; }
+.juego-material__dato { background: #dbeafe; border-radius: 999px; padding: .1rem .9rem; font-size: .95rem; }
+.juego-material__dato--apoyo { background: #fef3c7; }
+.juego-material__dato:empty { display: none; }
+.juego-material__barra { display: flex; justify-content: center; gap: 6px; margin: .5rem 0; }
+.juego-material__ficha { width: 22px; height: 22px; border-radius: 50%; background: #cbd5e1; transition: background .2s ease; }
+.juego-material__ficha--lista { background: var(--c-matematicas); }
+.juego-material__enunciado { margin: .5rem 0 .4rem; font: 600 clamp(1.35rem, 3.4vw, 2rem) var(--fuente-titulo); min-height: 2.4rem; }
+.juego-material__consigna { margin: 0 0 .6rem; font-weight: 600; color: var(--texto-suave); min-height: 1.4rem; }
+.juego-material__consigna[hidden] { display: none; }
+.juego-material__material { display: flex; flex-direction: column; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.juego-material__material [hidden] { display: none; }
+.juego-material__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; }
+.juego-material__opcion { min-width: 8rem; min-height: 4rem; padding: .4rem 1.2rem; font: 700 1.5rem var(--fuente-titulo); color: var(--texto); background: #fff; border: 4px solid var(--c-matematicas); border-radius: 18px; cursor: pointer; transition: transform .12s ease, background .12s ease; }
+.juego-material__opcion:hover:not([aria-disabled="true"]) { background: #eff6ff; transform: translateY(-2px); }
+.juego-material__opcion[aria-disabled="true"] { cursor: default; }
+.juego-material__opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }
+.juego-material__opcion--incorrecta { background: #f3f4f6; border-color: #9ca3af; color: #6b7280; opacity: .7; }
+.juego-material__pie { min-height: 4.2rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-top: 1rem; }
+.juego-material__mensaje { margin: 0; font-weight: 600; font-size: 1rem; color: var(--texto-suave); max-width: 760px; }
+.juego-material__mensaje--bien { color: var(--exito); }
+.juego-material__mensaje--pista { color: #9a3412; }
+.juego-material__pie [hidden] { display: none; }
+@media (max-width: 600px) { .juego-material__opcion { min-width: 6.5rem; font-size: 1.25rem; } }
+
+/* ---------- Grupos de objetos y cuadrícula (ui/gruposObjetos.js, ui/cuadricula.js; los usa Cajas y Reparto) ---------- */
+.grupos-obj { display: flex; flex-direction: column; align-items: center; gap: .7rem; width: 100%; }
+.grupos-obj__grupos { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; width: 100%; }
+.grupos-obj__grupo { flex: 0 1 138px; min-width: 100px; display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .5rem .4rem; background: #fff; border: 3px solid #1e3a8a; border-radius: 14px; }
+.grupos-obj__nombre { margin: 0; font: 700 .9rem var(--fuente-titulo); color: var(--texto-suave); }
+.grupos-obj__piezas { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 4px; min-height: 52px; width: 100%; }
+.grupos-obj__pieza { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0, 0, 0, .35); }
+.grupos-obj__pieza--monton { background: #f59e0b; }
+.grupos-obj__numero { font: 700 1.5rem var(--fuente-titulo); }
+.grupos-obj__controles { display: flex; gap: .3rem; width: 100%; }
+.grupos-obj__boton { flex: 1; min-height: 2.6rem; padding: .2rem .2rem; font-weight: 700; font-size: .85rem; }
+.grupos-obj__monton { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .5rem 1rem; background: #fef3c7; border: 3px dashed #d97706; border-radius: 14px; max-width: 100%; }
+.grupos-obj__monton-titulo { margin: 0; font-weight: 700; }
+.grupos-obj__resumen, .cuadricula__resumen { margin: 0; font-weight: 600; color: var(--texto-suave); text-align: center; overflow-wrap: anywhere; }
+.grupos-obj__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+
+.cuadricula { --lado-cuadro: clamp(18px, 5vw, 30px); display: flex; flex-direction: column; align-items: center; gap: .6rem; width: 100%; }
+.cuadricula__rejilla { display: grid; gap: 3px; padding: 6px; background: #fff; border: 3px solid #1e3a8a; border-radius: 10px; min-width: 40px; min-height: 40px; max-width: 100%; overflow: hidden; }
+.cuadricula__cuadro { display: block; width: var(--lado-cuadro); height: var(--lado-cuadro); background: #60a5fa; border: 2px solid #1e3a8a; border-radius: 4px; }
+.cuadricula__controles { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }

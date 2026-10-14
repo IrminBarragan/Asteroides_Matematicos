@@ -5,6 +5,8 @@
 import { Progreso } from './core/storage.js';
 import { GestorAudio } from './core/gestorAudio.js';
 import { Voz } from './core/voz.js';
+import { Musica } from './core/musica.js';
+import { pareceEquipoLento } from './ui/movimiento.js';
 import { RegistroJuegos } from './core/registro.js';
 import { Portal } from './portal/portal.js';
 import { VistaPortal } from './portal/vista.js';
@@ -13,6 +15,9 @@ import { JuegoMemorama } from './games/memorama/juego.js';
 import { JuegoOrtografia } from './games/ortografia/juego.js';
 import { JuegoReloj } from './games/reloj/juego.js';
 import { JuegoFracciones } from './games/fracciones/juego.js';
+import { JuegoCalculo } from './games/calculo/juego.js';
+import { JuegoBloques } from './games/bloques/juego.js';
+import { JuegoCajas } from './games/cajas/juego.js';
 
 function arrancar() {
     const registro = new RegistroJuegos()
@@ -20,14 +25,21 @@ function arrancar() {
         .registrar(JuegoMemorama)
         .registrar(JuegoOrtografia)
         .registrar(JuegoReloj)
-        .registrar(JuegoFracciones);
+        .registrar(JuegoFracciones)
+        .registrar(JuegoCalculo)
+        .registrar(JuegoBloques)
+        .registrar(JuegoCajas);
 
     const vista = new VistaPortal(document.getElementById('app'));
+    const audio = new GestorAudio();
+    const musica = new Musica(audio);
     const portal = new Portal({
         registro,
         progreso: new Progreso(),
-        audio: new GestorAudio(),
+        audio,
         voz: new Voz(),
+        musica,
+        equipoLento: pareceEquipoLento(),
         vista
     });
     vista.conectar(portal);
@@ -41,6 +53,8 @@ function arrancar() {
     // Si la pestaña queda oculta, la partida se pausa sola
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && portal.pantalla === 'jugando') portal.pausarJuego();
+        // La música no suena con la pestaña oculta
+        if (document.hidden) musica.pausar(); else if (portal.pantalla !== 'jugando' || !portal.pausado) musica.reanudar();
     });
     // Un error inesperado no debe dejar al niño con una pantalla rota sin explicación
     window.addEventListener('error', (e) => {

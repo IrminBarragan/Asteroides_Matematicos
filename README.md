@@ -1,9 +1,11 @@
 # Portal de Juegos Educativos para Primaria
 
-Videojuegos educativos para niños de 1° a 6° de primaria. Empezó como *Asteroides Matemáticos* y está
-creciendo a un portal con varios juegos. Funciona **sin internet** y se abre con doble clic.
+Videojuegos educativos para niños de 1° a 6° de primaria. Empezó como *Asteroides Matemáticos* y hoy es un portal
+con **ocho juegos** que **enseñan** (no solo evalúan): el sistema detecta por dónde debe empezar cada niño, le ofrece
+material para manipular (marcos, recta, bloques, cajas, platos) y **retira la ayuda** cuando ya no la necesita.
+Funciona **sin internet** y se abre con doble clic. **Versión 0.2.0** ([`CHANGELOG.md`](CHANGELOG.md)).
 
-Plan completo y estado de las fases: [`docs/PLAN.md`](docs/PLAN.md).
+Plan inicial: [`docs/PLAN.md`](docs/PLAN.md). Plan de la v0.2 (enseñar, música y color, juegos nuevos): [`docs/PLAN-V2.md`](docs/PLAN-V2.md).
 
 ## Uso rápido
 
@@ -26,6 +28,7 @@ Después abre `dist/index.html` con doble clic. La carpeta `dist/` es autoconten
 
 - **Para la escuela:** [`docs/MANUAL-MAESTRO.md`](docs/MANUAL-MAESTRO.md) y el `LEEME.txt` que va dentro del ZIP (`pnpm empaquetar`).
 - **Para presentar:** [`docs/GUION-DEMO.md`](docs/GUION-DEMO.md) (guion y checklist) y [`docs/GUIA-DEFENSA.md`](docs/GUIA-DEFENSA.md) (preguntas del jurado y cómo razonarlas).
+- **Segunda prueba con niños:** [`docs/PROTOCOLO-SEGUNDA-PRUEBA.md`](docs/PROTOCOLO-SEGUNDA-PRUEBA.md) (una hoja: qué mirar, qué anotar, cómo decidir) y [`docs/REVISION-DOCENTE.md`](docs/REVISION-DOCENTE.md) (qué debe revisar una maestra o maestro antes).
 - **Pruebas:** [`docs/PRUEBAS.md`](docs/PRUEBAS.md).
 - **Publicar en GitHub Pages:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) (Actions: `.github/workflows/`).
 

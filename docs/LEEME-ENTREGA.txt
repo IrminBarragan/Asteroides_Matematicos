@@ -2,8 +2,15 @@ PORTAL DE JUEGOS EDUCATIVOS PARA PRIMARIA  (versión {{VERSION}})
 ================================================================
 
 QUÉ ES
-  Cinco juegos educativos para niños de 1.º a 6.º de primaria.
+  Ocho juegos educativos para niños de 1.º a 6.º de primaria que ENSEÑAN, no solo evalúan:
+  cada niño empieza por donde le toca, tiene material para manipular (fichas, recta, bloques,
+  cajas, platos) y la ayuda se retira sola cuando ya no la necesita.
   Funciona SIN INTERNET: no instala nada ni necesita servidor.
+
+JUEGOS
+  Asteroides Matemáticos · Memorama de Palabras · Reloj Aventurero · Atrapa la Ortografía ·
+  Tren de Fracciones · Taller de Cálculo (sumas y restas) · Bloques de Valor (valor posicional,
+  llevadas y préstamos) · Cajas y Reparto (multiplicar y dividir).
 
 CÓMO USARLO
   1. Extrae esta carpeta completa en la computadora (no abras el ZIP directamente).
@@ -28,8 +35,15 @@ EL PROGRESO DE LOS NIÑOS
 MODO MAESTRO
   Botón «Modo maestro» al pie de la pantalla «¿Quién juega?».
   Pide un PIN (el de fábrica es 2468; quien instaló el portal puede cambiarlo).
-  Ahí se ve el progreso de cada niño, se descargan archivos CSV (abren en Excel)
-  y se puede borrar a un jugador o todo el progreso.
+  Ahí se ve el progreso de cada niño y, arriba, «Lo que más confunden»: las equivocaciones
+  más repetidas de todo el grupo (por ejemplo «olvidó la llevada»), para dirigir la clase.
+  Se descargan archivos CSV (abren en Excel): progreso, habilidades y equivocaciones.
+  También se puede repetir la misión de inicio de un niño o borrar a un jugador.
+
+MÚSICA Y VOZ
+  La música viene APAGADA (con bocinas, 30 equipos con música son mucho ruido): se permite
+  en el Modo maestro. Antes de usarlas con los niños, prueba en una computadora de la escuela
+  la música y el botón «Escuchar».
 
 SI ALGO FALLA
   - La pantalla se queda en blanco: actualiza la página (F5) y comprueba que

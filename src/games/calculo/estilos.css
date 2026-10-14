@@ -1,0 +1,36 @@
+/* ---------- Material (componentes ui/marcosDiez.js y ui/rectaInteractiva.js) ---------- */
+.marcos { display: flex; flex-direction: column; align-items: center; gap: .7rem; }
+.marcos__marcos { display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem; }
+.marcos__marco { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; padding: 6px; background: #fff; border: 3px solid #1e3a8a; border-radius: 10px; }
+.marcos__casilla { width: clamp(38px, 9vw, 52px); height: clamp(38px, 9vw, 52px); padding: 0; border: 2px dashed #94a3b8; border-radius: 50%; background: #f8fafc; position: relative; }
+button.marcos__casilla:not(:disabled) { cursor: pointer; }
+.marcos__casilla--a { background: #2563eb; border: 2px solid #1e3a8a; }
+.marcos__casilla--b { background: #f97316; border: 2px solid #9a3412; }
+.marcos__casilla--b::after { content: ""; position: absolute; inset: 32%; border-radius: 50%; background: #fff; }
+.marcos__casilla--tachada { background: #e5e7eb; border: 2px solid #6b7280; }
+.marcos__casilla--tachada::after { content: "✕"; position: absolute; inset: 0; display: grid; place-items: center; font: 700 1.4rem var(--fuente-titulo); color: #b91c1c; }
+.marcos__casilla:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 2px; }
+.marcos__controles { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.marcos__poner--a { border-color: #2563eb; }
+.marcos__poner--b { border-color: #f97316; }
+.marcos__contador { margin: 0; font-weight: 600; color: var(--texto-suave); }
+
+.recta-int { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+.recta-int__dibujo { width: min(100%, 640px); height: auto; }
+.recta-int__linea { stroke: #1e3a8a; stroke-width: 4; stroke-linecap: round; }
+.recta-int__marca { stroke: #1e3a8a; stroke-width: 3; }
+.recta-int__arco { fill: none; stroke-width: 4; stroke-linecap: round; }
+.recta-int__arco--avanza { stroke: #16a34a; }
+.recta-int__arco--retrocede { stroke: #dc2626; stroke-dasharray: 8 6; }
+.recta-int__rotulo { font: 600 24px var(--fuente-titulo); fill: #1f2937; }
+.recta-int__rotulo--ahora { fill: #1d4ed8; font-weight: 700; }
+.recta-int__ficha { fill: #f59e0b; stroke: #92400e; stroke-width: 3; }
+.recta-int__posicion { margin: 0; font: 700 1.3rem var(--fuente-titulo); }
+.recta-int__cadena { margin: 0; font-weight: 600; color: var(--texto-suave); max-width: 640px; overflow-wrap: anywhere; }
+.recta-int__fila { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.recta-int__salto { min-width: 4.2rem; min-height: 3rem; padding: .2rem .8rem; font: 700 1.2rem var(--fuente-titulo); background: #fff; border: 3px solid #16a34a; border-radius: 14px; cursor: pointer; }
+.recta-int__fila--retrocede .recta-int__salto { border-color: #dc2626; }
+.recta-int__salto:disabled { opacity: .5; cursor: default; }
+.recta-int__salto:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 2px; }
+.recta-int__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+

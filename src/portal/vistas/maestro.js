@@ -41,27 +41,62 @@ function tabla(titulo, encabezados, filas) {
             h('tbody', {}, filas.map((fila) => h('tr', {}, fila.map((c) => h('td', {}, String(c))))))));
 }
 
-export function pantallaMaestro({ perfiles }, portal, ctx) {
+const VOLUMENES = [['Bajo', 0.15], ['Medio', 0.3], ['Alto', 0.5]];
+
+/** Ajustes del equipo (los decide la maestra): música y modo ligero. */
+function panelAjustes({ ajustes }, portal) {
+    const interruptor = (texto, ayuda, activo, alCambiar, nombreAccesible) => h('div', { class: 'ajuste' },
+        h('div', { class: 'ajuste__texto' }, h('p', { class: 'ajuste__titulo' }, texto), h('p', { class: 'ajuste__ayuda' }, ayuda)),
+        h('button', {
+            class: `boton boton--chico ${activo ? 'boton--primario' : 'boton--secundario'}`, type: 'button',
+            role: 'switch', 'aria-checked': String(activo), 'aria-label': nombreAccesible, onClick: alCambiar
+        }, activo ? 'Sí' : 'No'));
+    return h('section', { class: 'ajustes-equipo', 'aria-labelledby': 'ajustes-titulo' },
+        h('h2', { id: 'ajustes-titulo' }, 'Ajustes de este equipo'),
+        interruptor('Música de fondo', 'Apagada de fábrica: con bocinas en el aula, 30 equipos con música son mucho ruido. Si la activas, cada niño podrá apagarla con su botón.', ajustes.musicaPermitida, () => portal.permitirMusica(!ajustes.musicaPermitida), 'Permitir música en este equipo'),
+        ajustes.musicaPermitida && h('div', { class: 'ajuste' },
+            h('div', { class: 'ajuste__texto' }, h('p', { class: 'ajuste__titulo' }, 'Volumen de la música'), h('p', { class: 'ajuste__ayuda' }, 'Empieza bajo a propósito.')),
+            h('div', { class: 'ajuste__opciones', role: 'group', 'aria-label': 'Volumen de la música' }, VOLUMENES.map(([nombre, valor]) => h('button', {
+                class: `boton boton--chico ${Math.abs(ajustes.volumenMusica - valor) < 0.01 ? 'boton--primario' : 'boton--secundario'}`, type: 'button',
+                'aria-pressed': String(Math.abs(ajustes.volumenMusica - valor) < 0.01), onClick: () => portal.establecerVolumenMusica(valor)
+            }, nombre)))),
+        interruptor('Modo ligero', 'Quita los fondos animados, el confeti y los saltos de la mascota. Úsalo en computadoras lentas o si el movimiento distrae.', ajustes.modoLigero, () => portal.alternarModoLigero(), 'Modo ligero'));
+}
+
+export function pantallaMaestro({ perfiles, errores = [], ajustes }, portal, ctx) {
     const tarjetas = perfiles.map((p) => h('article', { class: 'perfil-maestro' },
         h('header', { class: 'perfil-maestro__cabecera' },
             avatar(p.avatar, 'avatar avatar--media'),
             h('div', {}, h('h3', {}, p.apodo), h('p', {}, `${textoGrado(p.grado)} · ${p.estrellas} ${p.estrellas === 1 ? 'estrella' : 'estrellas'}`)),
-            h('button', {
-                class: 'boton boton--peligro boton--chico', type: 'button',
-                'aria-label': `Eliminar a ${p.apodo}`, onClick: () => ctx.confirmarEliminar(p)
-            }, 'Eliminar')),
+            h('div', { class: 'perfil-maestro__acciones' },
+                h('button', {
+                    class: 'boton boton--secundario boton--chico', type: 'button',
+                    'aria-label': `Repetir la misión de inicio de ${p.apodo}`, title: 'El sistema vuelve a buscar por dónde debe empezar (conserva sus estrellas)',
+                    onClick: () => portal.repetirMision(p.id)
+                }, 'Repetir misión'),
+                h('button', {
+                    class: 'boton boton--peligro boton--chico', type: 'button',
+                    'aria-label': `Eliminar a ${p.apodo}`, onClick: () => ctx.confirmarEliminar(p)
+                }, 'Eliminar'))),
         p.juegos.length > 0
-            ? tabla(`Juegos de ${p.apodo}`, ['Juego', 'Partidas', 'Mejor puntaje', 'Mejores estrellas'],
-                p.juegos.map((j) => [j.nombre, j.partidas, j.mejorPuntaje, j.mejorEstrellas]))
+            ? tabla(`Juegos de ${p.apodo}`, ['Juego', 'Partidas', 'Mejor puntaje', 'Mejores estrellas', 'Contenido que le toca'],
+                p.juegos.map((j) => [j.nombre, j.partidas, j.mejorPuntaje, j.mejorEstrellas, j.contenido === null ? '—' : `${j.contenido}.º`]))
             : h('p', { class: 'vacio' }, 'Aún no ha jugado.'),
         p.habilidades.length > 0 && tabla(`Habilidades de ${p.apodo}`, ['Juego', 'Habilidad', 'Nivel', 'Intentos', 'Aciertos', 'Dominio reciente'],
             p.habilidades.map((f) => [f.juego, f.habilidad, f.nivel, f.intentos, f.aciertos, porcentaje(f.dominioReciente)]))));
 
     return h('section', { class: 'pantalla' },
         h('h1', { tabindex: '-1', 'data-foco': true }, 'Modo maestro'),
+        panelAjustes({ ajustes }, portal),
+        errores.length > 0 && h('section', { class: 'maestro-errores' },
+            h('h2', {}, 'Lo que más confunden'),
+            h('p', { class: 'maestro-errores__nota' }, 'Las equivocaciones más repetidas de todo el grupo. Dicen qué confunden, no solo cuánto fallan: sirven para dirigir la clase.'),
+            tabla('Equivocaciones más frecuentes del grupo', ['Juego', 'Habilidad', 'Equivocación', 'Veces', 'Niños'],
+                errores.map((e) => [e.juego, e.habilidad, e.tipo, e.veces, e.ninos]))),
         h('div', { class: 'acciones' },
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('progreso.csv', portal.csvProgreso()) }, 'Descargar progreso (CSV)'),
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('habilidades.csv', portal.csvHabilidades()) }, 'Descargar habilidades (CSV)'),
+            h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('equivocaciones.csv', portal.csvErrores()) }, 'Descargar equivocaciones (CSV)'),
             h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => portal.salirDeModoMaestro() }, 'Salir')),
         perfiles.length > 0 ? tarjetas : h('p', { class: 'vacio' }, 'No hay jugadores en este equipo.'),
         h('div', { class: 'zona-peligro' },

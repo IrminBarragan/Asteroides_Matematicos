@@ -1,6 +1,7 @@
 # Plan: Portal de Juegos Educativos (1° a 6° de primaria)
 
 > Este documento es el plan vivo del proyecto. Se actualiza al cerrar cada fase.
+> **Versión 0.2** (dificultad, música, juegos que enseñan): ver [`PLAN-V2.md`](PLAN-V2.md).
 
 ## 1. Principios
 

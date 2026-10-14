@@ -4,11 +4,18 @@
  */
 import { h, vaciar } from '../ui/dom.js';
 import { confirmarModal, mostrarAviso, iconoSonido } from '../ui/componentes.js';
+import { botonMusica } from './vistas/controles.js';
+import { Mascota } from '../ui/mascota.js';
+import { crearFondo } from '../ui/fondo.js';
+import { lanzarConfeti } from '../ui/confeti.js';
+import { animacionesPermitidas } from '../ui/movimiento.js';
+import { mostrarLeccion } from '../ui/leccion.js';
 import { NOMBRE_PORTAL } from './config.js';
 import { pantallaPerfiles, pantallaCrear } from './vistas/perfiles.js';
 import { pantallaInicio } from './vistas/inicio.js';
 import { pantallaJugando, pantallaResultados, pantallaError } from './vistas/partida.js';
 import { pantallaPin, pantallaMaestro } from './vistas/maestro.js';
+import { pantallaAlbum } from './vistas/album.js';
 
 export class VistaPortal {
     /** @param {HTMLElement} raiz  elemento donde vive toda la aplicación */
@@ -21,8 +28,10 @@ export class VistaPortal {
         this.cabecera = h('header', { class: 'cabecera' });
         this.principal = h('main', { class: 'principal', id: 'principal' });
         this.avisos = h('div', { class: 'avisos', role: 'status', 'aria-live': 'polite' });
+        this.mascota = new Mascota();
+        this.ligero = false;
         vaciar(raiz);
-        raiz.append(this.cabecera, this.principal, this.avisos);
+        raiz.append(crearFondo(), this.cabecera, this.principal, this.avisos, this.mascota.elemento);
     }
 
     conectar(portal) {
@@ -35,6 +44,8 @@ export class VistaPortal {
         const portal = this.portal;
         const ctx = this.contexto();
         this.raiz.dataset.pantalla = nombre;
+        // El color del fondo y de la barra depende del área del juego (matemáticas, español…)
+        if (nombre === 'jugando' && datos && datos.meta) this.raiz.dataset.area = datos.meta.area; else delete this.raiz.dataset.area;
         this.dejarDeObservarTexto();
         this.contenedor = null;
         this.capaPausa = null;
@@ -53,6 +64,7 @@ export class VistaPortal {
                 break;
             }
             case 'resultados': nodo = pantallaResultados(datos, portal); break;
+            case 'album': nodo = pantallaAlbum(datos, portal); break;
             case 'maestro-pin': nodo = pantallaPin(datos, portal); break;
             case 'maestro': nodo = pantallaMaestro(datos, portal, ctx); break;
             default: nodo = pantallaError({ mensaje: datos && datos.mensaje ? datos.mensaje : 'Algo salió mal.' }, portal);
@@ -64,6 +76,26 @@ export class VistaPortal {
 
     contenedorJuego() {
         return this.contenedor;
+    }
+
+    /** Ajustes visuales del equipo: en «modo ligero» no hay fondos animados, confeti ni mascota que salta. */
+    aplicarAjustes({ ligero }) {
+        this.ligero = Boolean(ligero);
+        document.documentElement.toggleAttribute('data-ligero', this.ligero);
+    }
+
+    /** La mascota reacciona a un evento del juego (acierto, error, nivel…). */
+    reaccionar(tipo) {
+        this.mascota.reaccionar(tipo);
+    }
+
+    confeti(cantidad) {
+        if (animacionesPermitidas({ ligero: this.ligero })) lanzarConfeti(this.raiz, cantidad);
+    }
+
+    /** Muestra una lección (diálogo) y devuelve cuando el niño la termina o la cierra. */
+    mostrarLeccion(leccion, opciones) {
+        return mostrarLeccion(this.raiz, leccion, opciones);
     }
 
     /** Texto de la pregunta en pantalla: el primer elemento marcado con `data-leer` dentro del juego. */
@@ -91,6 +123,7 @@ export class VistaPortal {
     }
 
     mostrarPausa(activa) {
+        this.mascota.dormir(activa);
         if (!this.capaPausa) return;
         this.capaPausa.hidden = !activa;
         if (activa) {
@@ -120,6 +153,7 @@ export class VistaPortal {
         this.cabecera.append(
             h('a', { class: 'saltar', href: '#principal' }, 'Saltar al contenido'),
             h('p', { class: 'marca' }, NOMBRE_PORTAL),
+            ...(portal.musicaPermitida() ? [botonMusica(portal)] : []), // (append nativo: un `false` se escribiría como texto)
             boton);
     }
 

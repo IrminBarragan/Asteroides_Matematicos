@@ -33,6 +33,7 @@ await build({
 // 2. HTML y CSS. El CSS es el del portal + el de cada juego (src/games/<juego>/estilos.css), en un solo archivo
 await cp(src('index.html'), dist('index.html'));
 let css = await readFile(src('estilos', 'portal.css'), 'utf8');
+css += `\n${await readFile(src('estilos', 'material.css'), 'utf8')}`; // lo común a los juegos con material (ui/juegoConMaterial.js)
 for (const juego of await readdir(src('games'), { withFileTypes: true })) {
     if (!juego.isDirectory()) continue;
     try {

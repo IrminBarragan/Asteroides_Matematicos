@@ -153,7 +153,7 @@ test('terminar una partida guarda el resultado y muestra resultados tras un micr
     assert.equal(datos.estrellasTotales, 3);
     assert.equal(juego.estado, 'destruido', 'el juego terminado debe liberarse');
     assert.equal(portal.juegoActual, null);
-    assert.ok(audio.efectos.includes('nivel'));
+    assert.ok(audio.efectos.includes('victoria'));
 });
 
 test('un resultado sin aciertos (0 estrellas) no suena a celebración', async () => {
@@ -161,7 +161,7 @@ test('un resultado sin aciertos (0 estrellas) no suena a celebración', async ()
     portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
     jugarHastaElFinal(portal, 0);
     await vaciarMicrotasks();
-    assert.ok(!audio.efectos.includes('nivel'));
+    assert.ok(!audio.efectos.includes('victoria'));
 });
 
 test('las habilidades que devuelve el juego se guardan y se entregan en la próxima partida', async () => {
@@ -284,7 +284,7 @@ test('datosMaestro resume perfiles, juegos y habilidades', async () => {
     await vaciarMicrotasks();
     const { perfiles } = portal.datosMaestro();
     assert.equal(perfiles.length, 1);
-    assert.equal(perfiles[0].estrellas, 1);
+    assert.equal(perfiles[0].estrellas, 2); // 2/3 = 67 % → 2 estrellas
     assert.equal(perfiles[0].juegos[0].nombre, 'Juego de Ejemplo');
     assert.deepEqual(perfiles[0].habilidades[0], {
         juego: 'Juego de Ejemplo', habilidad: 'suma', nivel: 2, intentos: 6, aciertos: 5, dominioReciente: 0.75
@@ -341,8 +341,8 @@ test('csvProgreso incluye BOM, encabezados y una fila por juego jugado', async (
     jugarHastaElFinal(portal);
     await vaciarMicrotasks();
     const csv = portal.csvProgreso();
-    assert.ok(csv.startsWith('﻿jugador,grado,juego,partidas,mejor_puntaje,mejores_estrellas,ultima_partida\r\n'));
-    assert.match(csv, /Luisa,3,Juego de Ejemplo,1,30,3,2023-11-14T22:13:20\.000Z\r\n$/);
+    assert.ok(csv.startsWith('﻿jugador,grado,juego,partidas,mejor_puntaje,mejores_estrellas,ultima_partida,grado_contenido\r\n'));
+    assert.match(csv, /Luisa,3,Juego de Ejemplo,1,30,3,2023-11-14T22:13:20\.000Z,\r\n$/);
 });
 
 test('el CSV neutraliza apodos que parecen fórmulas de Excel', async () => {
@@ -424,4 +424,485 @@ test('voz: en pausa no lee, y pausar, salir o terminar callan la voz', async () 
     portal.irAInicio();
     assert.equal(vista.alCambiarTexto, null, 'al salir deja de observar');
     assert.ok(voz.detenciones >= 2);
+});
+
+// ---------- Nivel de contenido decidido por el sistema (misión de inicio y ajuste) ----------
+
+class JuegoAdaptable extends JuegoEjemplo {
+    static admiteColocacion = true;
+    static meta = { ...JuegoEjemplo.meta, id: 'adaptable', nombre: 'Adaptable', grados: [1, 2, 3, 4, 5, 6] };
+    alMontar(contenedor, contexto) { super.alMontar(contenedor, contexto); this.contexto = contexto; }
+}
+class JuegoDeTercero extends JuegoAdaptable {
+    static meta = { ...JuegoAdaptable.meta, id: 'tercero', nombre: 'Solo 3.º a 6.º', grados: [3, 4, 5, 6] };
+}
+
+function crearAdaptable() {
+    const base = crear();
+    const registro = new RegistroJuegos().registrar(JuegoEjemplo).registrar(JuegoAdaptable).registrar(JuegoDeTercero);
+    const portal = new Portal({ registro, progreso: base.progreso, audio: base.audio, vista: base.vista });
+    return { ...base, portal };
+}
+const sexto = { apodo: 'Mateo', avatar: 'perro', grado: 6 };
+const nivelMax = (n) => ({ h: { nivel: n }, k: { nivel: n } });
+const terminar = async (portal, resultado) => { portal.juegoActual.finalizar(resultado); await vaciarMicrotasks(); };
+
+test('contenido: un juego que no admite misión usa el grado escolar del niño', () => {
+    const { portal } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('ejemplo');
+    // JuegoEjemplo solo es de 1.º–3.º y no admite misión: el portal no se mete
+    assert.equal(portal.nivelDeInicio(JuegoEjemplo, { grado: 3 }).colocacion, null);
+    assert.equal(portal.nivelDeInicio(JuegoEjemplo, { grado: 3 }).grado, 3);
+});
+
+test('contenido: la PRIMERA vez se lanza la misión con el rango del juego y se avisa al niño con tono de aventura', () => {
+    const { portal, vista } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('adaptable');
+    const c = portal.juegoActual.contexto;
+    assert.deepEqual(c.colocacion, { gradoMin: 1, gradoMax: 6 });
+    assert.equal(c.habilidades, null, 'la misión no importa niveles guardados');
+    assert.equal(c.gradoEscolar, 6);
+    assert.match(vista.avisos.at(-1).texto, /Misión de inicio/);
+    assert.ok(!/nivel|grado|fácil|difícil/i.test(vista.avisos.at(-1).texto), 'no se le dice al niño en qué nivel está');
+});
+
+test('contenido: el rango respeta el mínimo del juego y el grado del niño', () => {
+    const { portal } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    assert.deepEqual(portal.escaleraDe(JuegoDeTercero, { grado: 6 }), { gradoMin: 3, gradoMax: 6 });
+    assert.deepEqual(portal.escaleraDe(JuegoDeTercero, { grado: 4 }), { gradoMin: 3, gradoMax: 4 });
+    assert.deepEqual(portal.escaleraDe(JuegoAdaptable, { grado: 2 }), { gradoMin: 1, gradoMax: 2 });
+    assert.deepEqual(portal.escaleraDe(JuegoDeTercero, { grado: 1 }), { gradoMin: 3, gradoMax: 3 }, 'nunca un rango invertido');
+});
+
+test('contenido: al terminar la misión se guarda el grado, se avisa en resultados y la siguiente partida ya juega con él', async () => {
+    const { portal, vista, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 1, fallos: 7, recuperadas: 7, tiempoMs: 1, colocacion: true, gradoContenido: 2, habilidades: null });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 2);
+    assert.equal(vista.ultima().nombre, 'resultados');
+    assert.equal(vista.ultima().datos.colocacion, true);
+    assert.equal(vista.ultima().datos.resultado.estrellas, 1, 'esforzarse en la misión da estrella');
+    assert.equal(progreso.obtenerHabilidades('adaptable'), null, 'la misión no guarda niveles');
+
+    portal.iniciarJuego('adaptable');
+    const c = portal.juegoActual.contexto;
+    assert.equal(c.grado, 2, 'a partir de ahora, contenido de 2.º aunque esté en 6.º');
+    assert.equal(c.colocacion, null);
+});
+
+test('contenido: tras una partida muy buena y con las habilidades en el nivel más alto, SUBE un grado y reinicia niveles', async () => {
+    const { portal, vista, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    progreso.guardarGradoContenido('adaptable', 3);
+    portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 10, fallos: 0, recuperadas: 0, tiempoMs: 1, habilidades: nivelMax(3) });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 4);
+    assert.equal(vista.ultima().datos.subioContenido, true);
+    assert.equal(progreso.obtenerHabilidades('adaptable'), null, 'los niveles eran del grado anterior');
+});
+
+test('contenido: tras una partida mala con las habilidades en el nivel más fácil, BAJA un grado sin avisarle al niño', async () => {
+    const { portal, vista, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    progreso.guardarGradoContenido('adaptable', 4);
+    portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 1, fallos: 9, recuperadas: 3, tiempoMs: 1, habilidades: nivelMax(1) });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 3);
+    assert.equal(vista.ultima().datos.subioContenido, false);
+    assert.equal(vista.ultima().datos.resultado.estrellas, 1, 'aun así ganó una estrella por terminar');
+});
+
+test('contenido: una partida normal que no justifica cambio conserva el grado y los niveles', async () => {
+    const { portal, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto);
+    progreso.guardarGradoContenido('adaptable', 4);
+    portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 7, fallos: 3, recuperadas: 1, tiempoMs: 1, habilidades: nivelMax(2) });
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), 4);
+    assert.deepEqual(progreso.obtenerHabilidades('adaptable'), nivelMax(2));
+});
+
+test('contenido: nunca sube por encima del grado del niño ni baja del mínimo del juego', async () => {
+    const { portal, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil({ apodo: 'Luz', avatar: 'gato', grado: 4 });
+    progreso.guardarGradoContenido('tercero', 4);
+    portal.iniciarJuego('tercero');
+    await terminar(portal, { aciertos: 10, fallos: 0, tiempoMs: 1, habilidades: nivelMax(3) });
+    assert.equal(progreso.obtenerGradoContenido('tercero'), 4, 'el tope es su grado (4.º)');
+    progreso.guardarGradoContenido('tercero', 3);
+    portal.irAInicio(); portal.iniciarJuego('tercero');
+    await terminar(portal, { aciertos: 0, fallos: 10, recuperadas: 10, tiempoMs: 1, habilidades: nivelMax(1) });
+    assert.equal(progreso.obtenerGradoContenido('tercero'), 3, 'el mínimo del juego es 3.º');
+});
+
+test('contenido: modo maestro muestra el contenido de cada juego y puede repetir la misión (conserva estrellas)', async () => {
+    const { portal, progreso } = crearAdaptable();
+    portal.iniciar(); portal.crearPerfil(sexto); portal.iniciarJuego('adaptable');
+    await terminar(portal, { aciertos: 5, fallos: 3, recuperadas: 2, tiempoMs: 1, colocacion: true, gradoContenido: 3, habilidades: null });
+    const fila = portal.datosMaestro().perfiles[0].juegos.find((j) => j.id === 'adaptable');
+    assert.equal(fila.contenido, 3);
+    assert.match(portal.csvProgreso(), /,3\r\n$/, 'el CSV trae el grado de contenido');
+    const estrellas = progreso.estrellasTotales();
+    portal.repetirMision(progreso.listarPerfiles()[0].id);
+    assert.equal(progreso.obtenerGradoContenido('adaptable'), null);
+    assert.equal(progreso.estrellasTotales(), estrellas);
+});
+
+// ---------- Enseñanza: lecciones dentro del juego ----------
+
+class JuegoQueEnsena extends JuegoEjemplo {
+    static meta = { ...JuegoEjemplo.meta, id: 'ensena', nombre: 'Ensena', grados: [1, 2, 3, 4, 5, 6] };
+    alMontar(contenedor, contexto) {
+        super.alMontar(contenedor, contexto);
+        // Igual que los juegos reales: pide la introducción de la habilidad MIENTRAS se monta
+        this.intro = contexto.presentarHabilidad('suma', () => ({ titulo: 'Intro', pasos: [{ texto: 'hola' }] }));
+    }
+}
+const leccionDePrueba = { titulo: 'L', pasos: [{ texto: 'paso' }] };
+
+function crearEnsena({ voz = null } = {}) {
+    const base = crear();
+    const registro = new RegistroJuegos().registrar(JuegoQueEnsena).registrar(JuegoEjemplo);
+    const portal = new Portal({ registro, progreso: base.progreso, audio: base.audio, vista: base.vista, voz });
+    return { ...base, portal };
+}
+
+test('enseñanza: la introducción de una habilidad se muestra la PRIMERA vez (omitible) y no después', async () => {
+    const { portal, vista, progreso } = crearEnsena();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ensena');
+    await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 1);
+    assert.equal(vista.lecciones[0].opciones.omitible, true);
+    assert.equal(progreso.leccionesVistas('ensena', 'suma'), 1);
+    portal.irAInicio(); portal.iniciarJuego('ensena');
+    await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 1, 'no se vuelve a mostrar');
+    assert.equal(progreso.leccionesVistas('ensena', 'suma'), 1);
+});
+
+test('enseñanza: saltar la introducción también cuenta como vista (no insiste)', async () => {
+    const { portal, vista, progreso } = crearEnsena();
+    vista.respuestaLeccion = 'cerrada';
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ensena'); await vaciarMicrotasks();
+    portal.irAInicio(); portal.iniciarJuego('ensena'); await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 1);
+    assert.equal(progreso.leccionesVistas('ensena', 'suma'), 1);
+});
+
+test('enseñanza: el juego se pausa mientras la lección está abierta y se reanuda al cerrarla (aunque se pida durante el montaje)', async () => {
+    const { portal, vista } = crearEnsena();
+    let cerrar;
+    vista.mostrarLeccion = () => new Promise((resolver) => { cerrar = resolver; });
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.iniciarJuego('ensena');
+    const juego = portal.juegoActual;
+    assert.equal(juego.estado, 'jugando', 'tras montar el juego está jugando');
+    await vaciarMicrotasks();
+    assert.equal(juego.estado, 'pausado', 'la lección lo pausa');
+    assert.ok(juego.llamadas.includes('pausar'));
+    cerrar('terminada');
+    await vaciarMicrotasks();
+    assert.equal(juego.estado, 'jugando', 'al cerrar la lección sigue jugando');
+    assert.ok(juego.llamadas.includes('reanudar'));
+});
+
+test('enseñanza: si el niño ya había pausado el juego, cerrar la lección NO lo reanuda', async () => {
+    const { portal, vista } = crearEnsena();
+    let cerrar;
+    vista.mostrarLeccion = () => new Promise((resolver) => { cerrar = resolver; });
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    portal.pausarJuego();
+    const promesa = portal.ensenar(leccionDePrueba);
+    await vaciarMicrotasks();
+    cerrar('terminada');
+    await promesa;
+    assert.equal(portal.juegoActual.estado, 'pausado');
+});
+
+test('enseñanza: «Ver cómo se hace» registra la lección y no se abren dos a la vez', async () => {
+    const { portal, vista, progreso } = crearEnsena();
+    let cerrar;
+    vista.mostrarLeccion = () => new Promise((resolver) => { cerrar = resolver; });
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    const pedir = (extra) => portal.ensenar(leccionDePrueba, { registro: extra.habilidad ? () => progreso.registrarLeccion('ejemplo', extra.habilidad) : null });
+    const primera = pedir({ habilidad: 'resta' });
+    await vaciarMicrotasks();
+    assert.equal(await pedir({ habilidad: 'resta' }), 'omitida', 'ya hay una abierta');
+    cerrar('cerrada');
+    assert.equal(await primera, 'cerrada');
+    assert.equal(progreso.leccionesVistas('ejemplo', 'resta'), 1);
+});
+
+test('enseñanza: si el niño sale del juego antes de que se muestre, no se muestra nada ni se rompe', async () => {
+    const { portal, vista } = crearEnsena();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ensena');
+    portal.irAInicio();
+    await vaciarMicrotasks();
+    assert.equal(vista.lecciones.length, 0);
+    assert.equal(portal.enLeccion, false);
+});
+
+test('enseñanza: una lección que no se puede construir se ignora (el juego sigue)', async () => {
+    const { portal, vista } = crearEnsena();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    const silenciar = console.error; console.error = () => {};
+    try {
+        assert.equal(await portal.presentarHabilidad('ejemplo', 'x', () => { throw new Error('boom'); }), 'omitida');
+    } finally { console.error = silenciar; }
+    assert.equal(vista.lecciones.length, 0);
+});
+
+test('enseñanza: con voz disponible la lección recibe la función de leer; sin voz, no', async () => {
+    const voz = { disponible: true, leidos: [], leer(t) { this.leidos.push(t); return true; }, detener() {} };
+    const con = crearEnsena({ voz });
+    con.portal.iniciar(); con.portal.crearPerfil(luisa); con.portal.iniciarJuego('ejemplo');
+    await con.portal.ensenar(leccionDePrueba);
+    con.vista.lecciones[0].opciones.leer('hola');
+    assert.deepEqual(voz.leidos, ['hola']);
+    const sin = crearEnsena();
+    sin.portal.iniciar(); sin.portal.crearPerfil(luisa); sin.portal.iniciarJuego('ejemplo');
+    await sin.portal.ensenar(leccionDePrueba);
+    assert.equal(sin.vista.lecciones[0].opciones.leer, null);
+});
+
+// ---------- Fase 12: música, modo ligero, mascota, confeti y pegatinas ----------
+
+function crearMusicaFalsa() {
+    return {
+        activa: false, volumen: null, reproducidas: [], pausas: 0, reanudaciones: 0, fanfarrias: 0, atenuaciones: 0,
+        establecerActiva(a) { this.activa = a; }, establecerVolumen(v) { this.volumen = v; },
+        reproducir(n) { this.reproducidas.push(n); }, pausar() { this.pausas++; }, reanudar() { this.reanudaciones++; },
+        fanfarria() { this.fanfarrias++; }, atenuar() { this.atenuaciones++; }
+    };
+}
+
+/** Arma TODO aquí (un solo Portal): crear() ya construye uno, y dos portales suscritos al mismo audio duplicarían reacciones. */
+function crearConMusica({ equipoLento = false, voz = null, aleatorio = () => 0.5 } = {}) {
+    const vista = crearVistaFalsa();
+    const audio = crearAudioFalso();
+    const progreso = new Progreso(new AlmacenMemoria(), { ahora: () => 1_700_000_000_000 });
+    const registro = new RegistroJuegos().registrar(JuegoEjemplo).registrar(JuegoGrandes);
+    const musica = crearMusicaFalsa();
+    const portal = new Portal({ registro, progreso, audio, vista, musica, voz, equipoLento, aleatorio });
+    return { portal, vista, audio, progreso, registro, musica };
+}
+
+test('música: por omisión NO suena (la maestra no la permitió) ni se ofrece el botón', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    assert.equal(portal.musicaPermitida(), false);
+    assert.equal(portal.musicaActiva(), false);
+    assert.equal(musica.activa, false);
+    assert.deepEqual(musica.reproducidas, []);
+});
+
+test('música: la maestra la permite con el volumen que elige; suena el menú y, al jugar, la pista del juego', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    portal.establecerVolumenMusica(0.15);
+    assert.equal(musica.activa, true);
+    assert.equal(musica.volumen, 0.15);
+    assert.equal(musica.reproducidas.at(-1), 'menu');
+    portal.iniciarJuego('ejemplo');
+    assert.equal(musica.reproducidas.at(-1), 'juego');
+    portal.irAInicio();
+    assert.equal(musica.reproducidas.at(-1), 'menu');
+});
+
+test('música: pausar el juego la pausa y reanudar la reanuda', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    portal.iniciarJuego('ejemplo');
+    portal.pausarJuego();
+    assert.equal(musica.pausas, 1);
+    portal.reanudarJuego();
+    assert.equal(musica.reanudaciones, 1);
+});
+
+test('música: el niño la apaga y la enciende con su botón (mientras esté permitida)', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    assert.equal(portal.alternarMusica(), false);
+    assert.equal(musica.activa, false);
+    assert.equal(portal.musicaActiva(), false);
+    assert.equal(portal.alternarMusica(), true);
+    assert.equal(musica.activa, true);
+});
+
+test('música: si la maestra la deshabilita, no suena aunque el niño la tuviera encendida', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    assert.equal(musica.activa, true);
+    portal.permitirMusica(false);
+    assert.equal(musica.activa, false);
+    assert.equal(portal.musicaPermitida(), false);
+});
+
+test('música: sin módulo de música (equipo sin audio) todo funciona', () => {
+    const { portal } = crear();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    assert.doesNotThrow(() => { portal.permitirMusica(true); portal.alternarMusica(); portal.iniciarJuego('ejemplo'); portal.pausarJuego(); portal.reanudarJuego(); });
+});
+
+test('música: al hablar (lectura en voz alta) se atenúa un momento para que se entienda', () => {
+    const voz = { disponible: true, leer() { return true; }, detener() {} };
+    const { portal, musica, vista } = crearConMusica({ voz });
+    portal.iniciar(); portal.crearPerfil(luisa);
+    vista.texto = '¿Cuánto es 3/4?';
+    portal.leerPantalla();
+    assert.equal(musica.atenuaciones, 1);
+});
+
+test('modo ligero: lo activa la maestra o el equipo lento; se aplica a la vista al arrancar y al cambiarlo', () => {
+    const { portal, vista } = crearConMusica();
+    portal.iniciar();
+    assert.equal(vista.ligero, false);
+    portal.alternarModoLigero();
+    assert.equal(portal.modoLigero(), true);
+    assert.equal(vista.ligero, true);
+    portal.alternarModoLigero();
+    assert.equal(vista.ligero, false);
+
+    const lento = crearConMusica({ equipoLento: true });
+    lento.portal.iniciar();
+    assert.equal(lento.vista.ligero, true, 'un equipo que parece lento arranca en modo ligero');
+    lento.portal.alternarModoLigero();
+    assert.equal(lento.portal.modoLigero(), true, 'la maestra no puede quitar el ligero a un equipo lento detectado... salvo que sea ella quien lo decida');
+});
+
+test('mascota y confeti: reaccionan a los efectos que piden los juegos (acierto, fallo, nivel)', () => {
+    const { portal, vista, audio } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    audio.reproducirEfecto('acierto');
+    audio.reproducirEfecto('fallo');
+    audio.reproducirEfecto('laser');   // otros efectos no mueven a la mascota
+    audio.reproducirEfecto('nivel');
+    assert.deepEqual(vista.reacciones, ['acierto', 'error', 'nivel']);
+    assert.deepEqual(vista.confetis, [30]);
+});
+
+test('pegatinas: 3 estrellas dan 2, 2 estrellas dan 1, 1 estrella da 1 y esforzarse sin resolver nada, ninguna', async () => {
+    for (const [aciertos, esperadas] of [[3, 2], [2, 1], [1, 1]]) {
+        const { portal, vista, progreso } = crearConMusica({ aleatorio: () => 0.3 });
+        portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+        jugarHastaElFinal(portal, aciertos);
+        await vaciarMicrotasks();
+        assert.equal(vista.ultima().datos.pegatinasNuevas.length, esperadas, `${aciertos} aciertos`);
+        assert.equal(progreso.pegatinas().length, esperadas);
+    }
+    const { portal, vista, progreso } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    portal.juegoActual.finalizar({ aciertos: 0, fallos: 5, recuperadas: 0, tiempoMs: 1 });
+    await vaciarMicrotasks();
+    assert.deepEqual(vista.ultima().datos.pegatinasNuevas, []);
+    assert.deepEqual(progreso.pegatinas(), []);
+});
+
+test('pegatinas: nunca se repiten y al completar el álbum ya no se dan más', async () => {
+    const az = (() => { let i = 0; return () => ((i++ * 7919) % 1000) / 1000; })();
+    const { portal, vista, progreso } = crearConMusica({ aleatorio: az });
+    portal.iniciar(); portal.crearPerfil(luisa);
+    for (let i = 0; i < 20; i++) {
+        portal.iniciarJuego('ejemplo');
+        jugarHastaElFinal(portal, 3);
+        await vaciarMicrotasks();
+    }
+    const lista = progreso.pegatinas();
+    assert.equal(lista.length, 30, '20 partidas × 2 = 40 ≥ 30: álbum completo');
+    assert.equal(new Set(lista).size, 30);
+    assert.deepEqual(vista.ultima().datos.pegatinasNuevas.length <= 2, true);
+    portal.iniciarJuego('ejemplo');
+    jugarHastaElFinal(portal, 3);
+    await vaciarMicrotasks();
+    assert.deepEqual(vista.ultima().datos.pegatinasNuevas, [], 'con el álbum completo no hay más');
+});
+
+test('celebrar: confeti según las estrellas, destello por pegatina y fanfarria si hubo estrellas', async () => {
+    const casos = [[3, 60], [2, 36]];
+    for (const [aciertos, confeti] of casos) {
+        const { portal, vista, audio, musica } = crearConMusica();
+        portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+        jugarHastaElFinal(portal, aciertos);
+        await vaciarMicrotasks();
+        assert.ok(vista.confetis.includes(confeti), `${aciertos} aciertos → ${vista.confetis}`);
+        assert.ok(audio.efectos.includes('estrella'));
+        assert.equal(musica.fanfarrias, 1);
+    }
+    const { portal, vista, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    jugarHastaElFinal(portal, 1);
+    await vaciarMicrotasks();
+    assert.deepEqual(vista.confetis, [], '1 estrella: sin confeti');
+    assert.equal(musica.fanfarrias, 1, 'pero sí fanfarria');
+});
+
+test('álbum: la pantalla recibe lo que el niño ya tiene; sin perfil activo vuelve a «¿Quién juega?»', () => {
+    const { portal, vista, progreso } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    progreso.agregarPegatina(4); progreso.agregarPegatina(9);
+    portal.irAAlbum();
+    assert.equal(vista.ultima().nombre, 'album');
+    assert.deepEqual(vista.ultima().datos.poseidas, [4, 9]);
+    assert.equal(vista.ultima().datos.perfil.apodo, 'Luisa');
+    progreso.cerrarSesion();
+    portal.irAAlbum();
+    assert.equal(vista.ultima().nombre, 'perfiles');
+});
+
+// ---------- Lo que más confunden (Fase 16) ----------
+
+const conErrores = (errores) => ({ aciertos: 1, fallos: 1, tiempoMs: 1, puntaje: 5, estrellas: 1, errores });
+
+test('modo maestro: «lo que más confunden» suma a todo el grupo, cuenta niños y ordena de más a menos', () => {
+    const { portal, progreso } = crear();
+    portal.iniciar();
+    portal.crearPerfil({ apodo: 'Ana', avatar: 'gato', grado: 4 });
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'olvidó la llevada', veces: 3 }, { habilidad: 'resta', tipo: 'restó al revés', veces: 1 }]));
+    portal.crearPerfil({ apodo: 'Beto', avatar: 'perro', grado: 4 });
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'olvidó la llevada', veces: 4 }]));
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'otra equivocación', veces: 2 }]));
+
+    const grupo = portal.erroresDelGrupo();
+    assert.deepEqual(grupo.map((e) => [e.habilidad, e.tipo, e.veces, e.ninos]), [
+        ['suma', 'olvidó la llevada', 7, 2],
+        ['suma', 'otra equivocación', 2, 1],
+        ['resta', 'restó al revés', 1, 1]
+    ]);
+    assert.equal(grupo[0].juego, 'Juego de Ejemplo');
+    assert.equal(portal.erroresDelGrupo(2).length, 2, 'el límite recorta');
+
+    portal.irAModoMaestro();
+    // (la pantalla del maestro recibe `errores` ya calculados)
+});
+
+test('csvErrores: una fila por niño, habilidad y equivocación, con BOM y sin fórmulas de Excel', () => {
+    const { portal, progreso } = crear();
+    portal.iniciar();
+    portal.crearPerfil({ apodo: '=HIPERVINCULO("x")', avatar: 'gato', grado: 5 });
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'tabla', tipo: 'sumó en vez de multiplicar', veces: 6 }]));
+    const csv = portal.csvErrores();
+    assert.ok(csv.startsWith('﻿jugador,grado,juego,habilidad,equivocacion,veces\r\n'));
+    assert.match(csv, /\r\n'=HIPERVINCULO\("x"\)|\r\n"'=HIPERVINCULO/);
+    assert.match(csv, /Juego de Ejemplo,tabla,sumó en vez de multiplicar,6\r\n$/);
+    const vacio = crear().portal;
+    vacio.iniciar();
+    assert.equal(vacio.csvErrores(), '﻿jugador,grado,juego,habilidad,equivocacion,veces\r\n', 'sin equivocaciones, solo los encabezados');
+});
+
+test('el panel del maestro recibe los errores del grupo (y no falla si nadie se ha equivocado)', () => {
+    const { portal, progreso, vista } = crear();
+    portal.iniciar();
+    portal.crearPerfil({ apodo: 'Ana', avatar: 'gato', grado: 4 });
+    portal.irAModoMaestro();
+    assert.deepEqual(vista.ultima().datos.errores, []);
+    progreso.registrarResultado('ejemplo', conErrores([{ habilidad: 'suma', tipo: 'olvidó la llevada', veces: 1 }]));
+    portal.irAModoMaestro();
+    assert.equal(vista.ultima().datos.errores.length, 1);
 });

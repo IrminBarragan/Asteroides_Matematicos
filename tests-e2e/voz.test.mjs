@@ -23,7 +23,8 @@ const sinVoz = () => {
 
 test('con voz: «Escuchar» lee la pregunta y la lectura automática lee las siguientes', opciones, async () => {
     const { pagina, contexto, problemas } = await nuevaPagina(navegador, { antes: conVozFalsa });
-    await crearJugador(pagina, { grado: 5 });
+    // 6.º: la misión de inicio empieza en contenido de 4.º, cuya primera pregunta siempre tiene botones
+    await crearJugador(pagina, { grado: 6 });
     await abrirJuego(pagina, 'Tren de Fracciones');
     const enunciado = () => pagina.textContent('.fracciones-juego__enunciado');
 

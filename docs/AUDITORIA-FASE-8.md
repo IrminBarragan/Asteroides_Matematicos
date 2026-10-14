@@ -34,7 +34,7 @@ La vista (`textoALeer`, `observarTexto`) lee el elemento marcado con `data-leer`
 El contraste se calcula con la fórmula WCAG sobre los `--tokens` reales. Texto ≥ 4.5:1 en todos los pares y botones de color. La prueba **encontró un defecto real**: el anillo de foco ámbar (`#f59e0b`) tenía 2.1:1 sobre blanco (WCAG 2.2 pide 3:1); ahora `#b45309`.
 
 ### 8. Presupuesto de tamaño como prueba
-`app.js` < 80 KB comprimido, CSS < 15 KB, todo `dist/` < 1 MB, sin URLs externas. Si alguien añade una librería pesada o un `<link>` a un CDN, falla antes de llegar a la escuela.
+`app.js` < 80 KB comprimido (100 KB desde la Fase 15, ver [`AUDITORIA-FASE-15.md`](AUDITORIA-FASE-15.md)), CSS < 15 KB, todo `dist/` < 1 MB, sin URLs externas. Si alguien añade una librería pesada o un `<link>` a un CDN, falla antes de llegar a la escuela.
 
 ## Defectos encontrados (en mi propio trabajo) y cómo
 

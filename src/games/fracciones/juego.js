@@ -11,6 +11,7 @@ import { Planificador } from '../../core/planificador.js';
 import { elegir } from '../../core/aleatorio.js';
 import { tiempoDeLectura } from '../../core/lectura.js';
 import { h, vaciar } from '../../ui/dom.js';
+import { crearBotonEnsenar, pedirLeccion, presentarIntro } from '../../ui/ensenanza.js';
 import { figuraFraccion, FiguraPintable, expresionDom, contenidoOpcion } from '../../ui/fraccionSvg.js';
 import { Partida, PREGUNTAS_POR_PARTIDA } from './logica/partida.js';
 import { NOMBRES_HABILIDAD } from './logica/generadores.js';
@@ -18,6 +19,9 @@ import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 const ELOGIOS = ['¡Correcto!', '¡Muy bien!', '¡Excelente!', '¡Genial!', '¡Perfecto!'];
 
 export class JuegoFracciones extends Juego {
+    /** El portal le hace al niño la misión de inicio antes de la primera partida (ver adaptativo/colocacion.js). */
+    static admiteColocacion = true;
+
     static meta = {
         id: 'fracciones',
         nombre: 'Tren de Fracciones',
@@ -43,7 +47,8 @@ export class JuegoFracciones extends Juego {
         this.partida = new Partida({
             grado: contexto.grado || 3,
             habilidadesGuardadas: contexto.habilidades,
-            aleatorio: this.aleatorio
+            aleatorio: this.aleatorio,
+            colocacion: contexto.colocacion
         });
         this.construirInterfaz(contenedor);
 
@@ -78,11 +83,12 @@ export class JuegoFracciones extends Juego {
         this.zonaVisual = h('div', { class: 'fracciones-juego__visual' });
         this.zonaAcciones = h('div', { class: 'fracciones-juego__acciones' });
         this.textoMensaje = h('p', { class: 'fracciones-juego__mensaje', 'aria-live': 'polite' });
+        this.botonEnsenar = crearBotonEnsenar(() => pedirLeccion(this));
         this.botonSiguiente = h('button', { class: 'boton boton--secundario', type: 'button', hidden: true, onClick: () => this.irASiguiente() }, 'Siguiente ➜');
         this.raiz = h('section', { class: 'fracciones-juego', 'aria-label': 'Tren de Fracciones' },
             h('div', { class: 'fracciones-juego__hud' }, this.textoProgreso, this.textoPuntos, this.textoRacha),
             this.vagones, this.textoEnunciado, this.zonaVisual, this.zonaAcciones,
-            h('div', { class: 'fracciones-juego__pie' }, this.textoMensaje, this.botonSiguiente));
+            h('div', { class: 'fracciones-juego__pie' }, this.textoMensaje, this.botonEnsenar, this.botonSiguiente));
         contenedor.append(this.raiz);
     }
 
@@ -113,6 +119,7 @@ export class JuegoFracciones extends Juego {
         const { pregunta } = info;
         this.fase = 'jugando';
         this.botonSiguiente.hidden = true;
+        this.botonEnsenar.hidden = true;
         if (this.figuraPintable) { this.figuraPintable.desactivar(); this.figuraPintable = null; }
         this.botonesActuales = null;
         this.botonComprobar = null;
@@ -124,6 +131,7 @@ export class JuegoFracciones extends Juego {
         if (pregunta.tipo === 'pintar') this.montarPintar(pregunta);
         else this.montarOpciones(pregunta);
 
+        presentarIntro(this, pregunta.habilidad);
         this.mensaje(this.partida.numero === 1 ? (pregunta.tipo === 'pintar' ? 'Toca las partes que quieres pintar y luego «Comprobar».' : 'Elige la respuesta correcta.') : '');
         this.actualizarHud();
     }
@@ -180,6 +188,7 @@ export class JuegoFracciones extends Juego {
             this.mensaje(texto, 'bien');
             this.audio.reproducirEfecto('acierto');
             this.fase = 'transicion';
+            this.botonEnsenar.hidden = true;
             this.botonSiguiente.hidden = false;
             this.tareaSiguiente = this.planificador.programar(tiempoDeLectura(texto), () => this.irASiguiente());
         } else {
@@ -189,6 +198,7 @@ export class JuegoFracciones extends Juego {
             }
             const tuFigura = pintadas === null ? '' : `Pintaste ${pintadas} ${pintadas === 1 ? 'parte' : 'partes'}. `;
             this.mensaje(`Casi. ${tuFigura}Pista: ${r.pista}`, 'pista');
+            this.botonEnsenar.hidden = false;
             this.audio.reproducirEfecto('fallo');
         }
         this.actualizarHud();
