@@ -95,3 +95,114 @@ export class EstadoRecta {
         this.historial = [];
     }
 }
+
+/**
+ * Bloques de valor posicional: una columna por valor (unidades, decenas, centenas, unidades de millar…, de derecha a
+ * izquierda; el índice 0 son las unidades). Cada columna cuenta cuántos bloques tiene.
+ *
+ * Reglas del material (lo que se enseña):
+ *  - `juntar(c)`: 10 bloques de una columna se CAMBIAN por 1 de la siguiente (10 unidades → 1 decena). Es la llevada.
+ *  - `separar(c)`: 1 bloque de una columna se cambia por 10 de la anterior (1 decena → 10 unidades). Es el préstamo.
+ *  - Cambiar no cambia el valor: `valor() + valorQuitado()` es una constante mientras solo se junta y se separa.
+ *  - `quitar(c)` saca un bloque y lo cuenta como «quitado» (la resta); `retirar(c)` lo saca sin contarlo (corregir).
+ */
+export class EstadoBloques {
+    constructor({ columnas, inicial = [], maximoPorColumna = 30, limiteHistorial = 80 }) {
+        if (!Number.isInteger(columnas) || columnas < 1 || columnas > 6) throw new Error('columnas inválidas');
+        if (inicial.length > columnas || !inicial.every((n) => Number.isInteger(n) && n >= 0 && n <= maximoPorColumna)) throw new Error('inicial inválido');
+        this.columnas = columnas;
+        this.maximoPorColumna = maximoPorColumna;
+        this.limiteHistorial = limiteHistorial;
+        this.inicial = Array.from({ length: columnas }, (_, i) => inicial[i] ?? 0);
+        this.reiniciar();
+    }
+
+    reiniciar() {
+        this.cuenta = [...this.inicial];
+        this.quitadas = Array(this.columnas).fill(0);
+        this.pasado = [];
+    }
+
+    guardar() {
+        this.pasado.push({ cuenta: [...this.cuenta], quitadas: [...this.quitadas] });
+        if (this.pasado.length > this.limiteHistorial) this.pasado.shift();
+    }
+
+    valido(col) {
+        return Number.isInteger(col) && col >= 0 && col < this.columnas;
+    }
+
+    /** Pone un bloque en la columna. @returns {boolean} false si ya no caben */
+    agregar(col) {
+        if (!this.valido(col) || this.cuenta[col] >= this.maximoPorColumna) return false;
+        this.guardar();
+        this.cuenta[col]++;
+        return true;
+    }
+
+    /** Saca un bloque (para corregir un error al construir). */
+    retirar(col) {
+        if (!this.valido(col) || this.cuenta[col] === 0) return false;
+        this.guardar();
+        this.cuenta[col]--;
+        return true;
+    }
+
+    /** Saca un bloque como parte de una resta (queda contado como quitado). */
+    quitar(col) {
+        if (!this.valido(col) || this.cuenta[col] === 0) return false;
+        this.guardar();
+        this.cuenta[col]--;
+        this.quitadas[col]++;
+        return true;
+    }
+
+    /** 10 bloques de `col` → 1 de la columna siguiente. */
+    juntar(col) {
+        if (!this.valido(col) || col + 1 >= this.columnas || this.cuenta[col] < 10 || this.cuenta[col + 1] >= this.maximoPorColumna) return false;
+        this.guardar();
+        this.cuenta[col] -= 10;
+        this.cuenta[col + 1]++;
+        return true;
+    }
+
+    /** 1 bloque de `col` → 10 de la columna anterior. */
+    separar(col) {
+        if (!this.valido(col) || col < 1 || this.cuenta[col] < 1 || this.cuenta[col - 1] + 10 > this.maximoPorColumna) return false;
+        this.guardar();
+        this.cuenta[col]--;
+        this.cuenta[col - 1] += 10;
+        return true;
+    }
+
+    deshacer() {
+        const antes = this.pasado.pop();
+        if (!antes) return false;
+        this.cuenta = antes.cuenta;
+        this.quitadas = antes.quitadas;
+        return true;
+    }
+
+    valor() {
+        return this.cuenta.reduce((total, n, i) => total + n * 10 ** i, 0);
+    }
+
+    valorQuitado() {
+        return this.quitadas.reduce((total, n, i) => total + n * 10 ** i, 0);
+    }
+
+    /** ¿Ninguna columna tiene 10 o más? (el número está escrito «bien») */
+    get normalizado() {
+        return this.cuenta.every((n) => n <= 9);
+    }
+
+    /** ¿Los bloques son exactamente estas cifras (de las unidades hacia arriba)? */
+    coincideCon(cifrasObjetivo) {
+        return this.cuenta.every((n, i) => n === (cifrasObjetivo[i] ?? 0));
+    }
+
+    /** ¿Lo quitado son exactamente estas cifras? */
+    quitoExactamente(cifrasObjetivo) {
+        return this.quitadas.every((n, i) => n === (cifrasObjetivo[i] ?? 0));
+    }
+}
