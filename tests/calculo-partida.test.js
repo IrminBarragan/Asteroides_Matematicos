@@ -53,6 +53,22 @@ test('andamiaje: un error sube la ayuda; acertar después del error no la baja',
     assert.equal(p.apoyoDe(pregunta.habilidad), tras, 'recuperar la pregunta no baja la ayuda');
 });
 
+test('andamiaje: tras retirarse del todo, un error la devuelve un escalón (a «ligero»)', () => {
+    const p = new Partida({ grado: 4, aleatorio: crearAleatorioSembrado(21), total: 80 });
+    let comprobado = false;
+    while (p.hayMasPreguntas && !comprobado) {
+        const { pregunta } = p.iniciarPregunta(0);
+        if (p.apoyoDe(pregunta.habilidad) === 'ninguno') {
+            p.responder(equivocada(pregunta));
+            assert.equal(p.apoyoDe(pregunta.habilidad), 'ligero');
+            comprobado = true;
+        } else {
+            p.responder(pregunta.respuesta);
+        }
+    }
+    assert.ok(comprobado, 'alguna habilidad llegó a «ninguno»');
+});
+
 test('andamiaje: cada habilidad lleva su propia ayuda', () => {
     const p = new Partida({ grado: 3, aleatorio: crearAleatorioSembrado(2) });
     const estado = {};

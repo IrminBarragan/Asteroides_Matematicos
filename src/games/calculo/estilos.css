@@ -22,7 +22,7 @@ button.marcos__casilla:not(:disabled) { cursor: pointer; }
 .recta-int__arco { fill: none; stroke-width: 4; stroke-linecap: round; }
 .recta-int__arco--avanza { stroke: #16a34a; }
 .recta-int__arco--retrocede { stroke: #dc2626; stroke-dasharray: 8 6; }
-.recta-int__rotulo { font: 600 18px var(--fuente-titulo); fill: #1f2937; }
+.recta-int__rotulo { font: 600 24px var(--fuente-titulo); fill: #1f2937; }
 .recta-int__rotulo--ahora { fill: #1d4ed8; font-weight: 700; }
 .recta-int__ficha { fill: #f59e0b; stroke: #92400e; stroke-width: 3; }
 .recta-int__posicion { margin: 0; font: 700 1.3rem var(--fuente-titulo); }

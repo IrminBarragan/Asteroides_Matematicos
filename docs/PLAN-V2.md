@@ -99,13 +99,17 @@ Propuesta (a validar contigo):
 - **Colección de pegatinas** (álbum): cada partida terminada da una pegatina; **motivación sin castigo** y razón para volver.
 - **Restricciones (no negociables):** `prefers-reduced-motion` desactiva el movimiento; **«modo ligero»** apaga fondos animados en PCs lentas; animaciones solo con `transform`/`opacity`; se mantiene el contraste WCAG (hay prueba) y el presupuesto de tamaño.
 
+### Fase 13 — Taller de Cálculo (sumas y restas guiadas) — ✅ hecha, ver [`AUDITORIA-FASE-13.md`](AUDITORIA-FASE-13.md)
+
+Primer juego **nuevo** de la v0.2 y el que cumple el **«andamiaje que se retira»** pendiente de la Fase 11: sumas, restas y problemas de 1.º a 6.º con **material para manipular** (marcos de diez, recta de saltos). La ayuda baja un escalón con cada acierto a la primera (material obligatorio → opcional → sin ayuda) y sube con cada error. Se simplificó respecto al diseño de tres modos de abajo: no hay modo «Aprende» aparte, porque «Ver cómo se hace» y la introducción ya enseñan desde dentro.
+
 ### Fase 11 — Enseñar dentro de cada juego (la prioridad pedagógica) — ✅ hecha, ver [`AUDITORIA-FASE-11.md`](AUDITORIA-FASE-11.md)
 
 Es el cambio que más responde a la queja. Se construye **una vez** el componente `Leccion` y se conecta a los juegos existentes:
 
 - **«Ver cómo se hace»:** tras el **primer error** de una pregunta aparece (además de la pista) un botón que abre una **mini-lección animada de ese caso** (por ejemplo, `47 + 28`: descomponer, sumar decenas, sumar unidades, juntar). El niño puede **hacer el paso él mismo** con material (arrastrar bloques, mover una ficha en la recta).
 - **Mini-lección al subir de escalón:** la primera vez que aparece una habilidad nueva, se muestra un ejemplo guiado de 20–30 segundos (se puede saltar).
-- **Andamiaje que se retira:** al principio de una habilidad hay apoyos visuales; si el niño acierta, **desaparecen**; si falla, **vuelven**.
+- **Andamiaje que se retira:** al principio de una habilidad hay apoyos visuales; si el niño acierta, **desaparecen**; si falla, **vuelven**. *(Quedó para la Fase 13, donde se hizo en «Taller de Cálculo»; los demás juegos aún no lo tienen.)*
 - Cada lección es **datos** (pasos y material), no código: añadir una es escribir una lista.
 - *Por qué dentro del juego:* el niño aprende **cuando lo necesita**, justo después de equivocarse, que es cuando más atención presta.
 
@@ -119,7 +123,7 @@ Los cuatro comparten una **estructura de tres modos**:
 
 | Juego | Grados | Qué enseña | Material (concreto/pictórico) | Escalera de niveles (ejemplo) |
 |---|---|---|---|---|
-| **Sumas y restas guiadas** (F13) *(tema neutro; nombre provisional)* | 1.º–6.º (según el nivel que detecte el sistema) | Sumar y restar como **juntar/quitar**; recta numérica; «hacer 10» | Objetos arrastrables a una caja; **marcos de 10**; **recta numérica** con un personaje que salta | Hasta 5 → 10 → 20 sin pasar → 20 pasando la decena → hasta 100 |
+| **Sumas y restas guiadas** (F13, ✅ «Taller de Cálculo») | 1.º–6.º (según el nivel que detecte el sistema) | Sumar y restar como **juntar/quitar**; recta numérica; «hacer 10» | Objetos arrastrables a una caja; **marcos de 10**; **recta numérica** con un personaje que salta | Hasta 5 → 10 → 20 sin pasar → 20 pasando la decena → hasta 100 |
 | **Valor posicional y llevadas** (F14) | 1.º–6.º (según el nivel) | **Valor posicional** y **llevadas** (acarreo) en suma y resta con préstamo | Bloques de unidades, decenas y centenas; «**10 unidades se cambian por 1 decena**» animado | 2 dígitos sin llevar → con llevada → 3 dígitos → resta con préstamo |
 | **Tablas** (F15) | 1.º–6.º (según el nivel) | Multiplicar como **grupos iguales** y **arreglos** (filas × columnas); patrones de las tablas | Cajas con el mismo número de objetos; **cuadrícula** que se llena; conteo de 2 en 2, 5 en 5, 10 en 10 | Tablas 2, 5, 10 → 3, 4 → 6, 7, 8, 9 → ×10, ×100 |
 | **Reparto** (F15) | 1.º–6.º (según el nivel) | Dividir como **repartir equitativamente** y **agrupar**; el residuo | Objetos que se reparten en grupos (arrastrar); sobrantes | Dividir entre 2, 5, 10 → exactas → con residuo → 2 dígitos |

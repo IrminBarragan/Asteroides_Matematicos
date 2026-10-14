@@ -165,6 +165,20 @@ Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, o
 
 Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
+## Añadidos en la Fase 13 (v0.2): Taller de Cálculo
+
+| Archivo | Qué es |
+|---|---|
+| `games/calculo/logica/generadores.js` | Pares de números por grado de contenido (1.º–6.º) y nivel; errores típicos (olvidar la llevada, restar «al revés», operación contraria); problemas con concordancia. Cada opción lleva por `id` su propio valor |
+| `games/calculo/logica/apoyo.js` | **Andamiaje que se retira**: `completo → ligero → ninguno`; baja con un acierto a la primera, sube con un error |
+| `games/calculo/logica/partida.js` | Subclase de `PartidaPreguntas` que guarda la ayuda **por habilidad** y la lee el generador de cada pregunta; en la misión de inicio no hay ayuda |
+| `core/material.js` | Estados puros `EstadoMarcos` y `EstadoRecta` (límites, deshacer, tope de saltos) |
+| `ui/marcosDiez.js`, `ui/rectaInteractiva.js` | Solo dibujan el estado y reenvían clics (botones, teclado y toque) |
+| `core/distractores.js` | Antes en Asteroides; ahora común (con `maximo` y `excluir`). La ruta antigua reexporta |
+| `lecciones/aritmetica.js` | `leccionProblema` (leer, decidir la operación, calcular) |
+
+**Patrón clave:** como el `id` de cada opción es su valor numérico, la recta puede **responder con el número al que llegó el niño** sin pasar por ninguna opción: la misma `partida.responder(id)` sirve para botones y para material.
+
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
 
 No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.

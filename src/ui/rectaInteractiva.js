@@ -10,7 +10,7 @@ import { h, svgDesdeMarkup } from './dom.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const ANCHO = 600;
-const ALTO = 130;
+const ALTO = 160;
 const Y_RECTA = 90;
 const MARGEN = 40;
 
@@ -87,7 +87,8 @@ export class RectaInteractiva {
     dibujar(puntos) {
         const bajo = Math.min(...puntos);
         const alto = Math.max(...puntos);
-        const holgura = Math.max((alto - bajo) * 0.15, Math.max(...this.estado.saltos) / 2);
+        // Sin saltos todavía hay un solo punto: se da holgura según el salto más grande; después, una proporción de lo recorrido
+        const holgura = alto === bajo ? Math.max(...this.estado.saltos) / 2 : (alto - bajo) * 0.15;
         const minimo = bajo - holgura;
         const rango = alto + holgura - minimo;
         const x = (v) => MARGEN + ((v - minimo) / rango) * (ANCHO - 2 * MARGEN);
@@ -105,13 +106,15 @@ export class RectaInteractiva {
                 }));
             }
         });
-        const rotulo = (v, clase) => {
-            const t = el('text', { x: Math.min(Math.max(x(v), 28), ANCHO - 28), y: Y_RECTA + 28, class: clase, 'text-anchor': 'middle' });
+        // Si el inicio y la posición actual quedan muy juntos, el segundo rótulo baja para no encimarse
+        const juntos = puntos.length > 1 && Math.abs(x(puntos[puntos.length - 1]) - x(puntos[0])) < 120;
+        const rotulo = (v, clase, fila = 0) => {
+            const t = el('text', { x: Math.min(Math.max(x(v), 28), ANCHO - 28), y: Y_RECTA + 28 + fila * 28, class: clase, 'text-anchor': 'middle' });
             t.textContent = numero(v);
             this.dibujo.append(t);
         };
         rotulo(puntos[0], 'recta-int__rotulo');
-        if (puntos.length > 1) rotulo(puntos[puntos.length - 1], 'recta-int__rotulo recta-int__rotulo--ahora');
+        if (puntos.length > 1) rotulo(puntos[puntos.length - 1], 'recta-int__rotulo recta-int__rotulo--ahora', juntos ? 1 : 0);
         this.dibujo.append(el('circle', { cx: x(puntos[puntos.length - 1]), cy: Y_RECTA, r: 9, class: 'recta-int__ficha' }));
     }
 

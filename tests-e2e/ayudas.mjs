@@ -200,3 +200,12 @@ export async function jugarPartidaCalculo(pagina, { max = 14 } = {}) {
     }
     throw new Error(`la partida no terminó en ${max} preguntas`);
 }
+
+/** Si hay una lección de introducción abierta, la salta (tapa el resto de la pantalla). */
+export async function saltarLeccion(pagina) {
+    await pagina.evaluate(() => new Promise((r) => setTimeout(r, 60)));
+    if (await pagina.locator('.modal-fondo--leccion').count()) {
+        await pagina.click('.modal-fondo--leccion >> text=Saltar');
+        await pagina.waitForSelector('.modal-fondo--leccion', { state: 'detached' });
+    }
+}
