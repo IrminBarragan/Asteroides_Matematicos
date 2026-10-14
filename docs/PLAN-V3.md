@@ -37,7 +37,7 @@ La primera se copia; la segunda se adapta con cuidado, porque varias mecánicas 
 | **Habilidades que «se agrietan»** cuando toca repasar | **Sí** | Convierte el repaso en algo visible y natural, no en un castigo. |
 | **Vidas / corazones** | **No** | Castigan el error, justo a quien más necesita practicar. Es el mismo defecto de las estrellas de la v1. El portal ya tiene el principio «sin vidas ni *game over*». |
 | **Ligas y clasificaciones** | **No** | En un aula, exponen públicamente a los niños más atrasados. |
-| **Racha diaria estricta** | **Adaptada** | En la escuela no se juega todos los días (depende del horario de cómputo). Una racha diaria se perdería sin culpa del niño. Se usa **racha semanal** con protección automática (ver Fase 21). |
+| **Racha diaria estricta** | **Adaptada** | El uso previsto es de **3 veces por semana a diario**: una racha diaria se rompería en semanas de 3 sesiones sin culpa del niño. Se usa **racha semanal** con meta de 3 sesiones y protección automática (ver Fase 21). |
 | **XP / puntos** | **Adaptado** | Se mide progreso en el camino (nodos aprendidos y repasados), no puntos acumulables que invitan a «farmear» lo fácil. |
 
 ## 3. Principios del rediseño
@@ -87,7 +87,7 @@ Los nodos se agrupan en **unidades** (las secciones del camino).
 
 - **Por qué un DAG y no una lista:** una lista obliga a un solo orden; el grafo permite que, al dominar «sumar hasta 10», se abran **varias** opciones (restar, hacer 10) y que el camino tenga ramas cortas.
 - **Validación (pruebas):** ids únicos; todo `requiere` existe; **no hay ciclos** (se comprueba con un **orden topológico**: si no se pueden ordenar todos los nodos, hay un ciclo); cada nodo tiene al menos una actividad; cada actividad apunta a un juego, habilidad y nivel que **existen**.
-- **Primer alcance:** solo **matemáticas** (5 juegos con la cadena de prerrequisitos ya descrita en `PLAN-V2.md`). Español y medición quedan como «juego libre» hasta decidir (ver §7).
+- **Primer alcance (decidido):** **matemáticas y lógica**. Matemáticas con los 5 juegos de la cadena de prerrequisitos de `PLAN-V2.md`. **Lógica no tiene juego todavía:** se añade como unidad propia después de la Fase 20 (ver «Unidad de lógica» abajo). Español y medición quedan como «juego libre».
 - **Riesgo a verificar al empezar:** cómo se corresponden `grado de contenido + nivel` de cada juego con un nodo. Hay que leer los generadores juego por juego; si dos juegos llaman igual a cosas distintas, el mapa lo hace explícito.
 
 ### Fase 18 — Modelo único del niño y repaso espaciado
@@ -106,7 +106,9 @@ perfil.camino = {
 ```
 
 - **Sistema de Leitner** (cajas): cada habilidad está en una caja; acertar en un repaso la sube de caja, fallar la regresa a la caja 1.
-  Cada caja tiene un intervalo (p. ej. 1, 2, 4, 8, 16 días). Cuando vence, la habilidad «se agrieta» y entra al repaso.
+  Cada caja tiene un intervalo: **1, 3, 7, 14 y 30 días**. Cuando vence, la habilidad «se agrieta» y entra al repaso.
+  - *Por qué esos valores:* con un uso de **3 veces por semana a diario**, el hueco típico entre sesiones es de 1 a 3 días. Intervalos menores que ese hueco serían iguales en la práctica (todo vencería siempre); por eso la segunda caja ya es de 3 días. Se cuenta en **días y no en sesiones** porque el olvido depende del tiempo transcurrido, no de cuántas veces se jugó.
+  - *Tope de repaso:* si el niño falta varios días se acumulan repasos vencidos; cada sesión toma **como máximo 3** (los de caja más baja primero) para que el repaso no se coma la lección.
   - *Por qué Leitner y no el algoritmo de Duolingo (Half-Life Regression) o SM-2 (Anki):* esos estiman la probabilidad de recordar con un modelo
     entrenado o con fórmulas por ítem; requieren muchos datos y son difíciles de **explicar en una defensa**. Leitner es una regla de 5 cajas,
     se prueba con números y sigue la misma filosofía del motor actual (heurísticas explicables, no modelos opacos). *Costo:* es menos preciso.
@@ -152,7 +154,7 @@ Los juegos sueltos pasan a una sección secundaria **«Juego libre»**.
 
 - **Nodos agrietados** cuando vence su repaso (Fase 18) y un botón **«Repasar»** que arma una sesión intercalada con las habilidades vencidas, de varios juegos.
 - **Meta de sesión** que pone la maestra (por omisión: 2 lecciones). Se celebra al cumplirla. No hay meta que «se pierda».
-- **Racha semanal:** cuenta semanas con al menos una lección. Las semanas sin clase de cómputo (vacaciones) **no la rompen** si la maestra marca el periodo, o se perdona automáticamente una semana. *Por qué:* la motivación por **pérdida** (miedo a perder la racha) funciona, pero en niños y con un horario que no controlan genera frustración sin culpa.
+- **Racha semanal:** cuenta semanas en las que el niño cumplió **3 sesiones** (el uso mínimo previsto); jugar a diario no da más racha, da más avance en el camino. Las semanas sin clase de cómputo (vacaciones) **no la rompen** si la maestra marca el periodo, o se perdona automáticamente una semana. *Por qué:* la motivación por **pérdida** (miedo a perder la racha) funciona, pero en niños y con un horario que no controlan genera frustración sin culpa.
 - **Pegatinas por unidad** (además de las de partida): ligan el premio a **aprender**, no a jugar.
 
 ### Fase 22 — Modo maestro del camino y colocación por área
@@ -192,12 +194,35 @@ la v0.3 debe medir si **aprenden y recuerdan**.
 | **El mapa de habilidades es pedagógicamente incorrecto** (orden o prerrequisitos) | Revisión docente del mapa **antes** de la Fase 20; el mapa es datos, se corrige sin tocar código |
 | **Correspondencia ambigua juego ↔ habilidad canónica** | Se resuelve en la Fase 17 leyendo cada generador; se documenta en la auditoría |
 | **El repaso aburre** («otra vez sumas») | Repaso corto (2 ejercicios en el calentamiento), intercalado y en otro juego distinto al que se usó para aprender |
-| **Intervalos en días no encajan con clases semanales** | El repaso vencido espera a la siguiente sesión (no se «pierde»); se ajustan los intervalos con los datos de la prueba |
+| **Intervalos en días no encajan con el horario real** | El repaso vencido espera a la siguiente sesión (no se «pierde»), con tope de 3 por sesión; se ajustan los intervalos con los datos de la prueba |
 | **`app.js` supera el presupuesto de 100 KB** | El mapa y el planificador son datos y lógica pequeña; se mide en cada fase |
 
-## 7. Preguntas abiertas (decisiones tuyas antes de la Fase 17)
+## 7. Decisiones
 
-1. **¿Cada cuánto usan los niños el portal?** (¿diario, 2 veces por semana, una?) Decide los intervalos de repaso y si la racha es semanal o por sesión.
-2. **¿Español y medición entran en el camino** o se quedan como «juego libre» en la v0.3? (Recomendación: solo matemáticas primero; es donde está la brecha observada.)
-3. **¿El camino es único por niño o la maestra fija la unidad del grupo?** Cambia el diseño del modo maestro.
-4. **¿Quién revisa el mapa de habilidades** (el orden y los prerrequisitos)? Es la decisión pedagógica más importante del plan y no debería tomarla solo el código.
+**Tomadas:**
+
+| Pregunta | Respuesta | Consecuencia en el plan |
+|---|---|---|
+| ¿Cada cuánto se usa? | De 3 veces por semana a diario | Intervalos de Leitner de 1, 3, 7, 14 y 30 días con tope de 3 repasos por sesión (Fase 18); racha semanal de 3 sesiones (Fase 21) |
+| ¿Qué áreas entran? | Matemáticas y lógica | Fase 17 solo con matemáticas; unidad de lógica nueva después de la Fase 20 |
+| ¿Quién revisa el orden? | Los niños lo ven para seguir su progreso | El camino es **visible** para el niño (Fase 20). **Pero ver el progreso no valida el orden** (ver abajo) |
+
+**Ojo: dos cosas distintas con el mismo nombre.** Que los niños *vean* el orden (el camino) es un requisito de **interfaz** y se cumple en la Fase 20.
+Que el orden sea *correcto* (qué habilidad requiere cuál) es una decisión **pedagógica**: un niño no puede saber si «hacer 10» debe ir antes de
+«sumar hasta 20 pasando la decena», justamente porque aún no lo sabe. Lo que sí aportan los niños son **datos**: si muchos se atoran en un nodo,
+probablemente le falta un prerrequisito. Por eso se proponen dos validaciones:
+
+1. **Antes (Fase 17):** una maestra o maestro revisa el mapa (o, mínimo, se contrasta con el programa oficial de la SEP).
+2. **Después (Fase 23):** los datos de los niños confirman o corrigen el orden: nodos donde el grupo se atora o que se dominan sin haber dominado su «prerrequisito».
+
+**Abierta:** ¿la maestra puede fijar la unidad del grupo, o el camino es solo individual?
+
+### Unidad de lógica (después de la Fase 20)
+
+No existe ningún juego de lógica todavía, así que es **contenido nuevo**, no reorganización. Candidatas, en orden de cercanía con lo que ya hay:
+
+- **Patrones y secuencias** (2, 4, 6, __; figuras que se repiten): reutiliza la recta y los generadores de números.
+- **Clasificar y comparar** (mayor/menor, pertenece/no pertenece, diagramas de Venn sencillos).
+- **Problemas de razonamiento** («si… entonces…», ordenar a partir de pistas).
+
+Se decide cuál primero cuando el camino de matemáticas ya funcione: así el juego nuevo nace como **actividad a pedido** (Fase 19) desde el principio.
