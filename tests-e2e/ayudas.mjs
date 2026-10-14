@@ -138,17 +138,17 @@ export function respuestaDeProblema(texto) {
  * @returns {Promise<{via:'marcos'|'recta'|'calculo'|'tanteo', apoyo:string}>}
  */
 export async function resolverPreguntaCalculo(pagina, { fallarPrimero = false } = {}) {
-    await pagina.waitForSelector('.calculo-juego__enunciado:not(:empty)');
+    await pagina.waitForSelector('.juego-material__enunciado:not(:empty)');
     await pagina.evaluate(() => new Promise((r) => setTimeout(r, 40))); // por si aparece una lección de introducción
     if (await pagina.locator('.modal-fondo--leccion').count()) {
         await pagina.click('.modal-fondo--leccion >> text=Saltar');
         await pagina.waitForSelector('.modal-fondo--leccion', { state: 'detached' });
     }
-    const enunciado = await pagina.textContent('.calculo-juego__enunciado');
-    const consigna = (await pagina.textContent('.calculo-juego__consigna')) || '';
-    const apoyo = (await pagina.textContent('.calculo-juego__dato--apoyo')) || '';
-    const opciones = pagina.locator('.calculo-juego__opcion');
-    const clicOpcion = async (texto) => pagina.locator('.calculo-juego__opcion', { hasText: new RegExp(`^${texto}$`) }).click();
+    const enunciado = await pagina.textContent('.juego-material__enunciado');
+    const consigna = (await pagina.textContent('.juego-material__consigna')) || '';
+    const apoyo = (await pagina.textContent('.juego-material__dato--apoyo')) || '';
+    const opciones = pagina.locator('.juego-material__opcion');
+    const clicOpcion = async (texto) => pagina.locator('.juego-material__opcion', { hasText: new RegExp(`^${texto}$`) }).click();
     let via;
 
     const ecuacion = /^(\d+) ([+−]) (\d+) = \?$/.exec(enunciado);
@@ -157,13 +157,13 @@ export async function resolverPreguntaCalculo(pagina, { fallarPrimero = false } 
         const [, a, b] = /Pon (\d+) fichas azules y (\d+) fichas naranjas/.exec(consigna);
         for (let i = 0; i < Number(a); i++) await pagina.click('text=Poner azul');
         for (let i = 0; i < Number(b); i++) await pagina.click('text=Poner naranja');
-        await pagina.waitForSelector('.calculo-juego__opcion');
+        await pagina.waitForSelector('.juego-material__opcion');
         await clicOpcion(String(Number(a) + Number(b)));
         via = 'marcos';
     } else if (obligatorio && /Hay (\d+) fichas\. Tacha (\d+)/.test(consigna)) {
         const [, a, b] = /Hay (\d+) fichas\. Tacha (\d+)/.exec(consigna);
         for (let i = 0; i < Number(b); i++) await pagina.locator('button.marcos__casilla--a').first().click();
-        await pagina.waitForSelector('.calculo-juego__opcion');
+        await pagina.waitForSelector('.juego-material__opcion');
         await clicOpcion(String(Number(a) - Number(b)));
         via = 'marcos';
     } else if (obligatorio && /Empiezas en (\d+)\. (Avanza|Retrocede) (\d+)/.test(consigna)) {
@@ -209,7 +209,7 @@ export async function jugarPartidaCalculo(pagina, { max = 14 } = {}) {
     const vias = [];
     for (let guardia = 0; guardia < max; guardia++) {
         const que = await Promise.race([
-            pagina.waitForSelector('.calculo-juego__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('.juego-material__enunciado:not(:empty)').then(() => 'pregunta'),
             pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
         ]);
         if (que === 'fin') return { preguntas: guardia, vias };
@@ -257,13 +257,13 @@ export function respuestaDePosicion(enunciado) {
  * @returns {Promise<{via:'construir'|'juntar'|'quitar'|'leer'|'calculo'|'tanteo', apoyo:string}>}
  */
 export async function resolverPreguntaBloques(pagina, { fallarPrimero = false } = {}) {
-    await pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)');
+    await pagina.waitForSelector('.juego-material__enunciado:not(:empty)');
     await saltarLeccion(pagina);
-    const enunciado = await pagina.textContent('.bloques-juego__enunciado');
-    const consigna = (await pagina.textContent('.bloques-juego__consigna')) || '';
-    const apoyo = (await pagina.textContent('.bloques-juego__dato--apoyo')) || '';
-    const opciones = pagina.locator('.bloques-juego__opcion');
-    const clicOpcion = async (valor) => pagina.locator('.bloques-juego__opcion', { hasText: new RegExp(`^${String(valor).replace(/\B(?=(\d{3})+(?!\d))/g, valor >= 10000 ? '\\u202f' : '')}$`) }).click();
+    const enunciado = await pagina.textContent('.juego-material__enunciado');
+    const consigna = (await pagina.textContent('.juego-material__consigna')) || '';
+    const apoyo = (await pagina.textContent('.juego-material__dato--apoyo')) || '';
+    const opciones = pagina.locator('.juego-material__opcion');
+    const clicOpcion = async (valor) => pagina.locator('.juego-material__opcion', { hasText: new RegExp(`^${String(valor).replace(/\B(?=(\d{3})+(?!\d))/g, valor >= 10000 ? '\\u202f' : '')}$`) }).click();
     const columna = (c) => pagina.locator(`.bloques-valor__columna--${c}`);
     const leerCuenta = async (c) => Number(await columna(c).locator('.bloques-valor__numero').textContent());
     let via;
@@ -326,10 +326,10 @@ export async function resolverPreguntaBloques(pagina, { fallarPrimero = false } 
         }
         via = 'tanteo';
     } else {
-        await pagina.waitForSelector('.bloques-juego__opcion');
+        await pagina.waitForSelector('.juego-material__opcion');
         if (fallarPrimero) {
             const mala = await opciones.evaluateAll((bs, bien) => bs.map((x) => x.getAttribute('aria-label')).find((t) => t.replace(/ /g, '') !== String(bien)), respuesta);
-            await pagina.locator('.bloques-juego__opcion', { hasText: mala }).first().click();
+            await pagina.locator('.juego-material__opcion', { hasText: mala }).first().click();
             await pagina.waitForSelector('text=/Casi\\. Pista/');
         }
         await clicOpcion(respuesta);
@@ -343,7 +343,7 @@ export async function jugarPartidaBloques(pagina, { max = 14 } = {}) {
     const vias = [];
     for (let guardia = 0; guardia < max; guardia++) {
         const que = await Promise.race([
-            pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('.juego-material__enunciado:not(:empty)').then(() => 'pregunta'),
             pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
         ]);
         if (que === 'fin') return { preguntas: guardia, vias };

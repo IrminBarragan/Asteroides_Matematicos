@@ -34,29 +34,3 @@ button.marcos__casilla:not(:disabled) { cursor: pointer; }
 .recta-int__salto:focus-visible { outline: 3px solid var(--enfoque); outline-offset: 2px; }
 .recta-int__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
 
-/* ---------- Taller de Cálculo ---------- */
-.calculo-juego { max-width: 860px; margin: 0 auto; text-align: center; }
-.calculo-juego__hud { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem; font-weight: 600; min-height: 2rem; }
-.calculo-juego__dato { background: #dbeafe; border-radius: 999px; padding: .1rem .9rem; font-size: .95rem; }
-.calculo-juego__dato--apoyo { background: #fef3c7; }
-.calculo-juego__dato:empty { display: none; }
-.calculo-juego__barra { display: flex; justify-content: center; gap: 6px; margin: .5rem 0; }
-.calculo-juego__ficha { width: 22px; height: 22px; border-radius: 50%; background: #cbd5e1; transition: background .2s ease; }
-.calculo-juego__ficha--lista { background: var(--c-matematicas); }
-.calculo-juego__enunciado { margin: .5rem 0 .4rem; font: 600 clamp(1.35rem, 3.4vw, 2rem) var(--fuente-titulo); min-height: 2.4rem; }
-.calculo-juego__consigna { margin: 0 0 .6rem; font-weight: 600; color: var(--texto-suave); min-height: 1.4rem; }
-.calculo-juego__consigna[hidden] { display: none; }
-.calculo-juego__material { display: flex; flex-direction: column; align-items: center; gap: .6rem; margin-bottom: 1rem; }
-.calculo-juego__material [hidden] { display: none; }
-.calculo-juego__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; }
-.calculo-juego__opcion { min-width: 8rem; min-height: 4rem; padding: .4rem 1.2rem; font: 700 1.5rem var(--fuente-titulo); color: var(--texto); background: #fff; border: 4px solid var(--c-matematicas); border-radius: 18px; cursor: pointer; transition: transform .12s ease, background .12s ease; }
-.calculo-juego__opcion:hover:not([aria-disabled="true"]) { background: #eff6ff; transform: translateY(-2px); }
-.calculo-juego__opcion[aria-disabled="true"] { cursor: default; }
-.calculo-juego__opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }
-.calculo-juego__opcion--incorrecta { background: #f3f4f6; border-color: #9ca3af; color: #6b7280; opacity: .7; }
-.calculo-juego__pie { min-height: 4.2rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; margin-top: 1rem; }
-.calculo-juego__mensaje { margin: 0; font-weight: 600; font-size: 1rem; color: var(--texto-suave); max-width: 760px; }
-.calculo-juego__mensaje--bien { color: var(--exito); }
-.calculo-juego__mensaje--pista { color: #9a3412; }
-.calculo-juego__pie [hidden] { display: none; }
-@media (max-width: 600px) { .calculo-juego__opcion { min-width: 6.5rem; font-size: 1.25rem; } }

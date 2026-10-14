@@ -20,8 +20,8 @@ for (const grado of [1, 3, 6]) {
         assert.ok(await pagina.locator('.estrellas .estrella--llena').count() >= 1);
 
         await pagina.click('text=Jugar otra vez');
-        await pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)');
-        assert.match(await pagina.textContent('.bloques-juego__dato'), /de 10/);
+        await pagina.waitForSelector('.juego-material__enunciado:not(:empty)');
+        assert.match(await pagina.textContent('.juego-material__dato'), /de 10/);
         const normal = await jugarPartidaBloques(pagina);
         assert.equal(normal.preguntas, 10);
         assert.ok(normal.vias.some((v) => ['construir', 'juntar', 'quitar'].includes(v)), `se manipularon bloques: ${normal.vias}`);
@@ -37,12 +37,12 @@ for (const grado of [1, 3, 6]) {
 async function irAPregunta(pagina, via, { intentos = 40 } = {}) {
     for (let i = 0; i < intentos; i++) {
         await saltarLeccion(pagina);
-        const consigna = (await pagina.textContent('.bloques-juego__consigna')) || '';
+        const consigna = (await pagina.textContent('.juego-material__consigna')) || '';
         const hay = { juntar: consigna.startsWith('Junta los bloques'), quitar: consigna.startsWith('Están los bloques'), construir: consigna.startsWith('Construye') }[via];
-        if (hay && (await pagina.locator('.bloques-juego__opcion').count()) === 0) return;
+        if (hay && (await pagina.locator('.juego-material__opcion').count()) === 0) return;
         await resolverPreguntaBloques(pagina);
         await pagina.click('text=Siguiente ➜');
-        if (await pagina.locator('text=Jugar otra vez').count()) { await pagina.click('text=Jugar otra vez'); await pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)'); }
+        if (await pagina.locator('text=Jugar otra vez').count()) { await pagina.click('text=Jugar otra vez'); await pagina.waitForSelector('.juego-material__enunciado:not(:empty)'); }
     }
     throw new Error(`no apareció una pregunta de «${via}»`);
 }
@@ -53,7 +53,7 @@ async function empezarConMisionHecha(grado, ancho = 1280, alto = 800) {
     await abrirJuego(r.pagina, 'Bloques de Valor');
     await jugarPartidaBloques(r.pagina); // misión
     await r.pagina.click('text=Jugar otra vez');
-    await r.pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)');
+    await r.pagina.waitForSelector('.juego-material__enunciado:not(:empty)');
     return r;
 }
 
@@ -69,13 +69,13 @@ test('Bloques de Valor: sumar con llevada — las opciones aparecen al cambiar 1
     assert.notEqual(await pagina.locator('.bloques-valor__resumen').textContent(), antes, 'el cambio se ve en el resumen');
     // las opciones aparecen exactamente cuando ya no queda ninguna columna con 10 o más
     const faltan = await pagina.locator('.bloques-valor__columna--llena').count();
-    assert.equal((await pagina.locator('.bloques-juego__opcion').count()) > 0, faltan === 0, 'opciones ⇔ nada más que cambiar');
+    assert.equal((await pagina.locator('.juego-material__opcion').count()) > 0, faltan === 0, 'opciones ⇔ nada más que cambiar');
     // deshacer y empezar de nuevo
     await pagina.click('text=Deshacer');
     assert.equal(await pagina.locator('.bloques-valor__resumen').textContent(), antes);
     const { via } = await resolverPreguntaBloques(pagina, { fallarPrimero: true });
     assert.ok(['juntar', 'calculo'].includes(via), via);
-    assert.match(await pagina.textContent('.bloques-juego__mensaje'), /Lo lograste! \+5 puntos/);
+    assert.match(await pagina.textContent('.juego-material__mensaje'), /Lo lograste! \+5 puntos/);
     assert.deepEqual(problemas, [], problemas.join(' | '));
     await contexto.close();
 });
@@ -85,7 +85,7 @@ test('Bloques de Valor: restar con préstamo — se cambia 1 por 10 y se quita',
     await irAPregunta(pagina, 'quitar');
     const { via } = await resolverPreguntaBloques(pagina);
     assert.equal(via, 'quitar');
-    assert.match(await pagina.textContent('.bloques-juego__mensaje'), /Correcto|Muy bien|Excelente|Genial|Perfecto/);
+    assert.match(await pagina.textContent('.juego-material__mensaje'), /Correcto|Muy bien|Excelente|Genial|Perfecto/);
     assert.deepEqual(problemas, [], problemas.join(' | '));
     await contexto.close();
 });
@@ -115,7 +115,7 @@ test('Bloques de Valor: la ayuda se retira con los aciertos', { skip: MOTIVO_OMI
             await pagina.click('text=Siguiente ➜');
         }
         await pagina.waitForSelector('text=Jugar otra vez');
-        if (!etiquetas.includes('Sin ayuda')) { await pagina.click('text=Jugar otra vez'); await pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)'); }
+        if (!etiquetas.includes('Sin ayuda')) { await pagina.click('text=Jugar otra vez'); await pagina.waitForSelector('.juego-material__enunciado:not(:empty)'); }
     }
     assert.ok(etiquetas.includes('Sin ayuda'), `la ayuda se retira del todo: ${etiquetas}`);
     assert.equal(etiquetas[0], 'Con bloques', 'la primera pregunta lleva ayuda');
@@ -127,7 +127,7 @@ test('Bloques de Valor: en un celular de 360 px no hay desplazamiento horizontal
     for (const grado of [3, 6]) {
         const { pagina, contexto, problemas } = await empezarConMisionHecha(grado, 360, 740);
         for (let i = 0; i < 6; i++) {
-            await pagina.waitForSelector('.bloques-juego__enunciado:not(:empty)');
+            await pagina.waitForSelector('.juego-material__enunciado:not(:empty)');
             await saltarLeccion(pagina);
             const ancho = await pagina.evaluate(() => ({ doc: document.documentElement.scrollWidth, vis: window.innerWidth }));
             assert.ok(ancho.doc <= ancho.vis, `grado ${grado}, pregunta ${i + 1}: ${ancho.doc} > ${ancho.vis}`);

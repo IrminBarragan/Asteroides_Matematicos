@@ -206,3 +206,133 @@ export class EstadoBloques {
         return this.quitadas.every((n, i) => n === (cifrasObjetivo[i] ?? 0));
     }
 }
+
+/**
+ * Grupos de objetos: cajas (multiplicar) o platos (repartir). Cada grupo cuenta cuántos objetos tiene.
+ *
+ * Con `pool` (repartir) hay un montón de objetos por repartir: `agregar` saca uno del montón y lo da al grupo, y
+ * `retirar` lo devuelve. Sin `pool` (multiplicar) hay objetos de sobra: `agregar` solo suma.
+ * Los objetos nunca se crean ni se pierden al repartir: `total() + pool` es constante.
+ */
+export class EstadoGrupos {
+    constructor({ grupos, pool = null, maximoPorGrupo = 12, limiteHistorial = 80 }) {
+        if (!Number.isInteger(grupos) || grupos < 1 || grupos > 12) throw new Error('grupos inválidos');
+        if (pool !== null && (!Number.isInteger(pool) || pool < 0)) throw new Error('pool inválido');
+        this.grupos = grupos;
+        this.poolInicial = pool;
+        this.maximoPorGrupo = maximoPorGrupo;
+        this.limiteHistorial = limiteHistorial;
+        this.reiniciar();
+    }
+
+    reiniciar() {
+        this.cuenta = Array(this.grupos).fill(0);
+        this.pool = this.poolInicial;
+        this.pasado = [];
+    }
+
+    guardar() {
+        this.pasado.push({ cuenta: [...this.cuenta], pool: this.pool });
+        if (this.pasado.length > this.limiteHistorial) this.pasado.shift();
+    }
+
+    valido(i) {
+        return Number.isInteger(i) && i >= 0 && i < this.grupos;
+    }
+
+    /** Un objeto más en el grupo `i` (del montón, si lo hay). @returns {boolean} false si no se pudo */
+    agregar(i) {
+        if (!this.valido(i) || this.cuenta[i] >= this.maximoPorGrupo || (this.pool !== null && this.pool === 0)) return false;
+        this.guardar();
+        this.cuenta[i]++;
+        if (this.pool !== null) this.pool--;
+        return true;
+    }
+
+    /** Un objeto menos en el grupo `i` (vuelve al montón, si lo hay). */
+    retirar(i) {
+        if (!this.valido(i) || this.cuenta[i] === 0) return false;
+        this.guardar();
+        this.cuenta[i]--;
+        if (this.pool !== null) this.pool++;
+        return true;
+    }
+
+    deshacer() {
+        const antes = this.pasado.pop();
+        if (!antes) return false;
+        this.cuenta = antes.cuenta;
+        this.pool = antes.pool;
+        return true;
+    }
+
+    total() {
+        return this.cuenta.reduce((s, n) => s + n, 0);
+    }
+
+    /** ¿Todos los grupos tienen exactamente `n`? */
+    todosCon(n) {
+        return this.cuenta.every((c) => c === n);
+    }
+
+    /** ¿Todos los grupos tienen lo mismo? (el reparto es justo) */
+    get iguales() {
+        return this.cuenta.every((c) => c === this.cuenta[0]);
+    }
+}
+
+/**
+ * Cuadrícula de filas × columnas que se arma con botones. El total siempre es filas × columnas.
+ * Con `filasFijas` solo se pueden cambiar las columnas (completar «¿cuántas columnas hacen falta?»).
+ */
+export class EstadoCuadricula {
+    constructor({ filas = 0, columnas = 0, maxFilas = 10, maxColumnas = 12, filasFijas = false, limiteHistorial = 60 }) {
+        if (![filas, columnas, maxFilas, maxColumnas].every((n) => Number.isInteger(n) && n >= 0) || filas > maxFilas || columnas > maxColumnas) throw new Error('cuadrícula inválida');
+        this.inicial = { filas, columnas };
+        this.maxFilas = maxFilas;
+        this.maxColumnas = maxColumnas;
+        this.filasFijas = filasFijas;
+        this.limiteHistorial = limiteHistorial;
+        this.reiniciar();
+    }
+
+    reiniciar() {
+        this.filas = this.inicial.filas;
+        this.columnas = this.inicial.columnas;
+        this.pasado = [];
+    }
+
+    cambiar(eje, delta) {
+        const [valor, max] = eje === 'filas' ? [this.filas, this.maxFilas] : [this.columnas, this.maxColumnas];
+        if (this.filasFijas && eje === 'filas') return false;
+        if (valor + delta < 0 || valor + delta > max) return false;
+        this.pasado.push({ filas: this.filas, columnas: this.columnas });
+        if (this.pasado.length > this.limiteHistorial) this.pasado.shift();
+        this[eje] = valor + delta;
+        return true;
+    }
+
+    masFilas() { return this.cambiar('filas', 1); }
+
+    menosFilas() { return this.cambiar('filas', -1); }
+
+    masColumnas() { return this.cambiar('columnas', 1); }
+
+    menosColumnas() { return this.cambiar('columnas', -1); }
+
+    deshacer() {
+        const antes = this.pasado.pop();
+        if (!antes) return false;
+        this.filas = antes.filas;
+        this.columnas = antes.columnas;
+        return true;
+    }
+
+    total() {
+        return this.filas * this.columnas;
+    }
+
+    coincideCon(filas, columnas) {
+        return this.filas === filas && this.columnas === columnas;
+    }
+}

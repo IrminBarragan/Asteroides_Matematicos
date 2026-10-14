@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EstadoMarcos, EstadoRecta, EstadoBloques } from '../src/core/material.js';
+import { EstadoMarcos, EstadoRecta, EstadoBloques, EstadoGrupos, EstadoCuadricula } from '../src/core/material.js';
 import { apoyoInicial, siguienteApoyo, APOYOS } from '../src/games/calculo/logica/apoyo.js';
 
 // ---------- Marcos de diez ----------
@@ -223,4 +223,81 @@ test('bloques: parámetros inválidos se rechazan', () => {
     assert.throws(() => new EstadoBloques({ columnas: 7 }));
     assert.throws(() => new EstadoBloques({ columnas: 2, inicial: [1, 2, 3] }));
     assert.throws(() => new EstadoBloques({ columnas: 2, inicial: [-1] }));
+});
+
+// ---------- Grupos y cuadrícula ----------
+
+
+test('grupos sin montón (multiplicar): agregar y retirar suman y restan, con tope por grupo', () => {
+    const g = new EstadoGrupos({ grupos: 3, maximoPorGrupo: 4 });
+    for (let i = 0; i < 4; i++) assert.equal(g.agregar(1), true);
+    assert.equal(g.agregar(1), false, 'el grupo está lleno');
+    assert.equal(g.retirar(0), false, 'no hay nada que retirar');
+    g.agregar(0);
+    assert.deepEqual(g.cuenta, [1, 4, 0]);
+    assert.equal(g.total(), 5);
+    assert.equal(g.pool, null);
+    assert.equal(g.todosCon(4), false);
+    assert.equal(g.agregar(9), false);
+});
+
+test('grupos con montón (repartir): los objetos no se crean ni se pierden', () => {
+    const g = new EstadoGrupos({ grupos: 4, pool: 13 });
+    for (let ronda = 0; ronda < 3; ronda++) for (let i = 0; i < 4; i++) assert.equal(g.agregar(i), true);
+    assert.equal(g.pool, 1);
+    assert.equal(g.iguales, true);
+    assert.equal(g.todosCon(3), true);
+    assert.equal(g.agregar(0), true);
+    assert.equal(g.pool, 0);
+    assert.equal(g.agregar(1), false, 'ya no quedan en el montón');
+    assert.equal(g.iguales, false);
+    assert.equal(g.retirar(0), true);
+    assert.equal(g.pool, 1);
+});
+
+test('grupos: total + montón es constante con cualquier secuencia; deshacer y reiniciar', () => {
+    for (let semilla = 1; semilla <= 40; semilla++) {
+        let e = semilla * 104729;
+        const az = () => { e = (e * 1103515245 + 12345) % 2147483648; return e / 2147483648; };
+        const g = new EstadoGrupos({ grupos: 5, pool: 23 });
+        for (let i = 0; i < 120; i++) {
+            const k = Math.floor(az() * 5);
+            const a = az();
+            if (a < 0.45) g.agregar(k); else if (a < 0.85) g.retirar(k); else g.deshacer();
+            assert.equal(g.total() + g.pool, 23, `semilla ${semilla}, paso ${i}`);
+            assert.ok(g.pool >= 0 && g.cuenta.every((n) => n >= 0 && n <= 12));
+        }
+        g.reiniciar();
+        assert.deepEqual(g.cuenta, [0, 0, 0, 0, 0]);
+        assert.equal(g.pool, 23);
+    }
+    assert.throws(() => new EstadoGrupos({ grupos: 0 }));
+    assert.throws(() => new EstadoGrupos({ grupos: 2, pool: -1 }));
+});
+
+test('cuadrícula: el total es filas × columnas y respeta los límites', () => {
+    const c = new EstadoCuadricula({ maxFilas: 3, maxColumnas: 4 });
+    assert.equal(c.menosFilas(), false, 'no hay filas que quitar');
+    for (let i = 0; i < 3; i++) assert.equal(c.masFilas(), true);
+    assert.equal(c.masFilas(), false, 'tope de filas');
+    for (let i = 0; i < 4; i++) c.masColumnas();
+    assert.equal(c.masColumnas(), false, 'tope de columnas');
+    assert.equal(c.total(), 12);
+    assert.equal(c.coincideCon(3, 4), true);
+    assert.equal(c.coincideCon(4, 3), false, 'filas y columnas no son lo mismo');
+    c.menosColumnas();
+    assert.equal(c.total(), 9);
+    assert.equal(c.deshacer(), true);
+    assert.equal(c.total(), 12);
+    c.reiniciar();
+    assert.equal(c.total(), 0);
+});
+
+test('cuadrícula con filas fijas: solo cambian las columnas', () => {
+    const c = new EstadoCuadricula({ filas: 4, filasFijas: true });
+    assert.equal(c.masFilas(), false);
+    assert.equal(c.menosFilas(), false);
+    for (let i = 0; i < 5; i++) c.masColumnas();
+    assert.equal(c.total(), 20);
+    assert.throws(() => new EstadoCuadricula({ filas: 11 }));
 });
