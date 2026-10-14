@@ -144,11 +144,14 @@ export async function resolverPreguntaCalculo(pagina, { fallarPrimero = false } 
         await pagina.click('.modal-fondo--leccion >> text=Saltar');
         await pagina.waitForSelector('.modal-fondo--leccion', { state: 'detached' });
     }
-    const enunciado = await pagina.textContent('.juego-material__enunciado');
-    const consigna = (await pagina.textContent('.juego-material__consigna')) || '';
+    // Los números de 5 cifras o más se escriben con espacio fino («12 345»): para razonar se lee el número sin él
+    const sinFino = (t) => t.replace(/\u202f/g, '');
+    const enunciado = sinFino(await pagina.textContent('.juego-material__enunciado'));
+    const consigna = sinFino((await pagina.textContent('.juego-material__consigna')) || '');
     const apoyo = (await pagina.textContent('.juego-material__dato--apoyo')) || '';
     const opciones = pagina.locator('.juego-material__opcion');
-    const clicOpcion = async (texto) => pagina.locator('.juego-material__opcion', { hasText: new RegExp(`^${texto}$`) }).click();
+    const conFino = (n) => (n >= 10000 ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f') : String(n));
+    const clicOpcion = async (texto) => pagina.locator('.juego-material__opcion', { hasText: new RegExp(`^${/^\d+$/.test(texto) ? conFino(Number(texto)) : texto}$`) }).click();
     let via;
 
     const ecuacion = /^(\d+) ([+−]) (\d+) = \?$/.exec(enunciado);

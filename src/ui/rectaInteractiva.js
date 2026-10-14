@@ -7,6 +7,7 @@
  * está el camino escrito («370 → +10 → 380») y la posición actual, que también leen los lectores de pantalla.
  */
 import { h, svgDesdeMarkup } from './dom.js';
+import { formatoNumero } from '../core/cifras.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const ANCHO = 600;
@@ -14,7 +15,7 @@ const ALTO = 160;
 const Y_RECTA = 90;
 const MARGEN = 40;
 
-const numero = (n) => String(n);
+const numero = (n) => formatoNumero(n);
 
 function el(etiqueta, atributos = {}) {
     const nodo = document.createElementNS(NS, etiqueta);

@@ -83,3 +83,6 @@ export function contarPrestamos(a, b) {
     }
     return total;
 }
+
+/** 12345 → «12 345» (con espacio fino que no corta la línea); de 4 cifras o menos se escribe tal cual (como en los libros de texto). */
+export const formatoNumero = (n) => (n >= 10000 ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u202f') : String(n));

@@ -9,6 +9,7 @@ import { EstadoMarcos, EstadoRecta } from '../../core/material.js';
 import { JuegoConMaterial } from '../../ui/juegoConMaterial.js';
 import { MarcosDiez } from '../../ui/marcosDiez.js';
 import { RectaInteractiva } from '../../ui/rectaInteractiva.js';
+import { formatoNumero as F } from '../../core/cifras.js';
 import { Partida } from './logica/partida.js';
 import { NOMBRES_HABILIDAD } from './logica/generadores.js';
 
@@ -54,9 +55,9 @@ export class JuegoCalculo extends JuegoConMaterial {
             componente: new RectaInteractiva({ estado, alCambiar: avisar }),
             manipula: true,
             abrir: 'Usar la recta',
-            consigna: esSuma ? `Empiezas en ${material.a}. Avanza ${material.b} con saltos.` : `Empiezas en ${material.a}. Retrocede ${material.b} con saltos.`,
+            consigna: esSuma ? `Empiezas en ${F(material.a)}. Avanza ${F(material.b)} con saltos.` : `Empiezas en ${F(material.a)}. Retrocede ${F(material.b)} con saltos.`,
             respuesta: () => estado.posicion,
-            detalleFallo: (valor) => `Llegaste a ${valor}. `
+            detalleFallo: (valor) => `Llegaste a ${F(valor)}. `
         };
     }
 }

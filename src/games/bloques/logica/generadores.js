@@ -21,7 +21,7 @@
  */
 import { entre, elegir, mezclar } from '../../../core/aleatorio.js';
 import { generarDistractores } from '../../../core/distractores.js';
-import { cifras, contarLlevadas, contarPrestamos, sumaSinLlevar, restaAlReves } from '../../../core/cifras.js';
+import { cifras, contarLlevadas, contarPrestamos, sumaSinLlevar, restaAlReves, formatoNumero } from '../../../core/cifras.js';
 
 export const NIVEL_MAX = 3;
 export const GRADO_MIN = 1;
@@ -69,8 +69,7 @@ export function habilidadesParaGrado(grado) {
 export const cantidadOpciones = (nivel) => (nivel <= 1 ? 3 : 4);
 export const prepararRonda = (grado, nivel) => ({ cantidad: cantidadOpciones(nivel) });
 
-/** 12345 → «12 345» (con espacio fino que no corta la línea); de 4 cifras o menos se escribe tal cual. */
-export const formatoNumero = (n) => (n >= 10000 ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : String(n));
+export { formatoNumero };
 
 /** «3 centenas», «1 decena», «0 unidades»: el nombre concuerda con la cantidad. */
 export const cantidadDeColumna = (cantidad, columna) => `${cantidad} ${(cantidad === 1 ? NOMBRES_COLUMNA.singular : NOMBRES_COLUMNA.plural)[columna]}`;

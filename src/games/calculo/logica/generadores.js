@@ -21,7 +21,7 @@
  */
 import { entre, elegir, mezclar } from '../../../core/aleatorio.js';
 import { generarDistractores } from '../../../core/distractores.js';
-import { cifras, sumaDeCifras, hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves } from '../../../core/cifras.js';
+import { cifras, sumaDeCifras, hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves, formatoNumero as F } from '../../../core/cifras.js';
 
 export const NIVEL_MAX = 3;
 export const GRADO_MIN = 1;
@@ -65,7 +65,7 @@ export const prepararRonda = (grado, nivel) => ({ cantidad: cantidadOpciones(niv
 
 // ---------- Aritmética de cifras (ahora en core/cifras.js; se reexporta para no cambiar las pruebas) ----------
 
-export { cifras, sumaDeCifras, hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves };
+export { cifras, sumaDeCifras, hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves, F as formatoNumero };
 
 // ---------- Pares de números ----------
 
@@ -186,7 +186,7 @@ function armarOpciones(respuesta, { preferidos, obligatorios = [], error = null 
     const errores = generarDistractores(respuesta, aleatorio, cantidad - 1 - fijos.length, {
         preferidos: preferidos.filter((p) => valido(p) && !fijos.includes(p)), maximo, excluir: fijos
     });
-    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: String(valor), ...(error && fijos.includes(valor) ? { error } : {}) })));
+    return mezclar(aleatorio, [respuesta, ...fijos, ...errores].map((valor) => ({ id: valor, texto: F(valor), ...(error && fijos.includes(valor) ? { error } : {}) })));
 }
 
 function materialPara(esc, operacion, a, b) {
@@ -212,13 +212,13 @@ function sumaRestaPregunta({ operacion, grado, nivel, cantidad, aleatorio, apoyo
         habilidad: operacion,
         tipo: material ? material.tipo : 'opciones',
         apoyo,
-        enunciado: `${a} ${signo} ${b} = ?`,
+        enunciado: `${F(a)} ${signo} ${F(b)} = ?`,
         material,
         respuesta: r,
-        textoRespuesta: String(r),
+        textoRespuesta: F(r),
         opciones: armarOpciones(r, opcionesDe, cantidad, aleatorio, esc.material === 'marcos' ? esc.capacidad : Infinity),
         pista: esSuma ? pistaSuma(esc, nivel, a, b) : pistaResta(esc, nivel, a, b),
-        explicacion: `${a} ${signo} ${b} = ${r}.${esSuma ? '' : ` Para comprobar: ${r} + ${b} = ${a}.`}`,
+        explicacion: `${F(a)} ${signo} ${F(b)} = ${F(r)}.${esSuma ? '' : ` Para comprobar: ${F(r)} + ${F(b)} = ${F(a)}.`}`,
         datos: { a, b }
     };
 }
@@ -234,7 +234,7 @@ const COSAS = [
 const NOMBRES = ['Ana', 'Luis', 'Sofía', 'Mateo', 'Valeria', 'Diego', 'Camila', 'Emiliano'];
 
 /** «1 canica», «5 canicas». */
-const cant = (n, cosa) => `${n} ${n === 1 ? cosa.s : cosa.p}`;
+const cant = (n, cosa) => `${F(n)} ${n === 1 ? cosa.s : cosa.p}`;
 const cuantas = (cosa) => (cosa.g === 'f' ? 'Cuántas' : 'Cuántos');
 const algunas = (cosa) => (cosa.g === 'f' ? 'algunas' : 'algunos');
 
@@ -245,16 +245,16 @@ const algunas = (cosa) => (cosa.g === 'f' ? 'algunas' : 'algunos');
 const PLANTILLAS = {
     1: [
         { operacion: 'suma', historia: ({ n, c, a, b }) => `${n} tiene ${cant(a, c)}. Le regalan ${cant(b, c)} más. ¿${cuantas(c)} ${c.p} tiene ahora?`, clave: 'Le regalan más: se junta.' },
-        { operacion: 'resta', historia: ({ n, c, a, b }) => `${n} tiene ${cant(a, c)} y regala ${b}. ¿${cuantas(c)} ${c.p} le quedan?`, clave: 'Regala: se quita.' }
+        { operacion: 'resta', historia: ({ n, c, a, b }) => `${n} tiene ${cant(a, c)} y regala ${F(b)}. ¿${cuantas(c)} ${c.p} le quedan?`, clave: 'Regala: se quita.' }
     ],
     2: [
-        { operacion: 'suma', historia: ({ c, a, b }) => `En una caja hay ${cant(a, c)} y en otra caja hay ${b}. ¿${cuantas(c)} ${c.p} hay en total?`, clave: 'En total: se junta lo de las dos cajas.' },
-        { operacion: 'resta', historia: ({ n, m, c, a, b }) => `${n} tiene ${cant(a, c)} y ${m} tiene ${b}. ¿${cuantas(c)} ${c.p} más tiene ${n} que ${m}?`, clave: 'Cuántos más: se compara y se resta.' }
+        { operacion: 'suma', historia: ({ c, a, b }) => `En una caja hay ${cant(a, c)} y en otra caja hay ${F(b)}. ¿${cuantas(c)} ${c.p} hay en total?`, clave: 'En total: se junta lo de las dos cajas.' },
+        { operacion: 'resta', historia: ({ n, m, c, a, b }) => `${n} tiene ${cant(a, c)} y ${m} tiene ${F(b)}. ¿${cuantas(c)} ${c.p} más tiene ${n} que ${m}?`, clave: 'Cuántos más: se compara y se resta.' }
     ],
     3: [
         // «Tenía algunas»: se busca el INICIO. La historia usa el total y lo que se agregó; se resuelve restando.
-        { operacion: 'resta', faltante: 'inicio-suma', historia: ({ n, c, a, b }) => `${n} tenía ${algunas(c)} ${c.p}. Le dieron ${b} más y ahora tiene ${a}. ¿${cuantas(c)} ${c.p} tenía al principio?`, clave: 'Buscas lo que tenía antes de que le dieran más: se resta.' },
-        { operacion: 'suma', faltante: 'inicio-resta', historia: ({ n, c, a, b }) => `${n} tenía ${algunas(c)} ${c.p}. Regaló ${b} y le quedaron ${a}. ¿${cuantas(c)} ${c.p} tenía al principio?`, clave: 'Buscas lo que tenía antes de regalar: se suma lo que regaló a lo que le quedó.' }
+        { operacion: 'resta', faltante: 'inicio-suma', historia: ({ n, c, a, b }) => `${n} tenía ${algunas(c)} ${c.p}. Le dieron ${F(b)} más y ahora tiene ${F(a)}. ¿${cuantas(c)} ${c.p} tenía al principio?`, clave: 'Buscas lo que tenía antes de que le dieran más: se resta.' },
+        { operacion: 'suma', faltante: 'inicio-resta', historia: ({ n, c, a, b }) => `${n} tenía ${algunas(c)} ${c.p}. Regaló ${F(b)} y le quedaron ${F(a)}. ¿${cuantas(c)} ${c.p} tenía al principio?`, clave: 'Buscas lo que tenía antes de regalar: se suma lo que regaló a lo que le quedó.' }
     ]
 };
 
@@ -283,11 +283,11 @@ function problemaPregunta({ grado, nivel, cantidad, aleatorio, apoyo }) {
         enunciado: historia,
         material: null,
         respuesta: r,
-        textoRespuesta: String(r),
+        textoRespuesta: F(r),
         // El error clásico: usar la operación contraria
         opciones: armarOpciones(r, { preferidos: [r + 1, r - 1, r + 10, r - 10], obligatorios: [esSuma ? Math.abs(x - y) : x + y], error: 'usó la operación contraria' }, cantidad, aleatorio),
         pista: PISTAS.problemas,
-        explicacion: `${plantilla.clave} ${x} ${signo} ${y} = ${r}.`,
+        explicacion: `${plantilla.clave} ${F(x)} ${signo} ${F(y)} = ${F(r)}.`,
         datos: { operacion: plantilla.operacion, x, y, historia, clave: plantilla.clave }
     };
 }

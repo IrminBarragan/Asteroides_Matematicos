@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
     generarPregunta, habilidadesParaGrado, parNumeros, ESCALAS, HABILIDADES_POR_GRADO,
-    hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves, cifras, sumaDeCifras, cantidadOpciones
+    hayLlevada, hayPrestamo, sumaSinLlevar, restaAlReves, cifras, sumaDeCifras, cantidadOpciones, formatoNumero
 } from '../src/games/calculo/logica/generadores.js';
 import { crearAleatorioSembrado } from '../src/core/aleatorio.js';
 
@@ -15,6 +15,8 @@ const SEMILLAS = 120;
 const GRADOS = [1, 2, 3, 4, 5, 6];
 const NIVELES = [1, 2, 3];
 const ECUACION = /^(\d+) ([+−]) (\d+) = \?$/;
+/** Los números de 5 cifras o más se escriben con espacio fino («12 345»): para recalcular se lee el número sin él. */
+const sinFino = (t) => t.replace(/\u202f/g, '');
 
 /** Hay llevada en a + b si, en alguna posición k, los restos de a y b módulo 10^k suman 10^k o más. */
 const llevadaIndependiente = (a, b) => { for (let k = 1; k <= 8; k++) if ((a % 10 ** k) + (b % 10 ** k) >= 10 ** k) return true; return false; };
@@ -46,9 +48,9 @@ test('cada pregunta: la respuesta, las opciones y los ids son coherentes', () =>
         assert.equal(ids.filter((id) => id === q.respuesta).length, 1, `una sola correcta ${donde}`);
         for (const o of q.opciones) {
             assert.ok(Number.isInteger(o.id) && o.id >= 0, `id entero no negativo ${donde}`);
-            assert.equal(o.texto, String(o.id), 'el texto de la opción es su id');
+            assert.equal(sinFino(o.texto), String(o.id), 'el texto de la opción es su valor (con espacio fino desde 5 cifras)');
         }
-        assert.equal(q.textoRespuesta, String(q.respuesta));
+        assert.equal(sinFino(q.textoRespuesta), String(q.respuesta));
         assert.equal(q.habilidad, c.habilidad);
         assert.equal(q.apoyo, c.apoyo);
         assert.ok(q.pista.length > 10 && q.explicacion.length > 5);
@@ -60,7 +62,7 @@ test('suma y resta: la respuesta es la que sale al recalcular con los números d
     let vistas = 0;
     paraTodas((q, c) => {
         if (c.habilidad === 'problemas') return;
-        const m = ECUACION.exec(q.enunciado);
+        const m = ECUACION.exec(sinFino(q.enunciado));
         assert.ok(m, `formato «${q.enunciado}»`);
         const [a, b] = [Number(m[1]), Number(m[3])];
         const esperado = m[2] === '+' ? a + b : a - b;
@@ -71,6 +73,21 @@ test('suma y resta: la respuesta es la que sale al recalcular con los números d
         vistas++;
     });
     assert.ok(vistas > 3000);
+});
+
+test('los números de 5 cifras o más se escriben con espacio fino y los de 4 cifras o menos, no', () => {
+    assert.equal(formatoNumero(9999), '9999');
+    assert.equal(formatoNumero(10000), '10\u202f000');
+    assert.equal(formatoNumero(123456), '123\u202f456');
+    assert.equal(formatoNumero(5), '5');
+    let conFino = 0;
+    paraTodas((q, c) => {
+        const hay = /\u202f/.test(q.enunciado);
+        // grados 1–4: como mucho 4 cifras en el enunciado de sumas y restas (la suma/resta de 5.º y 6.º sí pasa de 10 000)
+        if (c.grado <= 3) assert.equal(hay, false, q.enunciado);
+        if (hay) { conFino++; assert.match(q.enunciado, /\d\u202f\d{3}/); assert.doesNotMatch(q.enunciado, /\u202f\u202f|\d\u202f\d{1,2}(?!\d)/); }
+    });
+    assert.ok(conFino > 100, `hay números grandes con espacio fino (${conFino})`);
 });
 
 test('el material coincide con la operación y respeta su capacidad', () => {
@@ -238,7 +255,7 @@ test('problemas: la operación depende de lo que cuenta la historia y el resulta
     let vistos = 0;
     paraTodas((q, c) => {
         if (c.habilidad !== 'problemas') return;
-        const numeros = (q.enunciado.match(/\d+/g) || []).map(Number);
+        const numeros = (sinFino(q.enunciado).match(/\d+/g) || []).map(Number);
         assert.deepEqual([...numeros].sort((x, y) => x - y), [q.datos.x, q.datos.y].sort((x, y) => x - y), `los números de la historia: ${q.enunciado}`);
         const operacion = operacionPorPalabras(q.enunciado);
         assert.equal(q.datos.operacion, operacion, q.enunciado);
@@ -254,7 +271,7 @@ test('problemas: la operación depende de lo que cuenta la historia y el resulta
 test('problemas: concordancia (singular/plural y género) y sin números rotos', () => {
     paraTodas((q, c) => {
         if (c.habilidad !== 'problemas') return;
-        const t = q.enunciado;
+        const t = sinFino(q.enunciado);
         for (const s of CON_SINGULAR) {
             const p = PLURAL[s];
             for (const m of t.matchAll(new RegExp(`(\\d+) (${s}|${p})(?![a-zñáéíóú])`, 'g'))) {
