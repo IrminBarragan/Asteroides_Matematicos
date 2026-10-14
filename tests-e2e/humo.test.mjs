@@ -43,7 +43,7 @@ test('un apodo con HTML no se ejecuta (XSS): se limpia el «<>» y además se mu
     await contexto.close();
 });
 
-// Cada grado ve sus juegos; entre los 6 grados se abren los 7 juegos del portal.
+// Cada grado ve sus juegos; entre los 6 grados se abren los 8 juegos del portal.
 const vistos = new Set();
 for (const grado of [1, 2, 3, 4, 5, 6]) {
     test(`${grado}.º: cada juego abre, se pausa con Escape, continúa y se puede salir`, opciones, async () => {
@@ -65,8 +65,8 @@ for (const grado of [1, 2, 3, 4, 5, 6]) {
     });
 }
 
-test('entre los 6 grados se probaron los 7 juegos', opciones, () => {
-    assert.deepEqual([...vistos].sort(), ['Asteroides Matemáticos', 'Atrapa la Ortografía', 'Bloques de Valor', 'Memorama de Palabras', 'Reloj Aventurero', 'Taller de Cálculo', 'Tren de Fracciones']);
+test('entre los 6 grados se probaron los 8 juegos', opciones, () => {
+    assert.deepEqual([...vistos].sort(), ['Asteroides Matemáticos', 'Atrapa la Ortografía', 'Bloques de Valor', 'Cajas y Reparto', 'Memorama de Palabras', 'Reloj Aventurero', 'Taller de Cálculo', 'Tren de Fracciones']);
 });
 
 test('el jugador se conserva al recargar y se puede elegir de nuevo', opciones, async () => {

@@ -352,3 +352,99 @@ export async function jugarPartidaBloques(pagina, { max = 14 } = {}) {
     }
     throw new Error(`la partida no terminó en ${max} preguntas`);
 }
+
+// ---------- Cajas y Reparto ----------
+
+/** Respuesta de lo que se ve en el enunciado (multiplicar, dividir, repartir), o null si no lo reconoce. */
+export function respuestaDeCajas(enunciado) {
+    let m = /^(\d+) × (\d+) = \?$/.exec(enunciado);
+    if (m) return Number(m[1]) * Number(m[2]);
+    m = /^(\d+) ÷ (\d+) = \?$/.exec(enunciado);
+    if (m) return Number(m[1]) / Number(m[2]);
+    m = /^\? × (\d+) = (\d+)$/.exec(enunciado) || /^(\d+) × \? = (\d+)$/.exec(enunciado);
+    if (m) return Number(m[2]) / Number(m[1]);
+    m = /^Se reparten (\d+) \S+ en partes iguales entre (\d+) platos\. ¿\S+ \S+ (sobran|le tocan a cada plato)\?$/.exec(enunciado);
+    if (m) return m[3] === 'sobran' ? Number(m[1]) % Number(m[2]) : Math.floor(Number(m[1]) / Number(m[2]));
+    m = /^(\d+) (?:cajas|bolsas|canastas|charolas) con (\d+) /.exec(enunciado);
+    if (m) return Number(m[1]) * Number(m[2]);
+    m = /^Una cuadrícula tiene (\d+) filas y (\d+) columnas/.exec(enunciado);
+    if (m) return Number(m[1]) * Number(m[2]);
+    return null;
+}
+
+/**
+ * Resuelve la pregunta de «Cajas y Reparto» que hay en pantalla como un niño que SÍ sabe: usa el material si es
+ * obligatorio (pone objetos en las cajas, reparte de uno en uno, arma la cuadrícula) y, si no, calcula.
+ * @returns {Promise<{via:'grupos'|'reparto'|'cuadricula'|'calculo'|'tanteo', apoyo:string}>}
+ */
+export async function resolverPreguntaCajas(pagina, { fallarPrimero = false } = {}) {
+    await pagina.waitForSelector('.juego-material__enunciado:not(:empty)');
+    await saltarLeccion(pagina);
+    const enunciado = await pagina.textContent('.juego-material__enunciado');
+    const consigna = (await pagina.textContent('.juego-material__consigna')) || '';
+    const apoyo = (await pagina.textContent('.juego-material__dato--apoyo')) || '';
+    const opciones = pagina.locator('.juego-material__opcion');
+    const obligatorio = (await opciones.count()) === 0;
+    let via;
+    let respuesta = respuestaDeCajas(enunciado);
+
+    if (obligatorio && /^Pon (\d+) /.test(consigna)) {
+        const b = Number(/^Pon (\d+) /.exec(consigna)[1]);
+        const grupos = await pagina.locator('.grupos-obj__grupo').count();
+        for (let g = 0; g < grupos; g++) for (let i = 0; i < b; i++) await pagina.locator('.grupos-obj__grupo').nth(g).locator('button[aria-label^="Poner uno"]').click();
+        via = 'grupos';
+    } else if (obligatorio && consigna.startsWith('Reparte')) {
+        const platos = await pagina.locator('.grupos-obj__grupo').count();
+        let monton = Number(await pagina.locator('.grupos-obj__monton-numero').textContent());
+        while (monton >= platos) {
+            for (let g = 0; g < platos; g++) await pagina.locator('.grupos-obj__grupo').nth(g).locator('button[aria-label^="Dar uno"]').click();
+            monton -= platos;
+        }
+        via = 'reparto';
+    } else if (obligatorio && /^Arma una cuadrícula/.test(consigna)) {
+        const [f, c] = consigna.match(/\d+/g).map(Number);
+        for (let i = 0; i < f; i++) await pagina.click('button[aria-label="Agregar una fila"]');
+        for (let i = 0; i < c; i++) await pagina.click('button[aria-label="Agregar una columna"]');
+        via = 'cuadricula';
+    } else if (obligatorio && /^La cuadrícula tiene/.test(consigna)) {
+        const [f, total] = consigna.match(/\d+/g).map(Number);
+        for (let i = 0; i < total / f; i++) await pagina.click('button[aria-label="Agregar una columna"]');
+        via = 'cuadricula';
+    } else if (respuesta !== null) {
+        via = 'calculo';
+    }
+
+    if (respuesta === null) {
+        const total = await opciones.count();
+        for (let i = 0; i < total; i++) {
+            await opciones.nth(i).click();
+            if (await pagina.locator('text=Siguiente ➜').isVisible()) break;
+        }
+        via = 'tanteo';
+    } else {
+        await pagina.waitForSelector('.juego-material__opcion');
+        if (fallarPrimero) {
+            const mala = await opciones.evaluateAll((bs, bien) => bs.map((x) => x.getAttribute('aria-label')).find((t) => t !== String(bien)), respuesta);
+            await pagina.locator('.juego-material__opcion', { hasText: new RegExp(`^${mala}$`) }).first().click();
+            await pagina.waitForSelector('text=/Casi\\. Pista/');
+        }
+        await pagina.locator('.juego-material__opcion', { hasText: new RegExp(`^${respuesta}$`) }).click();
+    }
+    await pagina.waitForSelector('text=Siguiente ➜', { state: 'visible' });
+    return { via, apoyo };
+}
+
+/** Juega una partida COMPLETA de «Cajas y Reparto» resolviendo bien cada pregunta. */
+export async function jugarPartidaCajas(pagina, { max = 14 } = {}) {
+    const vias = [];
+    for (let guardia = 0; guardia < max; guardia++) {
+        const que = await Promise.race([
+            pagina.waitForSelector('.juego-material__enunciado:not(:empty)').then(() => 'pregunta'),
+            pagina.waitForSelector('text=Jugar otra vez').then(() => 'fin')
+        ]);
+        if (que === 'fin') return { preguntas: guardia, vias };
+        vias.push((await resolverPreguntaCajas(pagina)).via);
+        await pagina.click('text=Siguiente ➜');
+    }
+    throw new Error(`la partida no terminó en ${max} preguntas`);
+}

@@ -28,14 +28,14 @@
 /* ---------- Grupos de objetos y cuadrícula (ui/gruposObjetos.js, ui/cuadricula.js; los usa Cajas y Reparto) ---------- */
 .grupos-obj { display: flex; flex-direction: column; align-items: center; gap: .7rem; width: 100%; }
 .grupos-obj__grupos { display: flex; flex-wrap: wrap; justify-content: center; gap: .8rem; width: 100%; }
-.grupos-obj__grupo { flex: 0 1 150px; min-width: 110px; display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .5rem .4rem; background: #fff; border: 3px solid #1e3a8a; border-radius: 14px; }
+.grupos-obj__grupo { flex: 0 1 138px; min-width: 100px; display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .5rem .4rem; background: #fff; border: 3px solid #1e3a8a; border-radius: 14px; }
 .grupos-obj__nombre { margin: 0; font: 700 .9rem var(--fuente-titulo); color: var(--texto-suave); }
 .grupos-obj__piezas { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 4px; min-height: 52px; width: 100%; }
 .grupos-obj__pieza { display: block; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(0, 0, 0, .35); }
 .grupos-obj__pieza--monton { background: #f59e0b; }
 .grupos-obj__numero { font: 700 1.5rem var(--fuente-titulo); }
 .grupos-obj__controles { display: flex; gap: .3rem; width: 100%; }
-.grupos-obj__boton { flex: 1; min-height: 2.6rem; padding: .2rem .3rem; font-weight: 700; }
+.grupos-obj__boton { flex: 1; min-height: 2.6rem; padding: .2rem .2rem; font-weight: 700; font-size: .85rem; }
 .grupos-obj__monton { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .5rem 1rem; background: #fef3c7; border: 3px dashed #d97706; border-radius: 14px; max-width: 100%; }
 .grupos-obj__monton-titulo { margin: 0; font-weight: 700; }
 .grupos-obj__resumen, .cuadricula__resumen { margin: 0; font-weight: 600; color: var(--texto-suave); text-align: center; overflow-wrap: anywhere; }
