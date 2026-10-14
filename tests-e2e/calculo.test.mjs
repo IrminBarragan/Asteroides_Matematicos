@@ -35,22 +35,25 @@ for (const grado of [1, 3, 6]) {
     });
 }
 
-test('Taller de Cálculo: la ayuda se retira con los aciertos y vuelve con un error', { skip: MOTIVO_OMITIR }, async () => {
+test('Taller de Cálculo: la ayuda se retira con los aciertos', { skip: MOTIVO_OMITIR }, async () => {
     const { pagina, contexto, problemas } = await nuevaPagina(navegador);
     await crearJugador(pagina, { grado: 3 });
     await abrirJuego(pagina, 'Taller de Cálculo');
     await jugarPartidaCalculo(pagina); // misión
-    await pagina.click('text=Jugar otra vez');
 
+    // Cada habilidad necesita 3 preguntas para llegar a «Sin ayuda»; se juega hasta verlo (máx. 3 partidas)
     const etiquetas = [];
-    for (let i = 0; i < 10; i++) {
-        const { apoyo } = await resolverPreguntaCalculo(pagina);
-        etiquetas.push(apoyo);
-        await pagina.click('text=Siguiente ➜');
-        if (await pagina.locator('text=Jugar otra vez').count()) break;
+    for (let partida = 0; partida < 3 && !etiquetas.includes('Sin ayuda'); partida++) {
+        await pagina.click('text=Jugar otra vez');
+        for (let i = 0; i < 10; i++) {
+            const { apoyo } = await resolverPreguntaCalculo(pagina);
+            etiquetas.push(apoyo);
+            await pagina.click('text=Siguiente ➜');
+        }
+        await pagina.waitForSelector('text=Jugar otra vez');
     }
     assert.ok(etiquetas.includes('Sin ayuda'), `con aciertos la ayuda se retira del todo: ${etiquetas}`);
-    assert.ok(etiquetas.some((e) => e === 'Con material' || e === 'Material opcional'), `y al principio había ayuda: ${etiquetas}`);
+    assert.equal(etiquetas[0], 'Con material', 'la primera pregunta lleva ayuda');
     assert.deepEqual(problemas, []);
     await contexto.close();
 });
