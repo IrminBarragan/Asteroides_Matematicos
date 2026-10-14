@@ -5,7 +5,7 @@ con **ocho juegos** que **enseñan** (no solo evalúan): el sistema detecta por 
 material para manipular (marcos, recta, bloques, cajas, platos) y **retira la ayuda** cuando ya no la necesita.
 Funciona **sin internet** y se abre con doble clic. **Versión 0.2.0** ([`CHANGELOG.md`](CHANGELOG.md)).
 
-Plan inicial: [`docs/PLAN.md`](docs/PLAN.md). Plan de la v0.2 (enseñar, música y color, juegos nuevos): [`docs/PLAN-V2.md`](docs/PLAN-V2.md).
+Plan inicial: [`docs/PLAN.md`](docs/PLAN.md). Plan de la v0.2 (enseñar, música y color, juegos nuevos): [`docs/PLAN-V2.md`](docs/PLAN-V2.md). Plan de la v0.3 (aprender jugando: un camino de habilidades con repaso espaciado): [`docs/PLAN-V3.md`](docs/PLAN-V3.md).
 
 ## Uso rápido
 
