@@ -204,6 +204,21 @@ Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 **Patrón clave:** como el tercer juego con material repetía el mismo esqueleto (HUD, opciones, apoyo), se **extrajo al tercero**, no antes. Un juego con material ahora son unas 60 líneas: qué estado se crea, qué componente lo dibuja y cuándo se considera terminado. Los juegos antiguos se migraron al esqueleto y sus pruebas de navegador siguieron pasando sin cambios de lógica.
 
+## Añadidos en la Fase 16 (v0.2.0): registro de equivocaciones comunes
+
+Flujo: **opción con nombre de error → la partida cuenta lo que el niño eligió → el resultado trae conteos → el perfil los acumula → el modo maestro los suma por grupo.**
+
+| Pieza | Qué hace |
+|---|---|
+| `error:` en las opciones (generadores de Taller, Bloques y Cajas) | La opción **más reveladora** de cada pregunta lleva el nombre del error que representa («olvidó la llevada»). El resto no lleva nombre |
+| `core/partidaPreguntas.js` → `contarEquivocacion`, `resultado().errores` | Cuenta **cada** respuesta equivocada con el nombre de su opción (o «otra equivocación»; si lo que se respondió no es una opción, como el número al que llegó la recta) y lo que se **escapa** («se le escapó…»). También en la misión de inicio |
+| `core/resultado.js` → `limpiarErrores` | Valida y limpia la lista: **nunca lanza** (los datos de enseñanza no deben impedir guardar la partida), acota el largo de los nombres y cuántas entradas |
+| `core/storage.js` (esquema **v5**) | `perfil.errores = { juego: { habilidad: { equivocación: veces } } }`: **solo conteos**. Migración 4→5 y validación del esquema (enteros positivos) |
+| `portal/portal.js` → `erroresDelGrupo`, `csvErrores` | Suma las equivocaciones de todos los niños, cuenta cuántos las cometen y las ordena; exporta `equivocaciones.csv` |
+| `core/cifras.js` → `formatoNumero` | Subió al núcleo (lo usan Bloques de Valor y el Taller): números de 5 cifras o más con espacio fino |
+
+**Por qué conteos y no un registro de respuestas:** ocupan poco, no guardan más de lo necesario de cada niño y responden la pregunta de enseñanza («qué confunden»). Costo: no se puede reconstruir *cuándo* ni *en qué pregunta exacta* ocurrió cada equivocación.
+
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
 
 No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.

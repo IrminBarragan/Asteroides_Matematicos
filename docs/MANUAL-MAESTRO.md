@@ -72,9 +72,14 @@ Ahí puedes:
 
 - Ver por niño: **juegos jugados, mejor puntaje, estrellas y el contenido que le toca**.
 - Ver por niño sus **habilidades**: nivel actual, intentos, aciertos y **dominio reciente** (porcentaje de aciertos en sus últimos intentos). Un dominio bajo en una habilidad indica **qué reforzar**.
+- Ver **«Lo que más confunden»** (arriba): las equivocaciones más repetidas de **todo el grupo**, con cuántos niños las cometen. Es lo que le dice **qué confunden** (por ejemplo «olvidó la llevada», «sumó en vez de multiplicar», «usó la operación contraria»), no solo cuánto fallan: sirve para dirigir la clase. Solo los juegos **Taller de Cálculo, Bloques de Valor y Cajas y Reparto** nombran sus equivocaciones; en los demás aparece «otra equivocación».
 - **Repetir la misión de inicio** de un niño.
-- **Descargar CSV** (`progreso.csv`, `habilidades.csv`) y abrirlos en Excel o Google Sheets.
+- **Descargar CSV** (`progreso.csv`, `habilidades.csv`, `equivocaciones.csv`) y abrirlos en Excel o Google Sheets.
 - **Eliminar** a un jugador, o **borrar todo** (pide confirmación; no se puede deshacer).
+
+### Cómo leer «Lo que más confunden»
+
+Cada fila es una equivocación **con nombre** (columna *Equivocación*), el juego y la habilidad donde ocurre, **cuántas veces** la eligieron entre todos y **cuántos niños** la cometieron. Una sola vez no dice nada; **una fila con muchas veces y varios niños** es un tema para trabajar en clase. Se guardan **solo conteos** (no las respuestas de cada niño) y no se envía nada fuera de la computadora. Antes de la segunda prueba con niños, lea [`PROTOCOLO-SEGUNDA-PRUEBA.md`](PROTOCOLO-SEGUNDA-PRUEBA.md).
 
 ### Cómo leer «Dominio reciente»
 

@@ -1,6 +1,6 @@
 {
   "name": "portal-juegos-educativos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Portal de videojuegos educativos para primaria (1° a 6°). Funciona sin internet.",
   "type": "module",

@@ -140,7 +140,9 @@ Los cuatro comparten una **estructura de tres modos**:
 - Se reutiliza **toda la infraestructura existente** (contrato `Juego`, `PartidaPreguntas`, motor adaptativo, voz, pruebas) y se añade **un solo componente nuevo**: la **lección** (pasos + material arrastrable accesible con teclado y táctil).
 - **Pruebas:** como siempre, la respuesta de cada pregunta se **recalcula de forma independiente** y se juega **una partida completa en Chromium** por juego; el arrastre se prueba con el ratón real.
 
-### Fase 16 — Pulido y segunda prueba
+### Fase 16 — Pulido y segunda prueba — ✅ hecha, ver [`AUDITORIA-FASE-16.md`](AUDITORIA-FASE-16.md)
+
+*(Entregado: registro de equivocaciones comunes y «Lo que más confunden» en el modo maestro, [`PROTOCOLO-SEGUNDA-PRUEBA.md`](PROTOCOLO-SEGUNDA-PRUEBA.md), [`REVISION-DOCENTE.md`](REVISION-DOCENTE.md), [`CHANGELOG.md`](../CHANGELOG.md), ZIP v0.2.0 y el separador de miles pendiente de la Fase 13. **Lo que queda es de personas, no de código:** la revisión docente y la segunda prueba con niños.)*
 
 - Auditoría por fase, manual del maestro actualizado, ZIP **v0.2.0**.
 - **Protocolo de observación** para la segunda prueba (una hoja de una página): qué mirar y qué anotar.
