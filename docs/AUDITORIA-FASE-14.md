@@ -72,6 +72,6 @@ Igual que en el Taller: olvidar la llevada (`47 + 38 → 75`) y restar «al rev�
 - **A partir de 5 cifras no hay bloques** (no caben cuatro columnas más en pantalla): `posicion` de 4.º–6.º es abstracta. Llevadas y préstamos llegan a 4 cifras en todos los grados 4.º–6.º; no cambian entre ellos más que en la proporción de niveles.
 - **Las lecciones dibujan bloques solo con decenas y unidades**; con 3 o más cifras usan la operación en columnas.
 - Los números de 5 y 6 cifras se escriben con espacio fino (`12 345`); Taller de Cálculo todavía no.
-- **Duplicación consciente**: `juego.js` repite la estructura de `calculo/juego.js` (HUD, opciones, planificador) en vez de abstraerla; el patrón de la casa es un `juego.js` por juego y la abstracción prematura era un riesgo mayor. Si llega un tercer juego con material, conviene extraerla.
+- **Duplicación consciente**: `juego.js` repite la estructura de `calculo/juego.js` (HUD, opciones, planificador) en vez de abstraerla; el patrón de la casa es un `juego.js` por juego y la abstracción prematura era un riesgo mayor. **Resuelto en la Fase 15:** al llegar el tercer juego con material se extrajo el esqueleto a `ui/juegoConMaterial.js`.
 - **«Ligero» no mide si usó los bloques** (como en el Taller).
 - **Contenido sin validar por docentes** y **sin probar con niños** (como el resto de la v0.2).

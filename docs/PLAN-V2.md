@@ -107,6 +107,10 @@ Primer juego **nuevo** de la v0.2 y el que cumple el **«andamiaje que se retira
 
 Segundo juego nuevo de la v0.2: **leer y armar números con bloques** (unidades, decenas, centenas, millares), el **valor de cada cifra**, y las **llevadas y préstamos** como lo que son: «10 de una columna se cambian por 1 de la siguiente» y al revés. Usa el mismo andamiaje que se retira que «Taller de Cálculo» (ahora en `core/partidaConApoyo.js`). **Cambio respecto al diseño:** los bloques se manejan con **botones** (poner, quitar, «10 → 1», «1 → 10»), no con arrastre; ver el porqué en la auditoría.
 
+### Fase 15 — Cajas y Reparto (multiplicar y dividir) — ✅ hecha, ver [`AUDITORIA-FASE-15.md`](AUDITORIA-FASE-15.md)
+
+Tercer juego nuevo de la v0.2. Como decía el plan, **«Tablas» y «Reparto» se hicieron juntos** en un solo juego porque comparten material y son la misma idea vista al revés: **multiplicar** como grupos iguales (cajas con objetos) y arreglos (cuadrículas), y **dividir** como repartir en platos, con **residuo**. Mismo andamiaje que se retira. **Se omitió** «agrupar» («¿cuántas bolsas de 4 salen de 12?») y el conteo de 2 en 2, 5 en 5 (ya lo cubre la recta de «Taller de Cálculo»); ver limitaciones.
+
 ### Fase 11 — Enseñar dentro de cada juego (la prioridad pedagógica) — ✅ hecha, ver [`AUDITORIA-FASE-11.md`](AUDITORIA-FASE-11.md)
 
 Es el cambio que más responde a la queja. Se construye **una vez** el componente `Leccion` y se conecta a los juegos existentes:
@@ -129,8 +133,8 @@ Los cuatro comparten una **estructura de tres modos**:
 |---|---|---|---|---|
 | **Sumas y restas guiadas** (F13, ✅ «Taller de Cálculo») | 1.º–6.º (según el nivel que detecte el sistema) | Sumar y restar como **juntar/quitar**; recta numérica; «hacer 10» | Objetos arrastrables a una caja; **marcos de 10**; **recta numérica** con un personaje que salta | Hasta 5 → 10 → 20 sin pasar → 20 pasando la decena → hasta 100 |
 | **Valor posicional y llevadas** (F14, ✅ «Bloques de Valor») | 1.º–6.º (según el nivel) | **Valor posicional** y **llevadas** (acarreo) en suma y resta con préstamo | Bloques de unidades, decenas y centenas; «**10 unidades se cambian por 1 decena**» animado | 2 dígitos sin llevar → con llevada → 3 dígitos → resta con préstamo |
-| **Tablas** (F15) | 1.º–6.º (según el nivel) | Multiplicar como **grupos iguales** y **arreglos** (filas × columnas); patrones de las tablas | Cajas con el mismo número de objetos; **cuadrícula** que se llena; conteo de 2 en 2, 5 en 5, 10 en 10 | Tablas 2, 5, 10 → 3, 4 → 6, 7, 8, 9 → ×10, ×100 |
-| **Reparto** (F15) | 1.º–6.º (según el nivel) | Dividir como **repartir equitativamente** y **agrupar**; el residuo | Objetos que se reparten en grupos (arrastrar); sobrantes | Dividir entre 2, 5, 10 → exactas → con residuo → 2 dígitos |
+| **Tablas** (F15, ✅ en «Cajas y Reparto») | 1.º–6.º (según el nivel) | Multiplicar como **grupos iguales** y **arreglos** (filas × columnas); patrones de las tablas | Cajas con el mismo número de objetos; **cuadrícula** que se llena; conteo de 2 en 2, 5 en 5, 10 en 10 | Tablas 2, 5, 10 → 3, 4 → 6, 7, 8, 9 → ×10, ×100 |
+| **Reparto** (F15, ✅ en «Cajas y Reparto») | 1.º–6.º (según el nivel) | Dividir como **repartir equitativamente** y **agrupar**; el residuo | Objetos que se reparten en grupos (arrastrar); sobrantes | Dividir entre 2, 5, 10 → exactas → con residuo → 2 dígitos |
 
 - **Por qué estos y en este orden:** son la **cadena de prerrequisitos** (contar → sumar/restar → valor posicional → multiplicar → dividir). Cada eslabón se apoya en el anterior: si falla la suma con llevadas, la multiplicación de 2 cifras no tiene base.
 - Se reutiliza **toda la infraestructura existente** (contrato `Juego`, `PartidaPreguntas`, motor adaptativo, voz, pruebas) y se añade **un solo componente nuevo**: la **lección** (pasos + material arrastrable accesible con teclado y táctil).

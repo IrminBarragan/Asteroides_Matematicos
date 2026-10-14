@@ -192,6 +192,18 @@ Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 **Patrón clave:** el estado del material **cuenta lo que el niño hizo** (cuántos bloques hay en cada columna, cuánto quitó) y la pregunta declara qué cuenta como «terminado» (todas las columnas ≤ 9, o lo quitado igual a las cifras del sustraendo). El juego no calcula nada: solo compara estado y objetivo.
 
+## Añadidos en la Fase 15 (v0.2): Cajas y Reparto y el esqueleto de los juegos con material
+
+| Archivo | Qué es |
+|---|---|
+| `ui/juegoConMaterial.js` | **Esqueleto común** de los tres juegos con material (Taller de Cálculo, Bloques de Valor, Cajas y Reparto): HUD, opciones, pistas, «Ver cómo se hace», la ayuda que se retira y el botón «Listo». Cada juego aporta `crearPartida` y `crearMaterial` (qué material arma y cuándo está «terminado») |
+| `estilos/material.css` | El CSS común de esos juegos (antes se repetía por juego) |
+| `core/material.js` → `EstadoGrupos`, `EstadoCuadricula` | Estados puros de las cajas/platos (con o sin montón por repartir) y de la cuadrícula (con filas fijas o no). Invariante probada: al repartir, `total + montón` es constante |
+| `ui/gruposObjetos.js`, `ui/cuadricula.js` | Dibujan el estado y reenvían clics |
+| `games/cajas/logica/*`, `lecciones/cajas.js` | Seis habilidades (`grupos`, `arreglo`, `tabla`, `repartir`, `inversa`, `grande`); la lección del **residuo** es lo único nuevo, el resto reutiliza las de multiplicación y división |
+
+**Patrón clave:** como el tercer juego con material repetía el mismo esqueleto (HUD, opciones, apoyo), se **extrajo al tercero**, no antes. Un juego con material ahora son unas 60 líneas: qué estado se crea, qué componente lo dibuja y cuándo se considera terminado. Los juegos antiguos se migraron al esqueleto y sus pruebas de navegador siguieron pasando sin cambios de lógica.
+
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
 
 No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.
