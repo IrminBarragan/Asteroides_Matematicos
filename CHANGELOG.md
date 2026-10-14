@@ -23,7 +23,7 @@ querían música y color). Plan y razones: [`docs/PLAN-V2.md`](docs/PLAN-V2.md);
 ### Por debajo
 - Esquema de datos **v5** con migraciones desde la v1 (no se pierde el progreso de la 0.1.0).
 - `ui/juegoConMaterial.js`: esqueleto común de los juegos con material; `core/apoyo.js` y `core/partidaConApoyo.js`: la ayuda que se retira.
-- 700 pruebas unitarias y 67 de navegador (Chromium real, por `file://`, sin internet); mutaciones manuales en cada fase.
+- 701 pruebas unitarias y 67 de navegador (Chromium real, por `file://`, sin internet); mutaciones manuales en cada fase.
 - Presupuesto de `app.js` subido de 80 a 100 KB comprimido, tras medir (~0,7 s de arranque con una CPU 6 veces más lenta).
 
 ### Pendiente (honesto)
