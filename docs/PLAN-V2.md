@@ -103,6 +103,10 @@ Propuesta (a validar contigo):
 
 Primer juego **nuevo** de la v0.2 y el que cumple el **«andamiaje que se retira»** pendiente de la Fase 11: sumas, restas y problemas de 1.º a 6.º con **material para manipular** (marcos de diez, recta de saltos). La ayuda baja un escalón con cada acierto a la primera (material obligatorio → opcional → sin ayuda) y sube con cada error. Se simplificó respecto al diseño de tres modos de abajo: no hay modo «Aprende» aparte, porque «Ver cómo se hace» y la introducción ya enseñan desde dentro.
 
+### Fase 14 — Bloques de Valor (valor posicional y llevadas) — ✅ hecha, ver [`AUDITORIA-FASE-14.md`](AUDITORIA-FASE-14.md)
+
+Segundo juego nuevo de la v0.2: **leer y armar números con bloques** (unidades, decenas, centenas, millares), el **valor de cada cifra**, y las **llevadas y préstamos** como lo que son: «10 de una columna se cambian por 1 de la siguiente» y al revés. Usa el mismo andamiaje que se retira que «Taller de Cálculo» (ahora en `core/partidaConApoyo.js`). **Cambio respecto al diseño:** los bloques se manejan con **botones** (poner, quitar, «10 → 1», «1 → 10»), no con arrastre; ver el porqué en la auditoría.
+
 ### Fase 11 — Enseñar dentro de cada juego (la prioridad pedagógica) — ✅ hecha, ver [`AUDITORIA-FASE-11.md`](AUDITORIA-FASE-11.md)
 
 Es el cambio que más responde a la queja. Se construye **una vez** el componente `Leccion` y se conecta a los juegos existentes:
@@ -124,7 +128,7 @@ Los cuatro comparten una **estructura de tres modos**:
 | Juego | Grados | Qué enseña | Material (concreto/pictórico) | Escalera de niveles (ejemplo) |
 |---|---|---|---|---|
 | **Sumas y restas guiadas** (F13, ✅ «Taller de Cálculo») | 1.º–6.º (según el nivel que detecte el sistema) | Sumar y restar como **juntar/quitar**; recta numérica; «hacer 10» | Objetos arrastrables a una caja; **marcos de 10**; **recta numérica** con un personaje que salta | Hasta 5 → 10 → 20 sin pasar → 20 pasando la decena → hasta 100 |
-| **Valor posicional y llevadas** (F14) | 1.º–6.º (según el nivel) | **Valor posicional** y **llevadas** (acarreo) en suma y resta con préstamo | Bloques de unidades, decenas y centenas; «**10 unidades se cambian por 1 decena**» animado | 2 dígitos sin llevar → con llevada → 3 dígitos → resta con préstamo |
+| **Valor posicional y llevadas** (F14, ✅ «Bloques de Valor») | 1.º–6.º (según el nivel) | **Valor posicional** y **llevadas** (acarreo) en suma y resta con préstamo | Bloques de unidades, decenas y centenas; «**10 unidades se cambian por 1 decena**» animado | 2 dígitos sin llevar → con llevada → 3 dígitos → resta con préstamo |
 | **Tablas** (F15) | 1.º–6.º (según el nivel) | Multiplicar como **grupos iguales** y **arreglos** (filas × columnas); patrones de las tablas | Cajas con el mismo número de objetos; **cuadrícula** que se llena; conteo de 2 en 2, 5 en 5, 10 en 10 | Tablas 2, 5, 10 → 3, 4 → 6, 7, 8, 9 → ×10, ×100 |
 | **Reparto** (F15) | 1.º–6.º (según el nivel) | Dividir como **repartir equitativamente** y **agrupar**; el residuo | Objetos que se reparten en grupos (arrastrar); sobrantes | Dividir entre 2, 5, 10 → exactas → con residuo → 2 dígitos |
 

@@ -31,6 +31,7 @@ Los datos personales se limitan al nombre o apodo y al avatar. **No se envía na
 | **Reloj Aventurero** | 1.º–4.º | En punto y media · cuartos y decir la hora · minutos y duración · reloj de 24 horas |
 | **Atrapa la Ortografía** | 3.º–6.º | b/v, g/j, h · c/s/z, ll/y · acentuación · homófonos y «porque / por qué» |
 | **Tren de Fracciones** | 3.º–6.º | Leer, pintar y comparar fracciones · equivalentes · simplificar, sumar y restar · números mixtos y decimales |
+| **Bloques de Valor** | 1.º–6.º | Leer y armar números con **bloques** (unidades, decenas, centenas, millares) · valor de cada cifra · sumar **con llevada** («10 bloques se cambian por 1») y restar **con préstamo** («1 bloque se cambia por 10»). Misma ayuda que se retira sola que el Taller |
 | **Taller de Cálculo** | 1.º–6.º | Sumas, restas y problemas con **material**: fichas en marcos de diez (hasta 20) y saltos en la recta (hasta 999 999). **La ayuda se retira sola**: empieza con material obligatorio, luego opcional y al final sin ayuda; si el niño se equivoca, vuelve |
 
 ### La «misión de inicio»: el sistema busca solo por dónde empezar

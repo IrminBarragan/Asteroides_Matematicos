@@ -179,6 +179,19 @@ Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 **Patrón clave:** como el `id` de cada opción es su valor numérico, la recta puede **responder con el número al que llegó el niño** sin pasar por ninguna opción: la misma `partida.responder(id)` sirve para botones y para material.
 
+## Añadidos en la Fase 14 (v0.2): Bloques de Valor
+
+| Archivo | Qué es |
+|---|---|
+| `games/bloques/logica/generadores.js` | Cinco habilidades (`leer`, `armar`, `posicion`, `llevada`, `prestamo`) por grado de contenido y nivel; el nivel sube por concepto (ceros, una o varias llevadas) |
+| `games/bloques/logica/partida.js`, `lecciones/bloques.js` | La partida (subclase de `PartidaConApoyo`) y las lecciones propias, con el cambio «10 por 1» y «1 por 10» explicado columna por columna |
+| `core/material.js` → `EstadoBloques` | Estado puro: `juntar`, `separar`, `quitar`, `agregar`, `retirar`, `deshacer`. Invariante probada: cambiar no cambia el valor (`valor() + valorQuitado()` es constante) |
+| `ui/bloquesValor.js` | Dibuja el estado y reenvía clics; cuatro modos (`ver`, `construir`, `juntar`, `quitar`) |
+| `core/cifras.js` | Antes dentro de Taller de Cálculo: llevadas, préstamos, `contarLlevadas`/`contarPrestamos` y los errores típicos |
+| `core/apoyo.js`, `core/partidaConApoyo.js` | El **andamiaje que se retira** subió al núcleo: lo comparten Taller de Cálculo y Bloques de Valor; cada juego solo aporta su generador y su lección |
+
+**Patrón clave:** el estado del material **cuenta lo que el niño hizo** (cuántos bloques hay en cada columna, cuánto quitó) y la pregunta declara qué cuenta como «terminado» (todas las columnas ≤ 9, o lo quitado igual a las cifras del sustraendo). El juego no calcula nada: solo compara estado y objetivo.
+
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)
 
 No todo juego necesita un canvas. El Memorama son botones HTML: el navegador ya da foco, teclado, lectores de pantalla y toque.
