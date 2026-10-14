@@ -43,13 +43,13 @@ Igual que en la Fase 14 (mismas razones: precisión motriz en pantalla táctil, 
 1. **Una prueba circular.** La prueba de «las tablas del nivel» comparaba contra la misma constante `TABLAS` que usa el generador. La mutación `[3, 4] → [3, 4, 7]` en esa constante **sobrevivía**: el código y la prueba cambiaban juntos. Ahora las tablas están escritas **aparte en la prueba** (`TABLAS_ESPERADAS`) y hay una prueba que exige que coincidan: es la especificación que debe revisar una maestra.
 2. **Un error duplicado que volvía redundante al «obligatorio».** En «×10 / ×100», mi cuarta opción errónea (`a` con ceros pegados) **era igual** a la segunda (`a × k/10`), así que quitar el error obligatorio no cambiaba nada y la mutación sobrevivía. Se cambió por otro error distinto (`a × k + a`); ahora la mutación se detecta y las opciones son más variadas.
 3. **Platos en una sola columna en celular**: cada plato medía 150 px y no cabían dos por fila a 360 px. Lo vi en la captura. Ahora miden 138 px (mínimo 100) y caben dos.
-4. **Mi procedimiento de mutaciones esta vez fue correcto** (confirmar antes de mutar, lección de la Fase 14): 24 mutaciones, sin incidentes. Dos patrones de `sed` míos no coincidían (la herramienta lo avisó con «NO CAMBIO») y no cuentan.
+4. **Mi procedimiento de mutaciones esta vez fue correcto** (confirmar antes de mutar, lección de la Fase 14): 21 mutaciones válidas, sin incidentes. Dos patrones de `sed` míos no coincidían (la herramienta lo avisó con «NO CAMBIO») y no cuentan.
 
 ## Cómo se verificó
 
 - **Pruebas unitarias nuevas** (`cajas-logica.test.js` y los casos nuevos de `material.test.js`; la misión entra en `colocacion-juegos.test.js`). Las comprobaciones **leen los números del texto** que ve el niño y recalculan con aritmética propia: «3 cajas con 4…» → 12, «Se reparten 13 … entre 4 platos» → cociente 3 y residuo 1 con `Math.floor` y `%`, «? × 4 = 20» y «4 × ? = 20» → 5.
 - **Cada pregunta con material se resuelve de verdad con las reglas del material**: se pone `b` en cada caja y se comprueba `todosCon(b)`; se reparte de uno en uno hasta que `pool < d` y se exige `iguales`, cada plato con el cociente y el montón igual al residuo; se agregan columnas hasta el total y se exige que las columnas sean el cociente.
-- **Mutaciones** (24 cambios deliberados: tablas de un nivel, tope de objetos, cuántos platos, permitir residuo 0 al «sobrar», residuo en niveles sin residuo, devolver el cociente cuando se pregunta el residuo, quitar el residuo del total, quitar los errores obligatorios, material con las medidas cambiadas, que `agregar` no baje el montón, que las filas fijas no lo sean, la lección del residuo con otro dato…): **todas detectadas** tras corregir los defectos 1 y 2.
+- **Mutaciones** (21 cambios deliberados: tablas de un nivel, tope de objetos, cuántos platos, permitir residuo 0 al «sobrar», residuo en niveles sin residuo, devolver el cociente cuando se pregunta el residuo, quitar el residuo del total, quitar los errores obligatorios, material con las medidas cambiadas, que `agregar` no baje el montón, que las filas fijas no lo sean, la lección del residuo con otro dato…): **todas detectadas** tras corregir los defectos 1 y 2.
 - **Navegador real (Chromium, `file://`)**: misión y partida normal en 1.º, 3.º y 6.º resolviendo con el material (cajas, platos, cuadrículas); un reparto a medias **no** muestra las opciones; teclado y «Deshacer»; la ayuda se retira; celular de 360 px sin desborde; 0 errores de consola y 0 peticiones externas. Capturas revisadas a mano en escritorio y celular.
 
 ## Conceptos que deberías poder explicar
@@ -74,5 +74,5 @@ Igual que en la Fase 14 (mismas razones: precisión motriz en pantalla táctil, 
 - **En `tabla` la cuadrícula solo se mira** (no se arma): la manipulación está en `arreglo` e `inversa`.
 - **Los números grandes (`grande`) no llevan material**, solo lección. No hay división con residuo ni con divisor de dos cifras.
 - **El reparto no se anima** ni se arrastra (decisión 6).
-- **Dos preguntas con tablas altas (11 y 12) no tienen cuadrícula** (no caben 12 × 12 cuadros cómodamente).
+- **Las preguntas con las tablas del 11 y del 12 no llevan cuadrícula** (no caben 12 × 12 cuadros cómodamente).
 - **Contenido sin validar por docentes** y **sin probar con niños** (como el resto de la v0.2).
