@@ -73,7 +73,7 @@ export const prepararRonda = (grado, nivel) => ({ cantidad: cantidadOpciones(niv
 export const formatoNumero = (n) => (n >= 10000 ? String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : String(n));
 
 /** «3 centenas», «1 decena», «0 unidades»: el nombre concuerda con la cantidad. */
-export const cantidadDeColumna = (cantidad, columna) => `${cantidad} ${NOMBRES_COLUMNA.plural[columna]}`;
+export const cantidadDeColumna = (cantidad, columna) => `${cantidad} ${(cantidad === 1 ? NOMBRES_COLUMNA.singular : NOMBRES_COLUMNA.plural)[columna]}`;
 
 function sortear(propone, cumple, intentos = 8000) {
     for (let i = 0; i < intentos; i++) {
