@@ -190,7 +190,12 @@ export async function resolverPreguntaCalculo(pagina, { fallarPrimero = false } 
         await clicOpcion(String(r));
         via = 'calculo';
     } else if (respuestaDeProblema(enunciado) !== null) {
-        await clicOpcion(String(respuestaDeProblema(enunciado)));
+        const r = respuestaDeProblema(enunciado);
+        if (fallarPrimero) {
+            const mala = await opciones.evaluateAll((bs, bien) => bs.map((x) => x.textContent).find((t) => t !== String(bien)), r);
+            await clicOpcion(mala);
+        }
+        await clicOpcion(String(r));
         via = 'calculo';
     } else {
         const total = await opciones.count();
