@@ -9,8 +9,20 @@
  *    se sigue funcionando en memoria y se conserva una copia del dato dañado.
  */
 
-export const VERSION_ESQUEMA = 3;
+import { listaPegatinasValida } from './pegatinas.js';
+
+export const VERSION_ESQUEMA = 4;
 export const CLAVE_ALMACEN = 'portal-juegos-educativos';
+
+/**
+ * Ajustes del EQUIPO (no del niño) y su valor por omisión. Los de tipo booleano son sí/no; `volumenMusica` es 0..1.
+ *  - musicaPermitida: la maestra decide si en este equipo puede haber música (apagada por omisión: hay bocinas, no audífonos).
+ *  - musica: el niño la apaga o enciende (solo se ofrece si está permitida).
+ *  - modoLigero: sin fondos animados ni confeti (PCs lentas o a quien le distrae el movimiento).
+ */
+export const AJUSTES_POR_OMISION = {
+    sonido: true, lecturaAsistida: false, musicaPermitida: false, musica: true, volumenMusica: 0.3, modoLigero: false
+};
 export const MAX_PERFILES = 40;
 export const MAX_LARGO_APODO = 16;
 export const AVATARES = ['gato', 'perro', 'conejo', 'zorro', 'panda', 'leon', 'rana', 'pulpo'];
@@ -41,7 +53,7 @@ export function crearAlmacenamientoSeguro() {
 export function crearDatosIniciales() {
     return {
         version: VERSION_ESQUEMA,
-        ajustes: { sonido: true, lecturaAsistida: false },
+        ajustes: { ...AJUSTES_POR_OMISION },
         perfilActivo: null,
         siguienteId: 1,
         perfiles: {}
@@ -52,6 +64,7 @@ export function crearDatosIniciales() {
  * Migraciones: MIGRACIONES[n] convierte datos de la versión n a la n+1.
  *  - 1 → 2 (v0.2): cada perfil gana `contenido` ({ juegoId: grado de contenido }): el grado de contenido en el que
  *    el sistema decidió que debe jugar cada juego (ver adaptativo/colocacion.js). Vacío = aún no hizo la misión de inicio.
+ *  - 3 → 4 (v0.2): cada perfil gana `pegatinas` (lista de ids del álbum, ver core/pegatinas.js).
  *  - 2 → 3 (v0.2): cada perfil gana `lecciones` ({ 'juego:habilidad': veces que vio la lección }): sirve para mostrar la
  *    introducción de una habilidad solo la primera vez y para que la maestra sepa qué lecciones necesitó el niño.
  */
@@ -63,6 +76,10 @@ export const MIGRACIONES = {
     2: (datos) => ({
         ...datos,
         perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, lecciones: {} }]))
+    }),
+    3: (datos) => ({
+        ...datos,
+        perfiles: Object.fromEntries(Object.entries(datos.perfiles || {}).map(([id, p]) => [id, { ...p, pegatinas: [] }]))
     })
 };
 
@@ -87,6 +104,7 @@ function perfilValido(p) {
         && esObjeto(p.juegos)
         && esObjeto(p.habilidades)
         && esObjeto(p.lecciones)
+        && listaPegatinasValida(p.pegatinas)
         && Object.values(p.lecciones).every((n) => Number.isInteger(n) && n >= 0)
         && esObjeto(p.contenido)
         && Object.values(p.contenido).every((g) => Number.isInteger(g) && g >= 1 && g <= 6);
@@ -196,7 +214,7 @@ export class Progreso {
         if (yaExiste) throw new Error('Ya existe un perfil con ese apodo');
 
         const id = this.datos.siguienteId++;
-        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, lecciones: {}, creado: this.ahora() };
+        const perfil = { id, apodo: apodoLimpio, avatar, grado, juegos: {}, habilidades: {}, contenido: {}, lecciones: {}, pegatinas: [], creado: this.ahora() };
         this.datos.perfiles[id] = perfil;
         this.datos.perfilActivo = id;
         this.guardar();
@@ -312,6 +330,22 @@ export class Progreso {
         return true;
     }
 
+    // ---------- Álbum de pegatinas ----------
+
+    pegatinas() {
+        return [...this.perfilInterno().pegatinas];
+    }
+
+    /** @returns {boolean} true si se agregó (false si ya la tenía) */
+    agregarPegatina(id) {
+        if (!listaPegatinasValida([id])) throw new Error(`Pegatina inválida: ${id}`);
+        const lista = this.perfilInterno().pegatinas;
+        if (lista.includes(id)) return false;
+        lista.push(id);
+        this.guardar();
+        return true;
+    }
+
     // ---------- Lecciones vistas ----------
 
     /** Cuántas veces vio el perfil activo la lección de esta habilidad (introducción o «Ver cómo se hace»). */
@@ -329,13 +363,23 @@ export class Progreso {
 
     // ---------- Ajustes ----------
 
+    /** Los ajustes guardados completados con los valores por omisión (datos de versiones anteriores no traen los nuevos). */
     ajustes() {
-        return { ...this.datos.ajustes };
+        const salida = { ...AJUSTES_POR_OMISION };
+        for (const [nombre, valor] of Object.entries(this.datos.ajustes)) {
+            if (nombre in AJUSTES_POR_OMISION && typeof valor === typeof AJUSTES_POR_OMISION[nombre]) salida[nombre] = valor;
+        }
+        if (!(salida.volumenMusica >= 0 && salida.volumenMusica <= 1)) salida.volumenMusica = AJUSTES_POR_OMISION.volumenMusica;
+        return salida;
     }
 
     establecerAjuste(nombre, valor) {
-        if (!(nombre in this.datos.ajustes)) throw new Error(`Ajuste desconocido: ${nombre}`);
-        if (typeof valor !== 'boolean') throw new Error('Los ajustes son valores sí/no');
+        if (!(nombre in AJUSTES_POR_OMISION)) throw new Error(`Ajuste desconocido: ${nombre}`);
+        if (typeof AJUSTES_POR_OMISION[nombre] === 'boolean') {
+            if (typeof valor !== 'boolean') throw new Error('Los ajustes son valores sí/no');
+        } else if (typeof valor !== 'number' || !(valor >= 0 && valor <= 1)) {
+            throw new Error('El volumen debe ser un número entre 0 y 1');
+        }
         this.datos.ajustes[nombre] = valor;
         this.guardar();
     }

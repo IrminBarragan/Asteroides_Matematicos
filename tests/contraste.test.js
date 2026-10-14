@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { COLORES } from '../src/core/pegatinas.js';
 
 /**
  * Contraste de color WCAG 2.x. El texto normal necesita ≥ 4.5:1 (AA); el texto grande (≥ 24 px, o ≥ 19 px en negrita)
@@ -66,4 +67,29 @@ test('los colores de las figuras de las fracciones y el reloj tienen contraste s
     assert.ok(contraste(pintada, BLANCO) >= 1.5, `pintada/blanco ${contraste(pintada, BLANCO).toFixed(2)}`); // parte pintada vs vacía
     assert.ok(contraste(trazo, BLANCO) >= 3, `trazo/blanco ${contraste(trazo, BLANCO).toFixed(2)}`);
     assert.ok(contraste(trazo, pintada) >= 3, `trazo/pintada ${contraste(trazo, pintada).toFixed(2)}`);
+});
+
+// ---------- Fase 12: colores por área y pegatinas ----------
+
+
+test('el título del juego sobre la barra de su área cumple AA (≥ 4.5) en cada área', () => {
+    const areas = ['matematicas', 'espanol', 'ciencias', 'medicion'];
+    for (const area of areas) {
+        const m = new RegExp(`#app\\[data-area="${area}"\\] \\{ --tema: var\\(--c-${area === 'espanol' ? 'espanol' : area}\\); --tema-claro: (#[0-9a-fA-F]{6})`).exec(css + readFileSync(new URL('../src/estilos/portal.css', import.meta.url), 'utf8'));
+        assert.ok(m, `no se encontró el tema del área ${area}`);
+        const c = contraste(token(`c-${area}`), m[1]);
+        assert.ok(c >= 4.5, `${area}: título ${token(`c-${area}`)} sobre ${m[1]} = ${c.toFixed(2)}`);
+    }
+});
+
+test('el dibujo de cada pegatina (claro) se distingue de su fondo de color (≥ 3:1) y el fondo del blanco del borde', () => {
+    for (const c of COLORES) {
+        assert.ok(contraste(c.claro, c.fondo) >= 3, `${c.id}: dibujo ${c.claro} sobre ${c.fondo} = ${contraste(c.claro, c.fondo).toFixed(2)}`);
+        assert.ok(contraste('#ffffff', c.fondo) >= 3, `${c.id}: borde blanco`);
+    }
+});
+
+test('la frase de la mascota (texto oscuro sobre blanco) y el nombre de la pegatina cumplen AA', () => {
+    assert.ok(contraste(token('texto'), '#ffffff') >= 4.5);
+    assert.ok(contraste('#4f46e5', '#ffffff') >= 4.5, 'la «z» de la mascota dormida (--primario) sobre fondo claro');
 });

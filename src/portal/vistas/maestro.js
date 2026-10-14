@@ -41,7 +41,29 @@ function tabla(titulo, encabezados, filas) {
             h('tbody', {}, filas.map((fila) => h('tr', {}, fila.map((c) => h('td', {}, String(c))))))));
 }
 
-export function pantallaMaestro({ perfiles }, portal, ctx) {
+const VOLUMENES = [['Bajo', 0.15], ['Medio', 0.3], ['Alto', 0.5]];
+
+/** Ajustes del equipo (los decide la maestra): música y modo ligero. */
+function panelAjustes({ ajustes }, portal) {
+    const interruptor = (texto, ayuda, activo, alCambiar, nombreAccesible) => h('div', { class: 'ajuste' },
+        h('div', { class: 'ajuste__texto' }, h('p', { class: 'ajuste__titulo' }, texto), h('p', { class: 'ajuste__ayuda' }, ayuda)),
+        h('button', {
+            class: `boton boton--chico ${activo ? 'boton--primario' : 'boton--secundario'}`, type: 'button',
+            role: 'switch', 'aria-checked': String(activo), 'aria-label': nombreAccesible, onClick: alCambiar
+        }, activo ? 'Sí' : 'No'));
+    return h('section', { class: 'ajustes-equipo', 'aria-labelledby': 'ajustes-titulo' },
+        h('h2', { id: 'ajustes-titulo' }, 'Ajustes de este equipo'),
+        interruptor('Música de fondo', 'Apagada de fábrica: con bocinas en el aula, 30 equipos con música son mucho ruido. Si la activas, cada niño podrá apagarla con su botón.', ajustes.musicaPermitida, () => portal.permitirMusica(!ajustes.musicaPermitida), 'Permitir música en este equipo'),
+        ajustes.musicaPermitida && h('div', { class: 'ajuste' },
+            h('div', { class: 'ajuste__texto' }, h('p', { class: 'ajuste__titulo' }, 'Volumen de la música'), h('p', { class: 'ajuste__ayuda' }, 'Empieza bajo a propósito.')),
+            h('div', { class: 'ajuste__opciones', role: 'group', 'aria-label': 'Volumen de la música' }, VOLUMENES.map(([nombre, valor]) => h('button', {
+                class: `boton boton--chico ${Math.abs(ajustes.volumenMusica - valor) < 0.01 ? 'boton--primario' : 'boton--secundario'}`, type: 'button',
+                'aria-pressed': String(Math.abs(ajustes.volumenMusica - valor) < 0.01), onClick: () => portal.establecerVolumenMusica(valor)
+            }, nombre)))),
+        interruptor('Modo ligero', 'Quita los fondos animados, el confeti y los saltos de la mascota. Úsalo en computadoras lentas o si el movimiento distrae.', ajustes.modoLigero, () => portal.alternarModoLigero(), 'Modo ligero'));
+}
+
+export function pantallaMaestro({ perfiles, ajustes }, portal, ctx) {
     const tarjetas = perfiles.map((p) => h('article', { class: 'perfil-maestro' },
         h('header', { class: 'perfil-maestro__cabecera' },
             avatar(p.avatar, 'avatar avatar--media'),
@@ -65,6 +87,7 @@ export function pantallaMaestro({ perfiles }, portal, ctx) {
 
     return h('section', { class: 'pantalla' },
         h('h1', { tabindex: '-1', 'data-foco': true }, 'Modo maestro'),
+        panelAjustes({ ajustes }, portal),
         h('div', { class: 'acciones' },
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('progreso.csv', portal.csvProgreso()) }, 'Descargar progreso (CSV)'),
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => ctx.descargar('habilidades.csv', portal.csvHabilidades()) }, 'Descargar habilidades (CSV)'),

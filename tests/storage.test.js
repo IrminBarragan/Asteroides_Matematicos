@@ -332,3 +332,90 @@ test('un conteo de lecciones inválido se trata como dato dañado', () => {
     almacen.setItem(CLAVE_ALMACEN, JSON.stringify(datos));
     assert.equal(new Progreso(almacen).recuperadoDeError, true);
 });
+
+// ---------- v0.2: música, modo ligero, pegatinas y migración 3 → 4 ----------
+
+test('ajustes por omisión: la música NO está permitida (hay bocinas en el aula) y el volumen es bajo', () => {
+    const p = new Progreso(new AlmacenMemoria());
+    const a = p.ajustes();
+    assert.equal(a.musicaPermitida, false);
+    assert.equal(a.musica, true, 'si la maestra la permite, empieza encendida');
+    assert.equal(a.modoLigero, false);
+    assert.ok(a.volumenMusica > 0 && a.volumenMusica <= 0.5);
+});
+
+test('datos guardados con ajustes de versiones anteriores se completan con los valores por omisión', () => {
+    const almacen = new AlmacenMemoria();
+    almacen.setItem(CLAVE_ALMACEN, JSON.stringify({
+        version: 1, ajustes: { sonido: false }, perfilActivo: null, siguienteId: 1, perfiles: {}
+    }));
+    const a = new Progreso(almacen).ajustes();
+    assert.equal(a.sonido, false, 'conserva lo que había');
+    assert.equal(a.musicaPermitida, false, 'y completa lo nuevo');
+    assert.equal(a.lecturaAsistida, false);
+});
+
+test('ajustes con tipo equivocado guardados en disco se ignoran (no se confía en localStorage)', () => {
+    const almacen = new AlmacenMemoria();
+    const p = new Progreso(almacen);
+    p.datos.ajustes.musicaPermitida = 'sí';
+    p.datos.ajustes.volumenMusica = 7;
+    p.datos.ajustes.inventado = true;
+    const a = p.ajustes();
+    assert.equal(a.musicaPermitida, false);
+    assert.equal(a.volumenMusica, 0.3);
+    assert.equal('inventado' in a, false);
+});
+
+test('establecerAjuste: booleanos sí/no y volumen entre 0 y 1', () => {
+    const p = new Progreso(new AlmacenMemoria());
+    p.establecerAjuste('musicaPermitida', true);
+    p.establecerAjuste('volumenMusica', 0.5);
+    assert.equal(p.ajustes().musicaPermitida, true);
+    assert.equal(p.ajustes().volumenMusica, 0.5);
+    assert.throws(() => p.establecerAjuste('musicaPermitida', 1), /sí\/no/);
+    assert.throws(() => p.establecerAjuste('volumenMusica', true), /volumen/);
+    assert.throws(() => p.establecerAjuste('volumenMusica', 1.5), /volumen/);
+    assert.throws(() => p.establecerAjuste('volumenMusica', -0.1), /volumen/);
+    assert.throws(() => p.establecerAjuste('volumenMusica', NaN), /volumen/);
+    assert.throws(() => p.establecerAjuste('otro', true), /desconocido/);
+});
+
+test('migración 3 → 4: los perfiles de la v0.2 anterior conservan todo y ganan un álbum vacío', () => {
+    const almacen = new AlmacenMemoria();
+    const v3 = {
+        version: 3, ajustes: { sonido: true, lecturaAsistida: false }, perfilActivo: 1, siguienteId: 2,
+        perfiles: { 1: { id: 1, apodo: 'Ana', avatar: 'gato', grado: 6, juegos: {}, habilidades: {}, contenido: { asteroides: 3 }, lecciones: { 'a:b': 2 }, creado: 5 } }
+    };
+    almacen.setItem(CLAVE_ALMACEN, JSON.stringify(v3));
+    const p = new Progreso(almacen);
+    assert.equal(p.recuperadoDeError, false);
+    assert.deepEqual(p.pegatinas(), []);
+    assert.equal(p.obtenerGradoContenido('asteroides'), 3);
+    assert.equal(p.leccionesVistas('a', 'b'), 2);
+});
+
+test('el álbum: agregar pegatinas, sin repetir, y persiste', () => {
+    const almacen = new AlmacenMemoria();
+    const p = new Progreso(almacen);
+    p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 4 });
+    assert.equal(p.agregarPegatina(7), true);
+    assert.equal(p.agregarPegatina(7), false, 'no se repite');
+    assert.equal(p.agregarPegatina(0), true);
+    assert.deepEqual(p.pegatinas(), [7, 0]);
+    for (const malo of [-1, 30, 1.5, '3', null]) assert.throws(() => p.agregarPegatina(malo), /inválida/);
+    const otro = new Progreso(almacen); otro.seleccionarPerfil(1);
+    assert.deepEqual(otro.pegatinas(), [7, 0]);
+});
+
+test('un álbum dañado (repetidos o fuera del catálogo) se trata como dato dañado', () => {
+    for (const malo of [[1, 1], [99], ['x'], 'no-lista']) {
+        const almacen = new AlmacenMemoria();
+        const p = new Progreso(almacen);
+        p.crearPerfil({ apodo: 'Luis', avatar: 'perro', grado: 4 });
+        const datos = JSON.parse(almacen.getItem(CLAVE_ALMACEN));
+        datos.perfiles[1].pegatinas = malo;
+        almacen.setItem(CLAVE_ALMACEN, JSON.stringify(datos));
+        assert.equal(new Progreso(almacen).recuperadoDeError, true, JSON.stringify(malo));
+    }
+});

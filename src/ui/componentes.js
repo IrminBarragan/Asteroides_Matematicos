@@ -47,6 +47,14 @@ export function iconoSonido(activo) {
     );
 }
 
+/** Ícono de música: una nota (con rayita cuando está apagada). */
+export function iconoMusica(activo) {
+    const marca = activo ? '' : '<path d="M4 4 L20 20" stroke-width="2.5"/>';
+    return svgDesdeMarkup(
+        `<svg viewBox="0 0 24 24" class="icono" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5" fill="currentColor"/><circle cx="16.5" cy="16" r="2.5" fill="currentColor"/>${marca}</svg>`
+    );
+}
+
 /**
  * Diálogo modal accesible: enfoca el primer botón, Escape cancela, el foco vuelve a donde estaba.
  * @returns {Promise<boolean>} true si se confirmó

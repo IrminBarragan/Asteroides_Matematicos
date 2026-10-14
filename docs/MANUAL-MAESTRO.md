@@ -77,6 +77,16 @@ Ahí puedes:
 
 Es el porcentaje de aciertos **a la primera** en los últimos 8 intentos de esa habilidad. Referencia del sistema: **≥ 85 %** sube de nivel; **< 50 %** baja; **< 70 %** se considera habilidad «a reforzar». Con menos de 5 intentos no se decide nada: los primeros resultados son poco confiables.
 
+## 4b. Música, colores y mascota (nuevo)
+
+- **Música de fondo: apagada de fábrica.** Con bocinas en el aula, 30 computadoras con música serían mucho ruido. Si quieres música: **Modo maestro → «Ajustes de este equipo» → «Música de fondo» → Sí**, y elige el volumen (**Bajo**, Medio o Alto; empieza bajo a propósito). Cuando está permitida, cada niño ve un botón de nota ♪ en la parte de arriba para apagarla o encenderla. Si la apagas desde el modo maestro, ningún niño puede encenderla.
+- La música **se genera en la propia computadora** (no hay archivos de audio): funciona sin internet y no hay problemas de derechos de autor. Suena a sintetizador sencillo.
+- **Se calla sola** al pausar el juego, al cambiar de pestaña y baja un momento cuando el sistema lee en voz alta.
+- **Mascota «Chispa»:** un robot entrenador que celebra los aciertos, anima tras un error («Inténtalo otra vez») y se duerme en pausa. Es solo decoración.
+- **Color por área:** cada juego cambia el color de la barra y el fondo según su área (matemáticas azul, español naranja…). Hay confeti al terminar con 2 o 3 estrellas y al subir de nivel.
+- **Álbum de pegatinas:** cada partida terminada da **una pegatina**, y **otra más con las 3 estrellas** (hay 30). Nunca se quitan: es un premio por esforzarse, sin castigo. El botón **«Mi álbum»** está en la pantalla de inicio.
+- **Modo ligero** (Modo maestro → «Ajustes de este equipo»): quita los fondos animados, el confeti y la mascota. Úsalo si la computadora va lenta o si el movimiento distrae a algún niño. El portal también lo activa solo si detecta una computadora con pocos recursos, y **respeta la opción «reducir movimiento» del sistema operativo**.
+
 ## 5. Problemas frecuentes
 
 | Síntoma | Qué hacer |
@@ -85,6 +95,8 @@ Es el porcentaje de aciertos **a la primera** en los últimos 8 intentos de esa 
 | «Mi jugador desapareció» | Probablemente se abrió con **otro navegador** u otra computadora, o se movió/renombró la carpeta, o se borraron los «datos de navegación». El progreso es por navegador y por computadora. |
 | Las letras se ven distintas | La tipografía está incluida; si se ve rara, actualizar el navegador. |
 | No suena nada | Revisar el ícono del altavoz (arriba a la derecha) y el volumen de la computadora. El juego funciona sin sonido. |
+| No hay música | De fábrica está apagada: se permite en el Modo maestro (apartado «Música, colores y mascota»). El navegador además solo deja sonar el audio después de que alguien toca la pantalla. |
+| Todo va lento o se traba | Activa el **Modo ligero** en el Modo maestro. |
 | No aparece «Escuchar» | La computadora no tiene voz en español instalada (Configuración de Windows → Hora e idioma → Voz). |
 | Un niño no puede crear su jugador | El nombre está repetido en esa computadora, o ya hay 40 jugadores (el máximo). |
 

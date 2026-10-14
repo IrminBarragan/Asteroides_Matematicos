@@ -5,6 +5,8 @@
 import { Progreso } from './core/storage.js';
 import { GestorAudio } from './core/gestorAudio.js';
 import { Voz } from './core/voz.js';
+import { Musica } from './core/musica.js';
+import { pareceEquipoLento } from './ui/movimiento.js';
 import { RegistroJuegos } from './core/registro.js';
 import { Portal } from './portal/portal.js';
 import { VistaPortal } from './portal/vista.js';
@@ -23,11 +25,15 @@ function arrancar() {
         .registrar(JuegoFracciones);
 
     const vista = new VistaPortal(document.getElementById('app'));
+    const audio = new GestorAudio();
+    const musica = new Musica(audio);
     const portal = new Portal({
         registro,
         progreso: new Progreso(),
-        audio: new GestorAudio(),
+        audio,
         voz: new Voz(),
+        musica,
+        equipoLento: pareceEquipoLento(),
         vista
     });
     vista.conectar(portal);
@@ -41,6 +47,8 @@ function arrancar() {
     // Si la pestaña queda oculta, la partida se pausa sola
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && portal.pantalla === 'jugando') portal.pausarJuego();
+        // La música no suena con la pestaña oculta
+        if (document.hidden) musica.pausar(); else if (portal.pantalla !== 'jugando' || !portal.pausado) musica.reanudar();
     });
     // Un error inesperado no debe dejar al niño con una pantalla rota sin explicación
     window.addEventListener('error', (e) => {

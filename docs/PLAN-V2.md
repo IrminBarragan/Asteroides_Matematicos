@@ -44,7 +44,7 @@ Además: el sonido son solo efectos sintéticos cortos (`src/core/gestorAudio.js
 |---|---|---|---|
 | **10** ✅ | **Rescate** | Nueva regla de estrellas · nivel de partida independiente del grado, **decidido por el sistema** (misión de inicio + adaptación) · escalones nuevos por debajo (suma y resta hasta 10 y 20; tablas del 2, 5 y 10) · «modo tranquilo» en Asteroides | **v0.2-alfa** |
 | **11** ✅ | **Aprende dentro de cada juego** | Componente **lección** (pasos guiados + material arrastrable) · «**Ver cómo se hace**» tras fallar · **mini-lección previa** al subir a un escalón nuevo · aplicado a los juegos existentes (Asteroides, Reloj, Fracciones…) | **Responde la queja principal** |
-| **12** | **Música y color** | Música generada en el navegador, **apagada por omisión** en el equipo · volumen de música y efectos separados · mascota «entrenador» · confeti y celebraciones · fondos animados por área · «modo ligero» · álbum de logros | v0.2-beta |
+| **12** ✅ | **Música y color** | Música generada en el navegador, **apagada por omisión** en el equipo · volumen de música y efectos separados · mascota «entrenador» · confeti y celebraciones · fondos animados por área · «modo ligero» · álbum de logros | v0.2-beta |
 | **13** | **Sumas y restas guiadas** (juego nuevo) | Sumar/restar con material (recta numérica, «hacer 10», marcos de 10) · tema juvenil | Juego 1 |
 | **14** | **Valor posicional y llevadas** (juego nuevo) | Bloques de unidades/decenas/centenas, acarreo y préstamo animados | Juego 2 |
 | **15** | **Tablas y reparto** (juego nuevo) | Multiplicar como grupos y arreglos; dividir como repartir, con residuo | Juego 3 |
@@ -84,7 +84,7 @@ Propuesta (a validar contigo):
 
 **Criterios de aceptación:** un perfil nuevo de 4.º que falla todo en la misión **empieza** en el escalón más bajo; ningún niño que **termina** una partida se queda con 0 estrellas; los perfiles guardados con la v0.1 se migran sin perder datos; todo con pruebas.
 
-### Fase 12 — Música y color
+### Fase 12 — Música y color — ✅ hecha, ver [`AUDITORIA-FASE-12.md`](AUDITORIA-FASE-12.md)
 
 **Música (técnica):** se **sintetiza en el navegador** con la Web Audio API (osciladores y envolventes), sin archivos de audio.
 - *Por qué:* funciona **sin internet**, pesa **unos KB** y **no hay derechos de autor** que resolver (descargar música «gratis» y meterla en un proyecto escolar es un riesgo de licencias). *Costo:* suena «chiptune»/simple, no orquestal.

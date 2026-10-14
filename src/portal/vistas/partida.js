@@ -1,5 +1,7 @@
 import { h } from '../../ui/dom.js';
+import { botonMusica } from './controles.js';
 import { estrellas, iconoSonido } from '../../ui/componentes.js';
+import { dibujarPegatina } from '../../ui/pegatinas.js';
 import { formatearTiempo, mensajeResultado } from '../formato.js';
 
 /** Marco de la partida: barra con salir/pausa y el contenedor donde se monta el juego. */
@@ -36,6 +38,7 @@ export function pantallaJugando({ meta }, portal, ctx) {
             h('h1', { tabindex: '-1', 'data-foco': true, class: 'partida__titulo' }, meta.nombre),
             h('div', { class: 'partida__controles' },
                 ...controlesVoz,
+                portal.musicaPermitida() && botonMusica(portal),
                 botonSonido,
                 h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => portal.pausarJuego() }, 'Pausa'))),
         contenedor,
@@ -43,7 +46,7 @@ export function pantallaJugando({ meta }, portal, ctx) {
     return { nodo, contenedor, pausa };
 }
 
-export function pantallaResultados({ meta, resultado, esRecord, estrellasGanadas, estrellasTotales, colocacion, subioContenido }, portal) {
+export function pantallaResultados({ meta, resultado, esRecord, estrellasGanadas, estrellasTotales, colocacion, subioContenido, pegatinasNuevas = [] }, portal) {
     return h('section', { class: 'pantalla pantalla--angosta resultados' },
         h('h1', { tabindex: '-1', 'data-foco': true }, mensajeResultado(resultado.estrellas)),
         h('p', { class: 'resultados__juego' }, meta.nombre),
@@ -59,6 +62,10 @@ export function pantallaResultados({ meta, resultado, esRecord, estrellasGanadas
             h('div', {}, h('dt', {}, 'Tiempo'), h('dd', {}, formatearTiempo(resultado.tiempoMs))),
             h('div', {}, h('dt', {}, 'Puntos'), h('dd', {}, String(resultado.puntaje)))),
         h('p', { class: 'resultados__total' }, `Tienes ${estrellasTotales} ${estrellasTotales === 1 ? 'estrella' : 'estrellas'} en total`),
+        pegatinasNuevas.length > 0 && h('div', { class: 'resultados__pegatinas' },
+            h('p', { class: 'resultados__ganadas' }, pegatinasNuevas.length === 1 ? '¡Ganaste una pegatina!' : `¡Ganaste ${pegatinasNuevas.length} pegatinas!`),
+            h('div', { class: 'resultados__pegatinas-fila' }, pegatinasNuevas.map((id) => dibujarPegatina(id))),
+            h('button', { class: 'boton boton--fantasma boton--chico', type: 'button', onClick: () => portal.irAAlbum() }, 'Ver mi álbum')),
         h('div', { class: 'acciones acciones--centro' },
             h('button', { class: 'boton boton--primario', type: 'button', onClick: () => portal.jugarOtraVez() }, 'Jugar otra vez'),
             h('button', { class: 'boton boton--secundario', type: 'button', onClick: () => portal.irAInicio() }, 'Más juegos')));

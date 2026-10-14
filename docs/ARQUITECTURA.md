@@ -147,6 +147,22 @@ Contrato de una pregunta: `{ habilidad, respuesta (id), textoRespuesta, pista, o
 
 **Contrato para un juego de preguntas:** su `Partida` puede pasar `leccion: (gemela) => Leccion|null` para una lección propia; sin ella usa el ejemplo genérico. La interfaz del juego solo añade `crearBotonEnsenar`, lo muestra tras un error y llama a `presentarIntro`.
 
+## Añadidos en la Fase 12 (v0.2): música, color y movimiento
+
+| Archivo | Qué es |
+|---|---|
+| `core/musica.js` | Música **sintetizada** (Web Audio, sin archivos): `componerPista` (melodía pentatónica + bajo + arpegio sobre I–vi–IV–V, determinista por semilla), `eventosEnVentana` (qué notas suenan entre dos instantes, en bucle) y `Musica` (programa las notas unos instantes antes de que toquen). Lógica pura separada del reproductor |
+| `core/pegatinas.js` | Catálogo del álbum (30 = 6 dibujos × 5 colores), reglas (1 por partida, 2 con 3 estrellas) y elección sin repetir |
+| `core/gestorAudio.js` | Ahora avisa de cada efecto pedido (`alEfecto`), suene o no; nuevos efectos `clic`, `estrella` y `victoria` |
+| `ui/mascota.js` | «Chispa» (SVG propio), sus estados y reacciones |
+| `ui/confeti.js`, `ui/fondo.js` | Confeti y fondo animado (solo `transform`/`opacity`); la generación es pura y se prueba con números |
+| `ui/movimiento.js` | `animacionesPermitidas` (modo ligero + «reducir movimiento») y `pareceEquipoLento` |
+| `ui/pegatinas.js`, `portal/vistas/album.js` | Dibujo de las pegatinas y pantalla del álbum |
+| `portal/vistas/controles.js` | Botón de música |
+| `core/storage.js` | **Esquema v4** (`perfil.pegatinas`) y ajustes del equipo con valores por omisión (`AJUSTES_POR_OMISION`: música permitida, volumen, modo ligero) |
+
+**Patrón clave:** la mascota y el confeti reaccionan a los **efectos de sonido** que ya piden los juegos (`acierto`, `fallo`, `nivel`), así que **ningún juego tuvo que cambiar** para tener mascota. El portal escucha con `audio.alEfecto`.
+
 Regla de dependencias: `ui/` depende de `core/`, nunca de un juego concreto.
 
 ## Juegos basados en DOM (ejemplo: Memorama, Fase 4)

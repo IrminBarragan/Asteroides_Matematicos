@@ -217,7 +217,7 @@ p { margin: 0 0 .75rem; }
 
 /* ---------- Modo maestro ---------- */
 .perfil-maestro { background: #fff; border-radius: var(--radio); box-shadow: var(--sombra); padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
-.perfil-maestro__cabecera { display: flex; align-items: center; gap: 1rem; margin-bottom: .75rem; }
+.perfil-maestro__cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-bottom: .75rem; }
 .perfil-maestro__cabecera > div { flex: 1; }
 .perfil-maestro__cabecera > .perfil-maestro__acciones { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: .5rem; }
 .perfil-maestro__cabecera h3, .perfil-maestro__cabecera p { margin: 0; }
@@ -309,3 +309,143 @@ p { margin: 0 0 .75rem; }
 .leccion-opciones { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; list-style: none; padding: 0; margin: .5rem 0 0; }
 .leccion-opcion { background: #fff; border: 2px solid #9ca3af; border-radius: 10px; padding: .2rem .8rem; font-weight: 600; }
 .leccion-opcion--correcta { background: #dcfce7; border-color: var(--exito); color: #14532d; }
+
+/* ============================================================
+   Fase 12: color y movimiento (todo con transform/opacity: baratos para PCs viejas).
+   «Modo ligero» ([data-ligero]) y «reducir movimiento» lo apagan.
+   ============================================================ */
+
+/* ---------- Tema por área: el color de la barra y el fondo cambian según el juego ---------- */
+#app { --tema: var(--primario); --tema-claro: #e0e7ff; --tema-forma: rgba(79, 70, 229, .16); }
+#app[data-area="matematicas"] { --tema: var(--c-matematicas); --tema-claro: #dbeafe; --tema-forma: rgba(29, 78, 216, .16); }
+#app[data-area="espanol"] { --tema: var(--c-espanol); --tema-claro: #ffedd5; --tema-forma: rgba(194, 65, 12, .16); }
+#app[data-area="ciencias"] { --tema: var(--c-ciencias); --tema-claro: #dcfce7; --tema-forma: rgba(21, 128, 61, .16); }
+#app[data-area="medicion"] { --tema: var(--c-medicion); --tema-claro: #f3e8ff; --tema-forma: rgba(126, 34, 206, .16); }
+#app[data-area] .partida__barra { background: var(--tema-claro); border-radius: var(--radio); padding: .5rem .75rem; }
+#app[data-area] .partida__titulo { color: var(--tema); }
+#app[data-area] { background: linear-gradient(180deg, var(--tema-claro) 0, transparent 280px); }
+
+/* ---------- Fondo animado: formas que suben despacio ---------- */
+.cabecera, .principal, .avisos { position: relative; z-index: 1; }
+.fondo-animado { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.forma { position: absolute; bottom: -80px; background: var(--tema-forma); animation: flotar linear infinite; will-change: transform; }
+.forma--circulo { border-radius: 50%; }
+.forma--rombo { transform: rotate(45deg); border-radius: 6px; }
+.forma--estrella { clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.forma:nth-child(3n) { background: rgba(251, 191, 36, .22); }
+.forma:nth-child(4n+1) { background: rgba(244, 114, 182, .18); }
+@keyframes flotar {
+    from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    to { transform: translate3d(var(--deriva, 0px), -115vh, 0) rotate(200deg); opacity: 0; }
+}
+
+/* ---------- Botones y tarjetas con vida ---------- */
+.tarjeta-juego { transition: transform .18s ease, box-shadow .18s ease; }
+.tarjeta-juego:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 12px 28px rgba(49, 46, 129, .22); }
+.boton--primario:hover { transform: translateY(-2px); }
+.estrella--llena { filter: drop-shadow(0 0 4px rgba(251, 191, 36, .8)); }
+
+/* ---------- Mascota «Chispa» ---------- */
+.mascota { position: fixed; left: 10px; bottom: 8px; z-index: 5; width: 84px; pointer-events: none; display: none; transform-origin: 50% 100%; }
+#app[data-pantalla="inicio"] .mascota, #app[data-pantalla="jugando"] .mascota, #app[data-pantalla="resultados"] .mascota, #app[data-pantalla="album"] .mascota { display: block; }
+.mascota__svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 3px 4px rgba(31, 41, 55, .25)); }
+.mascota__cabeza, .mascota__torso { fill: var(--primario); stroke: #312e81; stroke-width: 3; }
+.mascota__cara { fill: #fff; }
+.mascota__cinta { fill: #f59e0b; }
+.mascota__antena { stroke: #312e81; stroke-width: 3; }
+.mascota__bombilla { fill: #fbbf24; stroke: #b45309; stroke-width: 2; }
+.mascota__pecho { fill: #fbbf24; stroke: #b45309; stroke-width: 2; }
+.mascota__ojos { fill: #1f2937; stroke: #1f2937; stroke-width: 0; display: none; }
+.mascota__ojos path { fill: none; stroke: #1f2937; stroke-width: 4; stroke-linecap: round; }
+.mascota__boca { fill: none; stroke: #1f2937; stroke-width: 4; stroke-linecap: round; display: none; }
+.mascota__boca--abierta { fill: #1f2937; }
+.mascota__brazo { display: none; }
+.mascota__brazo line { stroke: #312e81; stroke-width: 7; stroke-linecap: round; }
+.mascota__pie { fill: #312e81; }
+.mascota__zzz { display: none; font: 700 22px var(--fuente-titulo); fill: #4f46e5; }
+/* neutral */
+.mascota__ojos--abiertos, .mascota__boca--sonrisa, .mascota__brazo--izq, .mascota__brazo--der { display: inline; }
+/* celebra */
+.mascota[data-estado="celebra"] .mascota__ojos--abiertos, .mascota[data-estado="celebra"] .mascota__boca--sonrisa,
+.mascota[data-estado="celebra"] .mascota__brazo--izq, .mascota[data-estado="celebra"] .mascota__brazo--der { display: none; }
+.mascota[data-estado="celebra"] .mascota__ojos--felices, .mascota[data-estado="celebra"] .mascota__boca--abierta,
+.mascota[data-estado="celebra"] .mascota__brazo--izq-arriba, .mascota[data-estado="celebra"] .mascota__brazo--der-arriba { display: inline; }
+.mascota[data-estado="celebra"] { animation: mascota-bota .5s ease-in-out 2; }
+/* ánimo: una mano arriba (pulgar) */
+.mascota[data-estado="animo"] .mascota__brazo--der { display: none; }
+.mascota[data-estado="animo"] .mascota__brazo--der-arriba { display: inline; }
+.mascota[data-estado="animo"] { animation: mascota-asiente .6s ease-in-out 2; }
+/* piensa */
+.mascota[data-estado="piensa"] .mascota__ojos--abiertos, .mascota[data-estado="piensa"] .mascota__boca--sonrisa { display: none; }
+.mascota[data-estado="piensa"] .mascota__ojos--arriba, .mascota[data-estado="piensa"] .mascota__boca--plana { display: inline; }
+/* duerme */
+.mascota[data-estado="duerme"] .mascota__ojos--abiertos, .mascota[data-estado="duerme"] .mascota__boca--sonrisa { display: none; }
+.mascota[data-estado="duerme"] .mascota__ojos--dormidos, .mascota[data-estado="duerme"] .mascota__boca--plana, .mascota[data-estado="duerme"] .mascota__zzz { display: inline; }
+.mascota[data-estado="duerme"] { animation: mascota-respira 2.4s ease-in-out infinite; }
+.mascota__globo { position: absolute; left: 78px; bottom: 70px; margin: 0; padding: .35rem .8rem; background: #fff; color: var(--texto); border: 2px solid var(--primario); border-radius: 14px 14px 14px 2px; font: 600 .9rem var(--fuente); white-space: nowrap; box-shadow: var(--sombra); }
+.mascota__globo[hidden] { display: none; }
+@keyframes mascota-bota { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes mascota-asiente { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
+@keyframes mascota-respira { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+/* que la mascota no tape el final de la pantalla */
+#app[data-pantalla="inicio"] .principal, #app[data-pantalla="resultados"] .principal, #app[data-pantalla="album"] .principal { padding-bottom: 7rem; }
+@media (max-width: 700px) {
+    #app[data-pantalla="jugando"] .mascota { display: none; } /* no tapa el juego en pantallas chicas */
+    .mascota { width: 64px; }
+    .mascota__globo { left: 58px; bottom: 54px; font-size: .8rem; }
+}
+
+/* ---------- Confeti ---------- */
+.capa-confeti { position: fixed; inset: 0; z-index: 70; overflow: hidden; pointer-events: none; }
+.confeti { position: absolute; top: -20px; border-radius: 2px; opacity: 0; animation-name: confeti-cae; animation-timing-function: cubic-bezier(.3, .6, .5, 1); animation-fill-mode: forwards; will-change: transform; }
+@keyframes confeti-cae {
+    0% { transform: translate3d(0, 0, 0) rotate(0); opacity: 1; }
+    100% { transform: translate3d(var(--dx, 0), 105vh, 0) rotate(var(--giro, 540deg)); opacity: 0; }
+}
+
+/* ---------- Música ---------- */
+.boton-musica[aria-pressed="false"] { opacity: .75; }
+
+/* ---------- Álbum de pegatinas ---------- */
+.saludo__botones { display: flex; flex-wrap: wrap; gap: .5rem; }
+.album__cabecera { display: flex; align-items: center; gap: 1rem; margin-bottom: .5rem; }
+.album__cabecera h1 { margin: 0; }
+.album__cuenta { margin: 0; font-weight: 600; color: var(--texto-suave); }
+.album__ayuda { color: var(--texto-suave); margin: .25rem 0 1rem; }
+.album__rejilla { list-style: none; margin: 0 0 1.25rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: .9rem; }
+.album__casilla { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 124px; border-radius: 16px; padding: .4rem; }
+.album__casilla--tiene { background: #fff; box-shadow: var(--sombra); }
+.album__casilla--falta { background: rgba(255, 255, 255, .55); border: 3px dashed #c7d2fe; color: #818cf8; font: 700 2rem var(--fuente-titulo); }
+.album__casilla .pegatina { width: 72px; height: 72px; }
+.album__nombre { font-size: .75rem; font-weight: 600; margin-top: .2rem; color: var(--texto); }
+.pegatina__ojo { fill: #1f2937; stroke: none; }
+.pegatina__llama { fill: #fbbf24; stroke: #b45309; }
+.pegatina__anillo { stroke: #fff; }
+.pegatina__asa { stroke: #fff; }
+.resultados__pegatinas { margin: .5rem 0 1rem; text-align: center; }
+.resultados__pegatinas-fila { display: flex; justify-content: center; gap: .75rem; margin: .5rem 0; }
+.resultados__pegatinas .pegatina { width: 84px; height: 84px; animation: pegatina-pop .6s cubic-bezier(.3, 1.6, .5, 1) both; }
+.resultados__pegatinas .pegatina:nth-child(2) { animation-delay: .25s; }
+@keyframes pegatina-pop { from { transform: scale(0) rotate(-30deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ---------- Ajustes del equipo (modo maestro) ---------- */
+.ajustes-equipo { background: #fff; border-radius: var(--radio); box-shadow: var(--sombra); padding: 1rem 1.25rem; margin: 1rem 0; }
+.ajustes-equipo h2 { margin-top: 0; font-size: 1.2rem; }
+.ajuste { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-top: 1px solid var(--borde); flex-wrap: wrap; }
+.ajuste:first-of-type { border-top: 0; }
+.ajuste__texto { flex: 1 1 260px; }
+.ajuste__titulo { margin: 0; font-weight: 600; }
+.ajuste__ayuda { margin: .1rem 0 0; font-size: .85rem; color: var(--texto-suave); }
+.ajuste__opciones { display: flex; gap: .4rem; }
+
+/* ---------- Apagar el movimiento: modo ligero y «reducir movimiento» ---------- */
+[data-ligero] .fondo-animado, [data-ligero] .capa-confeti, [data-ligero] .mascota { display: none !important; }
+[data-ligero] .tarjeta-juego:hover, [data-ligero] .boton--primario:hover { transform: none; }
+[data-ligero] .resultados__pegatinas .pegatina, [data-ligero] .estrellas--grande .estrella--llena { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+    .fondo-animado, .capa-confeti { display: none !important; }
+    .forma, .confeti, .mascota, .mascota[data-estado], .resultados__pegatinas .pegatina { animation: none !important; }
+    .tarjeta-juego:hover, .boton--primario:hover { transform: none; }
+}

@@ -8,6 +8,16 @@ export class GestorAudio {
         this.activo = false;
         this.contextoAudio = null;
         this.inicializado = false;
+        this.oyentes = new Set();
+    }
+
+    /**
+     * Avisa cada vez que un juego pide un efecto (acierto, fallo, nivel…), suene o no: así el resto de la interfaz
+     * (la mascota, el confeti) reacciona sin que cada juego tenga que llamarlos. Devuelve la función para dejar de oír.
+     */
+    alEfecto(oyente) {
+        this.oyentes.add(oyente);
+        return () => this.oyentes.delete(oyente);
     }
 
     /**
@@ -54,8 +64,11 @@ export class GestorAudio {
      * Reproduce un efecto de sonido sintético
      */
     reproducirEfecto(tipo) {
+        for (const oyente of this.oyentes) {
+            try { oyente(tipo); } catch (error) { console.warn('Error en un oyente de efectos:', error); }
+        }
         if (!this.activo || !this.contextoAudio) return;
-        if (!['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel', 'voltear'].includes(tipo)) return;
+        if (!['explosion', 'acierto', 'fallo', 'laser', 'powerup', 'nivel', 'victoria', 'voltear', 'clic', 'estrella'].includes(tipo)) return;
 
         const oscilador = this.contextoAudio.createOscillator();
         const ganancia = this.contextoAudio.createGain();
@@ -80,10 +93,17 @@ export class GestorAudio {
                 this.efectoPowerUp(oscilador, ganancia);
                 break;
             case 'nivel':
+            case 'victoria': // el mismo sonido; son tipos distintos para que la interfaz distinga «subió de nivel» de «terminó la partida»
                 this.efectoNivel(oscilador, ganancia);
                 break;
             case 'voltear':
                 this.efectoVoltear(oscilador, ganancia);
+                break;
+            case 'clic':
+                this.efectoClic(oscilador, ganancia);
+                break;
+            case 'estrella':
+                this.efectoEstrella(oscilador, ganancia);
                 break;
         }
     }
@@ -177,6 +197,30 @@ export class GestorAudio {
 
         oscilador.start(this.contextoAudio.currentTime);
         oscilador.stop(this.contextoAudio.currentTime + 0.08);
+    }
+
+    /** Tic suave de un botón (muy corto y bajito: se oye en cada toque). */
+    efectoClic(oscilador, ganancia) {
+        const t = this.contextoAudio.currentTime;
+        oscilador.type = 'triangle';
+        oscilador.frequency.setValueAtTime(700, t);
+        oscilador.frequency.exponentialRampToValueAtTime(500, t + 0.04);
+        ganancia.gain.setValueAtTime(0.08, t);
+        ganancia.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        oscilador.start(t);
+        oscilador.stop(t + 0.05);
+    }
+
+    /** Destello al ganar una estrella o una pegatina: dos notas que suben. */
+    efectoEstrella(oscilador, ganancia) {
+        const t = this.contextoAudio.currentTime;
+        oscilador.type = 'sine';
+        oscilador.frequency.setValueAtTime(784, t);
+        oscilador.frequency.setValueAtTime(1175, t + 0.09);
+        ganancia.gain.setValueAtTime(0.15, t);
+        ganancia.gain.exponentialRampToValueAtTime(0.01, t + 0.28);
+        oscilador.start(t);
+        oscilador.stop(t + 0.28);
     }
 
     /**

@@ -153,7 +153,7 @@ test('terminar una partida guarda el resultado y muestra resultados tras un micr
     assert.equal(datos.estrellasTotales, 3);
     assert.equal(juego.estado, 'destruido', 'el juego terminado debe liberarse');
     assert.equal(portal.juegoActual, null);
-    assert.ok(audio.efectos.includes('nivel'));
+    assert.ok(audio.efectos.includes('victoria'));
 });
 
 test('un resultado sin aciertos (0 estrellas) no suena a celebración', async () => {
@@ -161,7 +161,7 @@ test('un resultado sin aciertos (0 estrellas) no suena a celebración', async ()
     portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
     jugarHastaElFinal(portal, 0);
     await vaciarMicrotasks();
-    assert.ok(!audio.efectos.includes('nivel'));
+    assert.ok(!audio.efectos.includes('victoria'));
 });
 
 test('las habilidades que devuelve el juego se guardan y se entregan en la próxima partida', async () => {
@@ -666,4 +666,192 @@ test('enseñanza: con voz disponible la lección recibe la función de leer; sin
     sin.portal.iniciar(); sin.portal.crearPerfil(luisa); sin.portal.iniciarJuego('ejemplo');
     await sin.portal.ensenar(leccionDePrueba);
     assert.equal(sin.vista.lecciones[0].opciones.leer, null);
+});
+
+// ---------- Fase 12: música, modo ligero, mascota, confeti y pegatinas ----------
+
+function crearMusicaFalsa() {
+    return {
+        activa: false, volumen: null, reproducidas: [], pausas: 0, reanudaciones: 0, fanfarrias: 0, atenuaciones: 0,
+        establecerActiva(a) { this.activa = a; }, establecerVolumen(v) { this.volumen = v; },
+        reproducir(n) { this.reproducidas.push(n); }, pausar() { this.pausas++; }, reanudar() { this.reanudaciones++; },
+        fanfarria() { this.fanfarrias++; }, atenuar() { this.atenuaciones++; }
+    };
+}
+
+/** Arma TODO aquí (un solo Portal): crear() ya construye uno, y dos portales suscritos al mismo audio duplicarían reacciones. */
+function crearConMusica({ equipoLento = false, voz = null, aleatorio = () => 0.5 } = {}) {
+    const vista = crearVistaFalsa();
+    const audio = crearAudioFalso();
+    const progreso = new Progreso(new AlmacenMemoria(), { ahora: () => 1_700_000_000_000 });
+    const registro = new RegistroJuegos().registrar(JuegoEjemplo).registrar(JuegoGrandes);
+    const musica = crearMusicaFalsa();
+    const portal = new Portal({ registro, progreso, audio, vista, musica, voz, equipoLento, aleatorio });
+    return { portal, vista, audio, progreso, registro, musica };
+}
+
+test('música: por omisión NO suena (la maestra no la permitió) ni se ofrece el botón', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    assert.equal(portal.musicaPermitida(), false);
+    assert.equal(portal.musicaActiva(), false);
+    assert.equal(musica.activa, false);
+    assert.deepEqual(musica.reproducidas, []);
+});
+
+test('música: la maestra la permite con el volumen que elige; suena el menú y, al jugar, la pista del juego', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    portal.establecerVolumenMusica(0.15);
+    assert.equal(musica.activa, true);
+    assert.equal(musica.volumen, 0.15);
+    assert.equal(musica.reproducidas.at(-1), 'menu');
+    portal.iniciarJuego('ejemplo');
+    assert.equal(musica.reproducidas.at(-1), 'juego');
+    portal.irAInicio();
+    assert.equal(musica.reproducidas.at(-1), 'menu');
+});
+
+test('música: pausar el juego la pausa y reanudar la reanuda', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    portal.iniciarJuego('ejemplo');
+    portal.pausarJuego();
+    assert.equal(musica.pausas, 1);
+    portal.reanudarJuego();
+    assert.equal(musica.reanudaciones, 1);
+});
+
+test('música: el niño la apaga y la enciende con su botón (mientras esté permitida)', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    assert.equal(portal.alternarMusica(), false);
+    assert.equal(musica.activa, false);
+    assert.equal(portal.musicaActiva(), false);
+    assert.equal(portal.alternarMusica(), true);
+    assert.equal(musica.activa, true);
+});
+
+test('música: si la maestra la deshabilita, no suena aunque el niño la tuviera encendida', () => {
+    const { portal, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    portal.permitirMusica(true);
+    assert.equal(musica.activa, true);
+    portal.permitirMusica(false);
+    assert.equal(musica.activa, false);
+    assert.equal(portal.musicaPermitida(), false);
+});
+
+test('música: sin módulo de música (equipo sin audio) todo funciona', () => {
+    const { portal } = crear();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    assert.doesNotThrow(() => { portal.permitirMusica(true); portal.alternarMusica(); portal.iniciarJuego('ejemplo'); portal.pausarJuego(); portal.reanudarJuego(); });
+});
+
+test('música: al hablar (lectura en voz alta) se atenúa un momento para que se entienda', () => {
+    const voz = { disponible: true, leer() { return true; }, detener() {} };
+    const { portal, musica, vista } = crearConMusica({ voz });
+    portal.iniciar(); portal.crearPerfil(luisa);
+    vista.texto = '¿Cuánto es 3/4?';
+    portal.leerPantalla();
+    assert.equal(musica.atenuaciones, 1);
+});
+
+test('modo ligero: lo activa la maestra o el equipo lento; se aplica a la vista al arrancar y al cambiarlo', () => {
+    const { portal, vista } = crearConMusica();
+    portal.iniciar();
+    assert.equal(vista.ligero, false);
+    portal.alternarModoLigero();
+    assert.equal(portal.modoLigero(), true);
+    assert.equal(vista.ligero, true);
+    portal.alternarModoLigero();
+    assert.equal(vista.ligero, false);
+
+    const lento = crearConMusica({ equipoLento: true });
+    lento.portal.iniciar();
+    assert.equal(lento.vista.ligero, true, 'un equipo que parece lento arranca en modo ligero');
+    lento.portal.alternarModoLigero();
+    assert.equal(lento.portal.modoLigero(), true, 'la maestra no puede quitar el ligero a un equipo lento detectado... salvo que sea ella quien lo decida');
+});
+
+test('mascota y confeti: reaccionan a los efectos que piden los juegos (acierto, fallo, nivel)', () => {
+    const { portal, vista, audio } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    audio.reproducirEfecto('acierto');
+    audio.reproducirEfecto('fallo');
+    audio.reproducirEfecto('laser');   // otros efectos no mueven a la mascota
+    audio.reproducirEfecto('nivel');
+    assert.deepEqual(vista.reacciones, ['acierto', 'error', 'nivel']);
+    assert.deepEqual(vista.confetis, [30]);
+});
+
+test('pegatinas: 3 estrellas dan 2, 2 estrellas dan 1, 1 estrella da 1 y esforzarse sin resolver nada, ninguna', async () => {
+    for (const [aciertos, esperadas] of [[3, 2], [2, 1], [1, 1]]) {
+        const { portal, vista, progreso } = crearConMusica({ aleatorio: () => 0.3 });
+        portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+        jugarHastaElFinal(portal, aciertos);
+        await vaciarMicrotasks();
+        assert.equal(vista.ultima().datos.pegatinasNuevas.length, esperadas, `${aciertos} aciertos`);
+        assert.equal(progreso.pegatinas().length, esperadas);
+    }
+    const { portal, vista, progreso } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    portal.juegoActual.finalizar({ aciertos: 0, fallos: 5, recuperadas: 0, tiempoMs: 1 });
+    await vaciarMicrotasks();
+    assert.deepEqual(vista.ultima().datos.pegatinasNuevas, []);
+    assert.deepEqual(progreso.pegatinas(), []);
+});
+
+test('pegatinas: nunca se repiten y al completar el álbum ya no se dan más', async () => {
+    const az = (() => { let i = 0; return () => ((i++ * 7919) % 1000) / 1000; })();
+    const { portal, vista, progreso } = crearConMusica({ aleatorio: az });
+    portal.iniciar(); portal.crearPerfil(luisa);
+    for (let i = 0; i < 20; i++) {
+        portal.iniciarJuego('ejemplo');
+        jugarHastaElFinal(portal, 3);
+        await vaciarMicrotasks();
+    }
+    const lista = progreso.pegatinas();
+    assert.equal(lista.length, 30, '20 partidas × 2 = 40 ≥ 30: álbum completo');
+    assert.equal(new Set(lista).size, 30);
+    assert.deepEqual(vista.ultima().datos.pegatinasNuevas.length <= 2, true);
+    portal.iniciarJuego('ejemplo');
+    jugarHastaElFinal(portal, 3);
+    await vaciarMicrotasks();
+    assert.deepEqual(vista.ultima().datos.pegatinasNuevas, [], 'con el álbum completo no hay más');
+});
+
+test('celebrar: confeti según las estrellas, destello por pegatina y fanfarria si hubo estrellas', async () => {
+    const casos = [[3, 60], [2, 36]];
+    for (const [aciertos, confeti] of casos) {
+        const { portal, vista, audio, musica } = crearConMusica();
+        portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+        jugarHastaElFinal(portal, aciertos);
+        await vaciarMicrotasks();
+        assert.ok(vista.confetis.includes(confeti), `${aciertos} aciertos → ${vista.confetis}`);
+        assert.ok(audio.efectos.includes('estrella'));
+        assert.equal(musica.fanfarrias, 1);
+    }
+    const { portal, vista, musica } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa); portal.iniciarJuego('ejemplo');
+    jugarHastaElFinal(portal, 1);
+    await vaciarMicrotasks();
+    assert.deepEqual(vista.confetis, [], '1 estrella: sin confeti');
+    assert.equal(musica.fanfarrias, 1, 'pero sí fanfarria');
+});
+
+test('álbum: la pantalla recibe lo que el niño ya tiene; sin perfil activo vuelve a «¿Quién juega?»', () => {
+    const { portal, vista, progreso } = crearConMusica();
+    portal.iniciar(); portal.crearPerfil(luisa);
+    progreso.agregarPegatina(4); progreso.agregarPegatina(9);
+    portal.irAAlbum();
+    assert.equal(vista.ultima().nombre, 'album');
+    assert.deepEqual(vista.ultima().datos.poseidas, [4, 9]);
+    assert.equal(vista.ultima().datos.perfil.apodo, 'Luisa');
+    progreso.cerrarSesion();
+    portal.irAAlbum();
+    assert.equal(vista.ultima().nombre, 'perfiles');
 });
