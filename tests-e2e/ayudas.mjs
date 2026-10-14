@@ -117,6 +117,21 @@ export async function jugarPartidaFracciones(pagina) {
 }
 
 /**
+ * Respuesta de un problema leyendo la historia como lo haría un niño (por sus palabras clave), o null si no la reconoce.
+ * Es independiente del código del juego: solo mira el texto que se ve en pantalla.
+ */
+export function respuestaDeProblema(texto) {
+    const n = (texto.match(/\d+/g) || []).map(Number);
+    if (n.length !== 2) return null;
+    const [x, y] = n;
+    if (/Le dieron \d+ más y ahora tiene/.test(texto)) return y - x;   // busca el inicio: el total (segundo número) menos lo que le dieron (el primero)
+    if (/Regaló \d+ y le quedaron/.test(texto)) return x + y;
+    if (/Le regalan|en total/.test(texto)) return x + y;
+    if (/ regala \d+\.|más tiene/.test(texto)) return x - y;
+    return null;
+}
+
+/**
  * Resuelve la pregunta de «Taller de Cálculo» que hay en pantalla como lo haría un niño que SÍ sabe: usa el material
  * si es obligatorio (fichas o saltos) y, si no, calcula la operación. En problemas (sin material) prueba los botones
  * en orden hasta acertar. Devuelve cómo se resolvió, para que las pruebas vean que el material de verdad se usó.
@@ -173,6 +188,9 @@ export async function resolverPreguntaCalculo(pagina, { fallarPrimero = false } 
             await clicOpcion(mala);
         }
         await clicOpcion(String(r));
+        via = 'calculo';
+    } else if (respuestaDeProblema(enunciado) !== null) {
+        await clicOpcion(String(respuestaDeProblema(enunciado)));
         via = 'calculo';
     } else {
         const total = await opciones.count();
