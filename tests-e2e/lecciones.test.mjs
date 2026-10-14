@@ -30,10 +30,10 @@ async function equivocarseHastaVerElBoton(pagina) {
         await pagina.waitForSelector('.fracciones-juego__enunciado:not(:empty)');
         await pagina.evaluate(() => new Promise((r) => setTimeout(r, 40)));
         if (await pagina.locator('.modal-fondo--leccion').count()) await pagina.click('.modal-fondo--leccion >> text=Saltar');
-        if (await pagina.locator('.fraccion-parte[tabindex]').count()) { // «pintar»: pintar una parte de más siempre es un error
-            await pagina.locator('.fraccion-parte').first().click();
-            await pagina.locator('.fraccion-parte').nth(1).click();
-            await pagina.locator('.fraccion-parte').nth(2).click();
+        if (await pagina.locator('.fraccion-parte[tabindex]').count()) { // «pintar»
+            // pintar TODAS las partes siempre es un error (hay que pintar menos de las que tiene la figura)
+            const partes = pagina.locator('.fraccion-parte');
+            for (let i = 0; i < await partes.count(); i++) await partes.nth(i).click();
             await pagina.click('text=Comprobar');
         } else {
             const botones = pagina.locator('.fracciones-juego__opcion');

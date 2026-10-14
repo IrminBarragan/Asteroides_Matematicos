@@ -1,6 +1,6 @@
 # Auditoría — Fase 12: música y color
 
-Verificación: `pnpm test` (594 pruebas unitarias), `pnpm test:e2e` (pruebas en Chromium real) y `pnpm build`. Plan: [`PLAN-V2.md`](PLAN-V2.md).
+Verificación: `pnpm test` (594 pruebas unitarias), `pnpm test:e2e` (42 pruebas en Chromium real) y `pnpm build`. Plan: [`PLAN-V2.md`](PLAN-V2.md).
 
 ## El problema que resuelve
 
@@ -81,3 +81,7 @@ Los niños pidieron **más música y una interfaz más colorida y animada** para
 - **Sin efecto de sonido en cada botón** (`clic` existe pero no está conectado: sería ruido con 30 equipos).
 - **La voz y la música no se mezclan con inteligencia**: la música solo baja un momento al hablar el sistema; no hay *ducking* fino.
 - **Sin accesibilidad especial para la música** más allá de su botón (`aria-pressed`) y de poder apagarla del todo.
+
+## Nota: una prueba frágil de la Fase 11
+
+La corrida completa de navegador mostró una prueba de la Fase 11 que fallaba **al azar**: para equivocarse en una pregunta de «pintar» tocaba siempre 3 partes, y si la figura tenía solo 2 no había tercera. Ahora pinta **todas** las partes (siempre es un error). Una prueba aleatoria que falla de vez en cuando es peor que ninguna: se corrigió y se repitió completa.
