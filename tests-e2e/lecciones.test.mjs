@@ -58,7 +58,8 @@ test('tras la misión, la PRIMERA vez que aparece una habilidad se muestra su in
     assert.match(await pagina.textContent('.leccion__titulo'), /^Antes de empezar: /);
     assert.match(await pagina.textContent('.leccion__contador'), /Paso 1 de \d/);
     assert.ok(await pagina.locator('text=Saltar').isVisible(), 'la introducción se puede saltar');
-    assert.equal(await pagina.locator('.fracciones-juego__opcion').first().isVisible(), true, 'el juego está detrás, no se cerró');
+    // la 1.ª pregunta puede ser de «pintar» (sin opciones): basta con que el juego siga montado detrás
+    assert.equal(await pagina.locator('.fracciones-juego__enunciado').isVisible(), true, 'el juego está detrás, no se cerró');
 
     // la leemos entera avanzando con «Siguiente»
     for (let g = 0; g < 6 && await pagina.locator('text=¡Entendido!').count() === 0; g++) await pagina.click('.modal__acciones .boton--primario');
